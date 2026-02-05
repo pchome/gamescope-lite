@@ -436,46 +436,40 @@ bool CVulkanDevice::selectPhysDev(VkSurfaceKHR surface)
 
 bool CVulkanDevice::createDevice()
 {
-	vk.GetPhysicalDeviceMemoryProperties( physDev(), &m_memoryProperties );
-
 	uint32_t supportedExtensionCount;
 	vk.EnumerateDeviceExtensionProperties( physDev(), NULL, &supportedExtensionCount, NULL );
 
-	std::vector<VkExtensionProperties> supportedExts(supportedExtensionCount);
-	vk.EnumerateDeviceExtensionProperties( physDev(), NULL, &supportedExtensionCount, supportedExts.data() );
+	m_supportedExts.resize(supportedExtensionCount);
+	vk.EnumerateDeviceExtensionProperties( physDev(), NULL, &supportedExtensionCount, m_supportedExts.data() );
 
-	bool hasDrmProps = false;
+	if ( !GetBackend()->ValidPhysicalDevice( physDev() ) ) {
+		vk_log.errorf( "not a valid physical device" );
+		return false;
+	}
+
+	vk.GetPhysicalDeviceMemoryProperties( physDev(), &m_memoryProperties );
+
+	bool hasDrmProps = vulkan_has_drm_props();
 	bool supportsForeignQueue = false;
 	bool supportsHDRMetadata = false;
-	for ( uint32_t i = 0; i < supportedExtensionCount; ++i )
-	{
-		if ( strcmp(supportedExts[i].extensionName,
-		     VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME) == 0 )
+	for (const auto& ext : m_supportedExts) {
+		if ( strcmp(ext.extensionName, VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME) == 0 )
 			m_bSupportsModifiers = true;
 
-		if ( strcmp(supportedExts[i].extensionName,
-		            VK_EXT_PHYSICAL_DEVICE_DRM_EXTENSION_NAME) == 0 )
-			hasDrmProps = true;
-
-		if ( strcmp(supportedExts[i].extensionName,
-		     VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME) == 0 )
+		if ( strcmp(ext.extensionName, VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME) == 0 )
 			supportsForeignQueue = true;
 
-		if ( strcmp(supportedExts[i].extensionName,
-			 VK_EXT_HDR_METADATA_EXTENSION_NAME) == 0 )
-			 supportsHDRMetadata = true;
+		if ( strcmp(ext.extensionName, VK_EXT_HDR_METADATA_EXTENSION_NAME) == 0 )
+			supportsHDRMetadata = true;
 	}
 
 	vk_log.infof( "physical device %s DRM format modifiers", m_bSupportsModifiers ? "supports" : "does not support" );
 
-	if ( !GetBackend()->ValidPhysicalDevice( physDev() ) )
-		return false;
-
-//#if HAVE_DRM
-	// XXX(JoshA): Move this to ValidPhysicalDevice.
-	// We need to refactor some Vulkan stuff to do that though.
-	if ( hasDrmProps )
-	{
+	if ( !hasDrmProps ) {
+		// This could happen when e.g. running the lavapipe driver
+		// (without an actual physical device)
+		vk_log.warnf( "physical device doesn't support VK_EXT_physical_device_drm" );
+	} else {
 		VkPhysicalDeviceDrmPropertiesEXT drmProps = {
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT,
 		};
@@ -485,10 +479,6 @@ bool CVulkanDevice::createDevice()
 		};
 		vk.GetPhysicalDeviceProperties2( physDev(), &props2 );
 
-		if ( !GetBackend()->UsesVulkanSwapchain() && !drmProps.hasPrimary ) {
-			vk_log.errorf( "physical device has no primary node" );
-			return false;
-		}
 		if ( !drmProps.hasRender ) {
 			vk_log.errorf( "physical device has no render node" );
 			return false;
@@ -509,17 +499,6 @@ bool CVulkanDevice::createDevice()
 			vk_log.errorf_errno( "failed to open DRM render node" );
 			return false;
 		}
-
-		if ( drmProps.hasPrimary ) {
-			m_bHasDrmPrimaryDevId = true;
-			m_drmPrimaryDevId = makedev( drmProps.primaryMajor, drmProps.primaryMinor );
-		}
-	}
-	else
-//#endif
-	{
-		vk_log.errorf( "physical device doesn't support VK_EXT_physical_device_drm" );
-		return false;
 	}
 
 	if ( m_bSupportsModifiers && !supportsForeignQueue ) {
@@ -4493,6 +4472,16 @@ std::optional<uint64_t> vulkan_composite( struct FrameInfo_t *frameInfo, gamesco
 void vulkan_wait( uint64_t ulSeqNo, bool bReset )
 {
 	return g_device.wait( ulSeqNo, bReset );
+}
+
+bool vulkan_has_drm_props()
+{
+	for (const auto& ext : g_device.supportedExtensions()) {
+		if ( strcmp(ext.extensionName, VK_EXT_PHYSICAL_DEVICE_DRM_EXTENSION_NAME) == 0 )
+			return true;
+	}
+
+	return false;
 }
 
 gamescope::Rc<CVulkanTexture> vulkan_get_last_output_image( bool partial, bool defer )
