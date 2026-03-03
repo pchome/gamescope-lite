@@ -89,6 +89,7 @@
 #include "Utils/Defer.h"
 #include "win32_styles.h"
 #include "convar.h"
+#include "Script/Script.h"
 #include "refresh_rate.h"
 #include "commit.h"
 #include "reshade_effect_manager.hpp"
