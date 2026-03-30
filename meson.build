@@ -1,5 +1,5 @@
 project(
-  'gamescope',
+  'gamescope-lite',
   'c',
   'cpp',
   meson_version: '>=0.58.0',

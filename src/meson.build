@@ -187,7 +187,7 @@ gamescope_version = configure_file(
 )
 
   executable(
-    'gamescope',
+    'gamescope-lite',
     src, reshade_src, gamescope_version,
     include_directories : [reshade_include, sol2_include],
     dependencies: [
