@@ -116,7 +116,7 @@ static const int g_nBaseCursorScale = 36;
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>
 #include <stb_image_write.h>
-#include <stb_image_resize.h>
+#include <deprecated/stb_image_resize.h>
 
 #define GPUVIS_TRACE_IMPLEMENTATION
 #include "gpuvis_trace_utils.h"
