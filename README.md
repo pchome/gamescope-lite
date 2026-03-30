@@ -1,3 +1,15 @@
+# gamescope-lite: SDL-only gamescope
+
+### Fork difference
+In progress:
+* [ ] Only SDL backend
+* [ ] Drop other backends
+* [ ] Drop HDR (I don't have hw to test this)
+* [ ] Drop scripts/reshade/pipewire/debug-utils/... (we have reshade at home)
+* [ ] Clean/unbundle deps
+
+<hr>
+
 ## gamescope: the micro-compositor formerly known as steamcompmgr
 
 In an embedded session usecase, gamescope does the same thing as steamcompmgr, but with less extra copies and latency:
