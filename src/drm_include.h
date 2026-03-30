@@ -3,7 +3,7 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 #include <drm_fourcc.h>
-#include <drm_mode.h>
+//#include <drm_mode.h> // in "hdmi.h" when HAVE_DRM=1
 
 #include "wlr_begin.hpp"
 #include <wlr/render/dmabuf.h>

@@ -2749,6 +2749,7 @@ paint_all( global_focus_t *pFocus, bool async )
 
 	update_app_target_refresh_cycle();
 
+#if HAVE_DRM
 	const bool bSupportsDynamicRefresh = pConnector && !pConnector->GetValidDynamicRefreshRates().empty();
 	if ( bSupportsDynamicRefresh )
 	{
@@ -2779,6 +2780,7 @@ paint_all( global_focus_t *pFocus, bool async )
 			GetBackend()->HackTemporarySetDynamicRefresh( nTargetRefreshHz );
 		}
 	}
+#endif
 
 	bool bDoMuraCompensation = is_mura_correction_enabled() && frameInfo.layerCount && cv_paint_mura_plane;
 	if ( bDoMuraCompensation )

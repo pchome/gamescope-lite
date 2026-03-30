@@ -10,7 +10,9 @@
 
 #if HAVE_DRM
 #include <drm_mode.h>
-#else
+#endif
+
+#if 0
 /**
  * struct hdr_metadata_infoframe - HDR Metadata Infoframe Data.
  *

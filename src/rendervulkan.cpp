@@ -466,7 +466,7 @@ bool CVulkanDevice::createDevice()
 	if ( !GetBackend()->ValidPhysicalDevice( physDev() ) )
 		return false;
 
-#if HAVE_DRM
+//#if HAVE_DRM
 	// XXX(JoshA): Move this to ValidPhysicalDevice.
 	// We need to refactor some Vulkan stuff to do that though.
 	if ( hasDrmProps )
@@ -511,7 +511,7 @@ bool CVulkanDevice::createDevice()
 		}
 	}
 	else
-#endif
+//#endif
 	{
 		vk_log.errorf( "physical device doesn't support VK_EXT_physical_device_drm" );
 		return false;

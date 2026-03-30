@@ -82,7 +82,9 @@ static LogScope wl_log("wlserver");
 
 using namespace std::literals;
 
+#if HAVE_DRM
 extern gamescope::ConVar<bool> cv_drm_debug_disable_explicit_sync;
+#endif
 
 //#define GAMESCOPE_SWAPCHAIN_DEBUG
 
@@ -423,6 +425,7 @@ static void wlserver_touch_associate_connector(struct wlserver_touch *touch)
 	//  - if its bus is USB, it can be associated to an external monitor.
 	// This isn't perfect, but we can't rely on the physical sizes reported by both devices,
 	// because it's not uncommon for touchscreens to report wildly incorrect sizes.
+#if HAVE_DRM
 	gamescope::IBackendConnector* connector = nullptr;
 	struct libinput_device *lidev = wlr_libinput_get_device_handle(&touch->wlr->base);
 	struct udev_device *dev = libinput_device_get_udev_device(lidev);
@@ -447,6 +450,7 @@ static void wlserver_touch_associate_connector(struct wlserver_touch *touch)
 			connector->GetName(), connector->GetMake(), connector->GetModel(),
 			libinput_device_get_name(lidev));
 	}
+#endif
 }
 
 static void wlserver_handle_touch_down(struct wl_listener *listener, void *data)
@@ -1094,6 +1098,7 @@ void drm_sleep_screen( gamescope::GamescopeScreenType eType, bool bSleep );
 
 static void gamescope_control_display_sleep( struct wl_client *client, struct wl_resource *resource, uint32_t display_type_flags, uint32_t flags )
 {
+#if HAVE_DRM
 	if ( flags & ( GAMESCOPE_CONTROL_DISPLAY_SLEEP_FLAGS_SLEEP | GAMESCOPE_CONTROL_DISPLAY_SLEEP_FLAGS_WAKE ) )
 	{
 		const bool sleep = !!( flags & GAMESCOPE_CONTROL_DISPLAY_SLEEP_FLAGS_SLEEP );
@@ -1103,6 +1108,7 @@ static void gamescope_control_display_sleep( struct wl_client *client, struct wl
 		if ( display_type_flags & GAMESCOPE_CONTROL_DISPLAY_TYPE_FLAGS_INTERNAL_DISPLAY )
 			drm_sleep_screen( gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL, sleep );
 	}
+#endif
 }
 
 extern gamescope::ConVar<bool> cv_overlay_unmultiplied_alpha;
@@ -1594,8 +1600,10 @@ static bool filter_global(const struct wl_client *client, const struct wl_global
 {
 	const struct wl_interface *iface = wl_global_get_interface(global);
 
+#if HAVE_DRM
 	if ( cv_drm_debug_disable_explicit_sync && iface->name == "wp_linux_drm_syncobj_manager_v1"sv )
 		return false;
+#endif
 
 	if (strcmp(iface->name, wl_output_interface.name) != 0)
 		return true;
