@@ -22,10 +22,6 @@
 
 #include "steamcompmgr_shared.hpp"
 
-#if HAVE_DRM
-#define HAVE_SESSION 1
-#endif
-
 #define WLSERVER_BUTTON_COUNT 7
 
 struct _XDisplay;
@@ -212,16 +208,6 @@ struct wlserver_pointer {
 	struct wl_listener frame;
 };
 
-struct wlserver_touch {
-	struct wlr_touch *wlr;
-	
-	struct wl_listener down;
-	struct wl_listener up;
-	struct wl_listener motion;
-
-    gamescope::IBackendConnector* connector;
-};
-
 void xwayland_surface_commit(struct wlr_surface *wlr_surface);
 
 bool wlsession_init( void );
@@ -247,10 +233,6 @@ void wlserver_mousehide();
 void wlserver_mousewarp( double x, double y, uint32_t time, bool bSynthetic );
 void wlserver_mousebutton( int button, bool press, uint32_t time );
 void wlserver_mousewheel( double x, double y, uint32_t time );
-
-void wlserver_touchmotion( double x, double y, int touch_id, uint32_t time, bool bAlwaysWarpCursor = false, gamescope::IBackendConnector* connector = nullptr );
-void wlserver_touchdown( double x, double y, int touch_id, uint32_t time, gamescope::IBackendConnector* connector = nullptr );
-void wlserver_touchup( int touch_id, uint32_t time );
 
 void wlserver_send_frame_done( struct wlr_surface *surf, const struct timespec *when );
 

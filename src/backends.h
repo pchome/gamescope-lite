@@ -6,7 +6,6 @@ namespace gamescope
     enum GamescopeBackend
     {
         Auto,
-        DRM,
         SDL,
         Headless,
         Wayland,
@@ -14,7 +13,6 @@ namespace gamescope
 
     // Backend forward declarations.
     class CSDLBackend;
-    class CDRMBackend;
     class CHeadlessBackend;
     class CWaylandBackend;
 }

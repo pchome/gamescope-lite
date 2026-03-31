@@ -130,7 +130,6 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom WMStateAtom;
 		Atom steamInputFocusAtom;
 		Atom WMChangeStateAtom;
-		Atom steamTouchClickModeAtom;
 		Atom utf8StringAtom;
 		Atom netWMNameAtom;
 		Atom netWMIcon;
@@ -229,9 +228,6 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom gamescopeColorAppHDRMetadataFeedback;
 		Atom gamescopeColorSliderInUse;
 		Atom gamescopeColorChromaticAdaptationMode;
-		Atom gamescopeColorMuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT];
-		Atom gamescopeColorMuraScale[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT];
-		Atom gamescopeColorMuraCorrectionDisabled[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT];
 
 		Atom gamescopeCreateXWaylandServer;
 		Atom gamescopeCreateXWaylandServerFeedback;

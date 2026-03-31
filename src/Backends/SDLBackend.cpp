@@ -673,16 +673,6 @@ namespace gamescope
 							wlserver_unlock();
 						}
 					}
-					else
-					{
-						wlserver_lock();
-						wlserver_touchmotion(
-							event.motion.x / float(g_nOutputWidthPts),
-							event.motion.y / float(g_nOutputHeightPts),
-							0,
-							fake_timestamp );
-						wlserver_unlock();
-					}
 				}
 				break;
 
@@ -701,30 +691,6 @@ namespace gamescope
 				{
 					wlserver_lock();
 					wlserver_mousewheel( -event.wheel.x, -event.wheel.y, fake_timestamp );
-					wlserver_unlock();
-				}
-				break;
-
-				case SDL_FINGERMOTION:
-				{
-					wlserver_lock();
-					wlserver_touchmotion( event.tfinger.x, event.tfinger.y, event.tfinger.fingerId, fake_timestamp );
-					wlserver_unlock();
-				}
-				break;
-
-				case SDL_FINGERDOWN:
-				{
-					wlserver_lock();
-					wlserver_touchdown( event.tfinger.x, event.tfinger.y, event.tfinger.fingerId, fake_timestamp );
-					wlserver_unlock();
-				}
-				break;
-
-				case SDL_FINGERUP:
-				{
-					wlserver_lock();
-					wlserver_touchup( event.tfinger.fingerId, fake_timestamp );
 					wlserver_unlock();
 				}
 				break;

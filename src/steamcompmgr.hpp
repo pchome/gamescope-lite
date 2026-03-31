@@ -36,7 +36,6 @@ static const uint32_t g_zposOverride = 1;
 static const uint32_t g_zposExternalOverlay = 2;
 static const uint32_t g_zposOverlay = 3;
 static const uint32_t g_zposCursor = 4;
-static const uint32_t g_zposMuraCorrection = 5;
 
 extern bool g_bHDRItmEnable;
 extern bool g_bForceHDRSupportDebug;
@@ -153,7 +152,5 @@ void gamescope_clear_reshade_effect();
 
 MouseCursor *steamcompmgr_get_current_cursor();
 MouseCursor *steamcompmgr_get_server_cursor(uint32_t serverId);
-
-extern gamescope::ConVar<bool> cv_tearing_enabled;
 
 extern void steamcompmgr_set_app_refresh_cycle_override( gamescope::GamescopeScreenType type, int override_fps, bool change_refresh, bool change_fps_cap );

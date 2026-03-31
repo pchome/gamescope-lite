@@ -24,10 +24,6 @@
 #include "shaders/NVIDIAImageScaling/NIS/NIS_Config.h"
 
 #include <drm_fourcc.h>
-#include "hdmi.h"
-#if HAVE_DRM
-#include "drm_include.h"
-#endif
 #include "wlr_begin.hpp"
 #include <wlr/render/drm_format_set.h>
 #include "wlr_end.hpp"
@@ -2891,17 +2887,6 @@ bool vulkan_init_formats()
 		vulkan_init_format(format, drmFormat);
 		if (format != srgbFormat)
 			vulkan_init_format(srgbFormat, drmFormat);
-	}
-
-	vk_log.infof( "supported DRM formats for sampling usage:" );
-	for ( size_t i = 0; i < sampledDRMFormats.len; i++ )
-	{
-		uint32_t fmt = sampledDRMFormats.formats[ i ].format;
-#if HAVE_DRM
-		char *name = drmGetFormatName(fmt);
-		vk_log.infof( "  %s (0x%" PRIX32 ")", name, fmt );
-		free(name);
-#endif
 	}
 
 	return true;

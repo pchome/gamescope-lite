@@ -25,9 +25,6 @@
 #include "wlr_begin.hpp"
 #include <wlr/backend.h>
 #include <wlr/backend/headless.h>
-#if HAVE_DRM
-#include <wlr/backend/libinput.h>
-#endif
 #include <wlr/backend/multi.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/render/wlr_renderer.h>
@@ -81,10 +78,6 @@
 static LogScope wl_log("wlserver");
 
 using namespace std::literals;
-
-#if HAVE_DRM
-extern gamescope::ConVar<bool> cv_drm_debug_disable_explicit_sync;
-#endif
 
 //#define GAMESCOPE_SWAPCHAIN_DEBUG
 
@@ -306,14 +299,6 @@ static void wlserver_handle_key(struct wl_listener *listener, void *data)
 	xkb_keycode_t keycode = event->keycode + 8;
 	xkb_keysym_t keysym = xkb_state_key_get_one_sym(keyboard->xkb_state, keycode);
 
-#if HAVE_SESSION
-	if (wlserver.wlr.session && event->state == WL_KEYBOARD_KEY_STATE_PRESSED && keysym >= XKB_KEY_XF86Switch_VT_1 && keysym <= XKB_KEY_XF86Switch_VT_12) {
-		unsigned vt = keysym - XKB_KEY_XF86Switch_VT_1 + 1;
-		wlr_session_change_vt(wlserver.wlr.session, vt);
-		return;
-	}
-#endif
-
 	// TODO: Remove the below hack when Steam is shipping
 	// `gamescope_action_binding_manager` in Steam Stable
 	// as it can just use a keybind to grab these always.
@@ -397,87 +382,7 @@ static void wlserver_handle_pointer_frame(struct wl_listener *listener, void *da
 	bump_input_counter();
 }
 
-static inline uint32_t TouchClickModeToLinuxButton( gamescope::TouchClickMode eTouchClickMode )
-{
-	switch ( eTouchClickMode )
-	{
-		default:
-		case gamescope::TouchClickModes::Hover:
-			return 0;
-		case gamescope::TouchClickModes::Trackpad:
-		case gamescope::TouchClickModes::Left:
-			return BTN_LEFT;
-		case gamescope::TouchClickModes::Right:
-			return BTN_RIGHT;
-		case gamescope::TouchClickModes::Middle:
-			return BTN_MIDDLE;
-	}
-}
 
-std::atomic<bool> g_bPendingTouchMovement = { false };
-
-static void wlserver_touch_associate_connector(struct wlserver_touch *touch)
-{
-	if (touch->connector != nullptr) return;
-
-	// Heuristic to associate a monitor to a touch input device:
-	//  - if a touchscreen's bus is I²C, it can very likely be associated to an internal monitor.
-	//  - if its bus is USB, it can be associated to an external monitor.
-	// This isn't perfect, but we can't rely on the physical sizes reported by both devices,
-	// because it's not uncommon for touchscreens to report wildly incorrect sizes.
-#if HAVE_DRM
-	gamescope::IBackendConnector* connector = nullptr;
-	struct libinput_device *lidev = wlr_libinput_get_device_handle(&touch->wlr->base);
-	struct udev_device *dev = libinput_device_get_udev_device(lidev);
-	auto *parent = dev;
-	while (parent) {
-		const char *subsystem = udev_device_get_subsystem(parent);
-		if (subsystem) {
-			if (strcmp( subsystem, "i2c" ) == 0) {
-				connector = GetBackend()->GetConnector(gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL);
-				break;
-			} else if (strcmp( subsystem, "usb" ) == 0) {
-				connector = GetBackend()->GetConnector(gamescope::GAMESCOPE_SCREEN_TYPE_EXTERNAL);
-				break;
-			}
-		}
-		parent = udev_device_get_parent(parent);
-	}
-	udev_device_unref(dev);
-	if (connector != nullptr) {
-		touch->connector = connector;
-		wl_log.infof("associating connector %s (%s %s) with touch input device %s",
-			connector->GetName(), connector->GetMake(), connector->GetModel(),
-			libinput_device_get_name(lidev));
-	}
-#endif
-}
-
-static void wlserver_handle_touch_down(struct wl_listener *listener, void *data)
-{
-	struct wlserver_touch *touch = wl_container_of( listener, touch, down );
-	struct wlr_touch_down_event *event = (struct wlr_touch_down_event *) data;
-
-	wlserver_touch_associate_connector( touch );
-	wlserver_touchdown( event->x, event->y, event->touch_id, event->time_msec, touch->connector );
-}
-
-static void wlserver_handle_touch_up(struct wl_listener *listener, void *data)
-{
-	struct wlserver_touch *touch = wl_container_of( listener, touch, up );
-	struct wlr_touch_up_event *event = (struct wlr_touch_up_event *) data;
-
-	wlserver_touchup( event->touch_id, event->time_msec );
-}
-
-static void wlserver_handle_touch_motion(struct wl_listener *listener, void *data)
-{
-	struct wlserver_touch *touch = wl_container_of( listener, touch, motion );
-	struct wlr_touch_motion_event *event = (struct wlr_touch_motion_event *) data;
-
-	wlserver_touch_associate_connector( touch );
-	wlserver_touchmotion( event->x, event->y, event->touch_id, event->time_msec, false, touch->connector );
-}
 
 static void wlserver_new_input(struct wl_listener *listener, void *data)
 {
@@ -518,22 +423,6 @@ static void wlserver_new_input(struct wl_listener *listener, void *data)
 			wl_signal_add( &pointer->wlr->events.axis, &pointer->axis);
 			pointer->frame.notify = wlserver_handle_pointer_frame;
 			wl_signal_add( &pointer->wlr->events.frame, &pointer->frame);
-		}
-		break;
-		case WLR_INPUT_DEVICE_TOUCH:
-		{
-			struct wlserver_touch *touch = (struct wlserver_touch *) calloc( 1, sizeof( struct wlserver_touch ) );
-
-			touch->wlr = (struct wlr_touch *)device;
-
-			touch->down.notify = wlserver_handle_touch_down;
-			wl_signal_add( &touch->wlr->events.down, &touch->down );
-			touch->up.notify = wlserver_handle_touch_up;
-			wl_signal_add( &touch->wlr->events.up, &touch->up );
-			touch->motion.notify = wlserver_handle_touch_motion;
-			wl_signal_add( &touch->wlr->events.motion, &touch->motion );
-
-			wlserver_touch_associate_connector( touch );
 		}
 		break;
 		default:
@@ -1098,17 +987,7 @@ void drm_sleep_screen( gamescope::GamescopeScreenType eType, bool bSleep );
 
 static void gamescope_control_display_sleep( struct wl_client *client, struct wl_resource *resource, uint32_t display_type_flags, uint32_t flags )
 {
-#if HAVE_DRM
-	if ( flags & ( GAMESCOPE_CONTROL_DISPLAY_SLEEP_FLAGS_SLEEP | GAMESCOPE_CONTROL_DISPLAY_SLEEP_FLAGS_WAKE ) )
-	{
-		const bool sleep = !!( flags & GAMESCOPE_CONTROL_DISPLAY_SLEEP_FLAGS_SLEEP );
-		if ( display_type_flags & GAMESCOPE_CONTROL_DISPLAY_TYPE_FLAGS_EXTERNAL_DISPLAY )
-			drm_sleep_screen( gamescope::GAMESCOPE_SCREEN_TYPE_EXTERNAL, sleep );
 
-		if ( display_type_flags & GAMESCOPE_CONTROL_DISPLAY_TYPE_FLAGS_INTERNAL_DISPLAY )
-			drm_sleep_screen( gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL, sleep );
-	}
-#endif
 }
 
 extern gamescope::ConVar<bool> cv_overlay_unmultiplied_alpha;
@@ -1296,15 +1175,7 @@ void wlserver_send_gamescope_control( wl_resource *control )
 
 	struct wl_array display_rates;
 	wl_array_init(&display_rates);
-	if ( pConn->GetValidDynamicRefreshRates().size() )
-	{
-		for ( uint32_t uRateHz : pConn->GetValidDynamicRefreshRates() )
-		{
-			uint32_t *ptr = (uint32_t *)wl_array_add( &display_rates, sizeof( uint32_t ) );
-			*ptr = uRateHz;
-		}
-	}
-	else if ( g_nOutputRefresh > 0 )
+	if ( g_nOutputRefresh > 0 )
 	{
 		uint32_t *ptr = (uint32_t *)wl_array_add( &display_rates, sizeof(uint32_t) );
 		*ptr = (uint32_t)gamescope::ConvertmHzToHz( g_nOutputRefresh );
@@ -1331,7 +1202,6 @@ static void gamescope_control_bind( struct wl_client *client, void *data, uint32
 	gamescope_control_send_feature_support( resource, GAMESCOPE_CONTROL_FEATURE_DISPLAY_INFO, 1, 0 );
 	gamescope_control_send_feature_support( resource, GAMESCOPE_CONTROL_FEATURE_PIXEL_FILTER, 1, 0 );
 	gamescope_control_send_feature_support( resource, GAMESCOPE_CONTROL_FEATURE_REFRESH_CYCLE_ONLY_CHANGE_REFRESH_RATE, 1, 0 );
-	gamescope_control_send_feature_support( resource, GAMESCOPE_CONTROL_FEATURE_MURA_CORRECTION, 1, 0 );
 	gamescope_control_send_feature_support( resource, GAMESCOPE_CONTROL_FEATURE_LOOK, 1, 0 );
 	gamescope_control_send_feature_support( resource, GAMESCOPE_CONTROL_FEATURE_PERF_QUERY, 1, 0 );
 	gamescope_control_send_feature_support( resource, GAMESCOPE_CONTROL_FEATURE_DONE, 0, 0 );
@@ -1551,19 +1421,6 @@ void wlserver_refresh_cycle( struct wlr_surface *surface, uint64_t refresh_cycle
 
 ///////////////////////
 
-#if HAVE_SESSION
-bool wlsession_active()
-{
-	return wlserver.wlr.session->active;
-}
-
-static void handle_session_active( struct wl_listener *listener, void *data )
-{
-	GetBackend()->DirtyState( wlserver.wlr.session->active, wlserver.wlr.session->active );
-	wl_log.infof( "Session %s", wlserver.wlr.session->active ? "resumed" : "paused" );
-}
-#endif
-
 static void handle_wlr_log(enum wlr_log_importance importance, const char *fmt, va_list args)
 {
 	enum LogPriority prio;
@@ -1599,11 +1456,6 @@ void wlserver_set_output_info( const wlserver_output_info *info )
 static bool filter_global(const struct wl_client *client, const struct wl_global *global, void *data)
 {
 	const struct wl_interface *iface = wl_global_get_interface(global);
-
-#if HAVE_DRM
-	if ( cv_drm_debug_disable_explicit_sync && iface->name == "wp_linux_drm_syncobj_manager_v1"sv )
-		return false;
-#endif
 
 	if (strcmp(iface->name, wl_output_interface.name) != 0)
 		return true;
@@ -1655,74 +1507,10 @@ bool wlsession_init( void ) {
 	};
 	wlserver_set_output_info( &output_info );
 
-#if HAVE_SESSION
-	if ( !GetBackend()->IsSessionBased() )
-	{
-		s_bInitted = true;
-		return true;
-	}
-
-	wlserver.wlr.session = wlr_session_create( wlserver.event_loop );
-	if ( wlserver.wlr.session == nullptr )
-	{
-		wl_log.errorf( "Failed to create session" );
-		return false;
-	}
-
-	wlserver.session_active.notify = handle_session_active;
-	wl_signal_add( &wlserver.wlr.session->events.active, &wlserver.session_active );
-#endif
-
 	s_bInitted = true;
 
 	return true;
 }
-
-#if HAVE_SESSION
-
-static void kms_device_handle_change( struct wl_listener *listener, void *data )
-{
-	GetBackend()->DirtyState();
-	wl_log.infof( "Got change event for KMS device" );
-
-	nudge_steamcompmgr();
-}
-
-int wlsession_open_kms( const char *device_name ) {
-	if ( device_name != nullptr )
-	{
-		wlserver.wlr.device = wlr_session_open_file( wlserver.wlr.session, device_name );
-		if ( wlserver.wlr.device == nullptr )
-			return -1;
-	}
-	else
-	{
-		ssize_t n = wlr_session_find_gpus( wlserver.wlr.session, 1, &wlserver.wlr.device );
-		if ( n < 0 )
-		{
-			wl_log.errorf( "Failed to list GPUs" );
-			return -1;
-		}
-		if ( n == 0 )
-		{
-			wl_log.errorf( "No GPU detected" );
-			return -1;
-		}
-	}
-
-	struct wl_listener *listener = new wl_listener();
-	listener->notify = kms_device_handle_change;
-	wl_signal_add( &wlserver.wlr.device->events.change, listener );
-
-	return wlserver.wlr.device->fd;
-}
-
-void wlsession_close_kms()
-{
-	wlr_session_close_file( wlserver.wlr.session, wlserver.wlr.device );
-}
-
-#endif
 
 gamescope_xwayland_server_t::gamescope_xwayland_server_t(wl_display *display, int nIndex)
 {
@@ -1956,18 +1744,6 @@ bool wlserver_init( void ) {
 
 	wl_signal_add( &wlserver.wlr.multi_backend->events.new_input, &new_input_listener );
 
-	if ( GetBackend()->IsSessionBased() )
-	{
-#if HAVE_DRM
-		wlserver.wlr.libinput_backend = wlr_libinput_backend_create( wlserver.wlr.session );
-		if ( wlserver.wlr.libinput_backend == NULL)
-		{
-			return false;
-		}
-		wlr_multi_backend_add( wlserver.wlr.multi_backend, wlserver.wlr.libinput_backend );
-#endif
-	}
-
 	// Create a stub wlr_keyboard only used to set the keymap
 	// We need to wait for the backend to be started before adding the device
 	struct wlr_keyboard *kbd = (struct wlr_keyboard *) calloc(1, sizeof(*kbd));
@@ -2084,7 +1860,7 @@ bool wlserver_init( void ) {
 	}
 
 	wlserver.wlr.seat = wlr_seat_create(wlserver.display, "seat0");
-	wlr_seat_set_capabilities( wlserver.wlr.seat, WL_SEAT_CAPABILITY_POINTER | WL_SEAT_CAPABILITY_KEYBOARD | WL_SEAT_CAPABILITY_TOUCH );
+	wlr_seat_set_capabilities( wlserver.wlr.seat, WL_SEAT_CAPABILITY_POINTER | WL_SEAT_CAPABILITY_KEYBOARD );
 
 	wl_log.infof("Running compositor on wayland display '%s'", wlserver.wl_display_name);
 
@@ -2809,186 +2585,6 @@ const std::shared_ptr<wlserver_vk_swapchain_feedback>& wlserver_surface_swapchai
 		return s_NullFeedback;
 
 	return wl_surf->swapchain_feedback;
-}
-
-/* Handle the orientation of the touch inputs */
-static void apply_touchscreen_orientation(GamescopePanelOrientation orientation, double *x, double *y )
-{
-	double tx = 0;
-	double ty = 0;
-
-	switch ( orientation )
-	{
-		default:
-		case GAMESCOPE_PANEL_ORIENTATION_AUTO:
-		case GAMESCOPE_PANEL_ORIENTATION_0:
-			tx = *x;
-			ty = *y;
-			break;
-		case GAMESCOPE_PANEL_ORIENTATION_90:
-			tx = 1.0 - *y;
-			ty = *x;
-			break;
-		case GAMESCOPE_PANEL_ORIENTATION_180:
-			tx = 1.0 - *x;
-			ty = 1.0 - *y;
-			break;
-		case GAMESCOPE_PANEL_ORIENTATION_270:
-			tx = *y;
-			ty = 1.0 - *x;
-			break;
-	}
-
-	*x = tx;
-	*y = ty;
-}
-
-void wlserver_touchmotion( double x, double y, int touch_id, uint32_t time, bool bAlwaysWarpCursor, gamescope::IBackendConnector* connector )
-{
-	assert( wlserver_is_lock_held() );
-
-	if ( wlserver.mouse_focus_surface != NULL )
-	{
-		double tx = x;
-		double ty = y;
-
-		apply_touchscreen_orientation((connector ? connector : GetBackend()->GetCurrentConnector())->GetCurrentOrientation(), &tx, &ty);
-
-		tx *= g_nOutputWidth;
-		ty *= g_nOutputHeight;
-		tx += focusedWindowOffsetX;
-		ty += focusedWindowOffsetY;
-		tx *= focusedWindowScaleX;
-		ty *= focusedWindowScaleY;
-
-		auto [nWidth, nHeight] = wlserver_get_cursor_bounds();
-		tx = clamp( tx, 0.0, nWidth - 0.1 );
-		ty = clamp( ty, 0.0, nHeight - 0.1 );
-
-		double trackpad_dx, trackpad_dy;
-
-		trackpad_dx = tx - wlserver.mouse_surface_cursorx;
-		trackpad_dy = ty - wlserver.mouse_surface_cursory;
-
-		gamescope::TouchClickMode eMode = GetBackend()->GetTouchClickMode();
-
-		if ( eMode == gamescope::TouchClickModes::Passthrough )
-		{
-			wlr_seat_touch_notify_motion( wlserver.wlr.seat, time, touch_id, tx, ty );
-
-			if ( bAlwaysWarpCursor )
-				wlserver_mousewarp( tx, ty, time, false );
-		}
-		else if ( eMode == gamescope::TouchClickModes::Disabled )
-		{
-			return;
-		}
-		else if ( eMode == gamescope::TouchClickModes::Trackpad )
-		{
-			wlserver_mousemotion( trackpad_dx, trackpad_dy, time );
-		}
-		else
-		{
-			g_bPendingTouchMovement = true;
-
-			wlserver_mousewarp( tx, ty, time, false );
-		}
-	}
-
-	bump_input_counter();
-}
-
-void wlserver_touchdown( double x, double y, int touch_id, uint32_t time, gamescope::IBackendConnector* connector )
-{
-	assert( wlserver_is_lock_held() );
-
-	if ( wlserver.mouse_focus_surface != NULL )
-	{
-		double tx = x;
-		double ty = y;
-
-		apply_touchscreen_orientation((connector ? connector : GetBackend()->GetCurrentConnector())->GetCurrentOrientation(), &tx, &ty);
-
-		tx *= g_nOutputWidth;
-		ty *= g_nOutputHeight;
-		tx += focusedWindowOffsetX;
-		ty += focusedWindowOffsetY;
-		tx *= focusedWindowScaleX;
-		ty *= focusedWindowScaleY;
-
-		gamescope::TouchClickMode eMode = GetBackend()->GetTouchClickMode();
-
-		if ( eMode == gamescope::TouchClickModes::Passthrough )
-		{
-			wlr_seat_touch_notify_down( wlserver.wlr.seat, wlserver.mouse_focus_surface, time, touch_id,
-										tx, ty );
-
-			wlserver.touch_down_ids.insert( touch_id );
-		}
-		else if ( eMode == gamescope::TouchClickModes::Disabled )
-		{
-			return;
-		}
-		else
-		{
-			g_bPendingTouchMovement = true;
-
-			if ( eMode != gamescope::TouchClickModes::Trackpad )
-			{
-				wlserver_mousewarp( tx, ty, time, false );
-			}
-
-			uint32_t button = TouchClickModeToLinuxButton( eMode );
-
-			if ( button != 0 && eMode < WLSERVER_BUTTON_COUNT )
-			{
-				wlr_seat_pointer_notify_button( wlserver.wlr.seat, time, button, WL_POINTER_BUTTON_STATE_PRESSED );
-				wlr_seat_pointer_notify_frame( wlserver.wlr.seat );
-
-				wlserver.button_held[ eMode ] = true;
-			}
-		}
-	}
-
-	bump_input_counter();
-}
-
-void wlserver_touchup( int touch_id, uint32_t time )
-{
-	assert( wlserver_is_lock_held() );
-
-	if ( wlserver.mouse_focus_surface != NULL )
-	{
-		bool bReleasedAny = false;
-		for ( int i = 0; i < WLSERVER_BUTTON_COUNT; i++ )
-		{
-			if ( wlserver.button_held[ i ] == true )
-			{
-				uint32_t button = TouchClickModeToLinuxButton( (gamescope::TouchClickMode) i );
-
-				if ( button != 0 )
-				{
-					wlr_seat_pointer_notify_button( wlserver.wlr.seat, time, button, WL_POINTER_BUTTON_STATE_RELEASED );
-					bReleasedAny = true;
-				}
-
-				wlserver.button_held[ i ] = false;
-			}
-		}
-
-		if ( bReleasedAny == true )
-		{
-			wlr_seat_pointer_notify_frame( wlserver.wlr.seat );
-		}
-
-		if ( wlserver.touch_down_ids.count( touch_id ) > 0 )
-		{
-			wlr_seat_touch_notify_up( wlserver.wlr.seat, time, touch_id );
-			wlserver.touch_down_ids.erase( touch_id );
-		}
-	}
-
-	bump_input_counter();
 }
 
 gamescope_xwayland_server_t *wlserver_get_xwayland_server( size_t index )

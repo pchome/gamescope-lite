@@ -10,7 +10,6 @@ dep_xres = dependency('xres')
 dep_xmu = dependency('xmu')
 dep_xi = dependency('xi')
 
-drm_dep = dependency('libdrm', version: '>= 2.4.113', required: get_option('drm_backend'))
 eis_dep = dependency('libeis-1.0', required : get_option('input_emulation'))
 
 wayland_server = dependency('wayland-server', version: '>=1.21')
@@ -19,7 +18,7 @@ xkbcommon = dependency('xkbcommon')
 thread_dep = dependency('threads')
 cap_dep = dependency('libcap', required: get_option('rt_cap'))
 epoll_dep = dependency('epoll-shim', required: false)
-sdl2_dep = dependency('SDL2', required: get_option('sdl2_backend'))
+sdl2_dep = dependency('SDL2')
 avif_dep = dependency('libavif', version: '>=1.0.0', required: get_option('avif_screenshots'))
 pixman_dep = dependency('pixman-1')
 udev_dep = dependency('libudev')
@@ -28,7 +27,7 @@ wlroots_dep = dependency(
   'wlroots-0.18',
   version: ['>= 0.18.0', '< 0.19.0'],
   fallback: 'wlroots',
-  default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=libinput', 'renderers=[]', 'allocators=[]', 'session=enabled'],
+  default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=[]', 'renderers=[]', 'allocators=[]', 'session=disabled'],
 )
 
 displayinfo_dep = dependency(
@@ -126,26 +125,12 @@ luajit_dep = dependency( 'luajit' )
 libinput_dep = dependency('libinput', required: true)
 
 gamescope_cpp_args = []
-if drm_dep.found()
-  src += 'Backends/DRMBackend.cpp'
-  src += 'modegen.cpp'
-  required_wlroots_features += 'libinput_backend'
-  liftoff_dep = dependency(
-    'libliftoff',
-    version: ['>= 0.5.0', '< 0.6.0'],
-    fallback: 'libliftoff',
-    default_options: ['default_library=static'],
-  )
-else
-  liftoff_dep = dependency('', required: false)
-endif
 
-if sdl2_dep.found()
-  src += 'Backends/SDLBackend.cpp'
-endif
 
-gamescope_cpp_args += '-DHAVE_DRM=@0@'.format(drm_dep.found().to_int())
-gamescope_cpp_args += '-DHAVE_SDL2=@0@'.format(sdl2_dep.found().to_int())
+src += 'Backends/SDLBackend.cpp'
+
+gamescope_cpp_args += '-DHAVE_DRM=0'
+gamescope_cpp_args += '-DHAVE_SDL2=1'
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(avif_dep.found().to_int())
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(cap_dep.found().to_int())
 gamescope_cpp_args += '-DHAVE_LIBEIS=@0@'.format(eis_dep.found().to_int())
@@ -188,9 +173,9 @@ gamescope_version = configure_file(
     include_directories : [reshade_include, sol2_include],
     dependencies: [
       dep_wayland, dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
-      dep_xxf86vm, dep_xres, glm_dep, drm_dep, wayland_server,
+      dep_xxf86vm, dep_xres, glm_dep, wayland_server,
       xkbcommon, thread_dep, sdl2_dep, wlroots_dep,
-      vulkan_dep, liftoff_dep, dep_xtst, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
+      vulkan_dep, dep_xtst, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
       stb_dep, displayinfo_dep, dep_xcursor, avif_dep, dep_xi,
       libdecor_dep, eis_dep, luajit_dep, libinput_dep, pixman_dep, udev_dep,
     ],

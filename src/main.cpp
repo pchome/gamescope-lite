@@ -85,15 +85,6 @@ const struct option *gamescope_options = (struct option[]){
 	{ "force-grab-cursor", no_argument, nullptr, 0 },
 	{ "display-index", required_argument, nullptr, 0 },
 
-	// embedded mode options
-	{ "disable-layers", no_argument, nullptr, 0 },
-	{ "debug-layers", no_argument, nullptr, 0 },
-	{ "prefer-output", required_argument, nullptr, 'O' },
-	{ "default-touch-mode", required_argument, nullptr, 0 },
-	{ "generate-drm-mode", required_argument, nullptr, 0 },
-	{ "immediate-flips", no_argument, nullptr, 0 },
-	{ "framerate-limit", required_argument, nullptr, 0 },
-
 	// wlserver options
 	{ "xwayland-count", required_argument, nullptr, 0 },
 
@@ -131,9 +122,6 @@ const struct option *gamescope_options = (struct option[]){
 	{ "reshade-effect", required_argument, nullptr, 0 },
 	{ "reshade-technique-idx", required_argument, nullptr, 0 },
 
-	// Steam Deck options
-	{ "mura-map", required_argument, nullptr, 0 },
-
 	{ "allow-deferred-backend", no_argument, nullptr, 0 },
 	{ "keep-alive", no_argument, nullptr, 0 },
 
@@ -160,9 +148,6 @@ const char usage[] =
 	"  -s, --mouse-sensitivity        multiply mouse movement by given decimal number\n"
 	"  --backend                      select rendering backend\n"
 	"                                     auto => autodetect (default)\n"
-#if HAVE_DRM
-	"                                     drm => use DRM backend (standalone display session)\n"
-#endif
 #if HAVE_SDL2
 	"                                     sdl => use SDL backend\n"
 #endif
@@ -189,7 +174,6 @@ const char usage[] =
 	"                                 Default: 100 nits, Max: 1000 nits\n"
 	"  --hdr-itm-target-nits          set the target luminace of the inverse tone mapping process.\n"
 	"                                 Default: 1000 nits, Max: 10000 nits\n"
-	"  --framerate-limit              Set a simple framerate limit. Used as a divisor of the refresh rate, rounds down eg 60 / 59 -> 60fps, 60 / 25 -> 30fps. Default: 0, disabled.\n"
 	"  --mangoapp                     Launch with the mangoapp (mangohud) performance overlay enabled. You should use this instead of using mangohud on the game or gamescope.\n"
 	"  --adaptive-sync                Enable adaptive sync if available (variable rate refresh)\n"
 	"\n"
@@ -201,15 +185,7 @@ const char usage[] =
 	"  --force-grab-cursor            always use relative mouse mode instead of flipping dependent on cursor visibility.\n"
 	"  --display-index                forces gamescope to use a specific display in nested mode."
 	"\n"
-	"Embedded mode options:\n"
-	"  -O, --prefer-output            list of connectors in order of preference (ex: DP-1,DP-2,DP-3,HDMI-A-1)\n"
-	"  --default-touch-mode           0: hover, 1: left, 2: right, 3: middle, 4: passthrough\n"
-	"  --generate-drm-mode            DRM mode generation algorithm (cvt, fixed)\n"
-	"  --immediate-flips              Enable immediate flips, may result in tearing\n"
-	"\n"
 	"Debug options:\n"
-	"  --disable-layers               disable libliftoff (hardware planes)\n"
-	"  --debug-layers                 debug libliftoff\n"
 	"  --debug-focus                  debug XWM focus\n"
 	"  --synchronous-x11              force X11 connection synchronization\n"
 	"  --debug-hud                    paint HUD with debug info\n"
@@ -225,9 +201,6 @@ const char usage[] =
 	"Reshade shader options:\n"
 	"  --reshade-effect               sets the name of a reshade shader to use in either /usr/share/gamescope/reshade/Shaders or ~/.local/share/gamescope/reshade/Shaders\n"
 	"  --reshade-technique-idx        sets technique idx to use from the reshade effect\n"
-	"\n"
-	"Steam Deck options:\n"
-	"  --mura-map                     Set the mura compensation map to use for the display. Takes in a path to the mura map.\n"
 	"\n"
 	"Platform options:\n"
 	"  --allow-deferred-backend       Allows initting the backend in a deferred way, if it doesn't work immediately. (Note: This has some very minor correctness compromises that you should consider wrt. your platform with modifiers, etc).\n"
@@ -271,8 +244,6 @@ GamescopeUpscaleFilter g_wantedUpscaleFilter = GamescopeUpscaleFilter::LINEAR;
 GamescopeUpscaleScaler g_wantedUpscaleScaler = GamescopeUpscaleScaler::AUTO;
 int g_upscaleFilterSharpness = 2;
 
-gamescope::GamescopeModeGeneration g_eGamescopeModeGeneration = gamescope::GAMESCOPE_MODE_GENERATE_CVT;
-
 bool g_bBorderlessOutputWindow = false;
 
 int g_nXWaylandCount = 1;
@@ -304,40 +275,7 @@ static std::string build_optstring(const struct option *options)
 	return optstring;
 }
 
-static gamescope::GamescopeModeGeneration parse_gamescope_mode_generation( const char *str )
-{
-	if ( str == "cvt"sv )
-	{
-		return gamescope::GAMESCOPE_MODE_GENERATE_CVT;
-	}
-	else if ( str == "fixed"sv )
-	{
-		return gamescope::GAMESCOPE_MODE_GENERATE_FIXED;
-	}
-	else
-	{
-		fprintf( stderr, "gamescope: invalid value for --generate-drm-mode\n" );
-		exit(1);
-	}
-}
-
 GamescopePanelOrientation g_DesiredInternalOrientation = GAMESCOPE_PANEL_ORIENTATION_AUTO;
-static GamescopePanelOrientation force_orientation(const char *str)
-{
-	if (strcmp(str, "normal") == 0) {
-		return GAMESCOPE_PANEL_ORIENTATION_0;
-	} else if (strcmp(str, "right") == 0) {
-		return GAMESCOPE_PANEL_ORIENTATION_270;
-	} else if (strcmp(str, "left") == 0) {
-		return GAMESCOPE_PANEL_ORIENTATION_90;
-	} else if (strcmp(str, "upsidedown") == 0) {
-		return GAMESCOPE_PANEL_ORIENTATION_180;
-	} else {
-		fprintf( stderr, "gamescope: invalid value for --force-orientation\n" );
-		exit(1);
-	}
-}
-
 static enum GamescopeUpscaleScaler parse_upscaler_scaler(const char *str)
 {
 	if (strcmp(str, "auto") == 0) {
@@ -378,10 +316,6 @@ static enum gamescope::GamescopeBackend parse_backend_name(const char *str)
 {
 	if (strcmp(str, "auto") == 0) {
 		return gamescope::GamescopeBackend::Auto;
-#if HAVE_DRM
-	} else if (strcmp(str, "drm") == 0) {
-		return gamescope::GamescopeBackend::DRM;
-#endif
 #if HAVE_SDL2
 	} else if (strcmp(str, "sdl") == 0) {
 		return gamescope::GamescopeBackend::SDL;
@@ -645,7 +579,6 @@ int g_nPreferredOutputWidth = 0;
 int g_nPreferredOutputHeight = 0;
 bool g_bExposeWayland = false;
 const char *g_sOutputName = nullptr;
-bool g_bDebugLayers = false;
 bool g_bForceDisableColorMgmt = false;
 bool g_bRt = false;
 
@@ -708,9 +641,6 @@ int main(int argc, char **argv)
 			case 'f':
 				g_bFullscreen = true;
 				break;
-			case 'O':
-				g_sOutputName = optarg;
-				break;
 			case 'g':
 				g_bGrabbed = true;
 				break;
@@ -730,8 +660,6 @@ int main(int argc, char **argv)
 				} else if (strcmp(opt_name, "version") == 0) {
 					// We always print the version to stderr anyway.
 					return 0;
-				} else if (strcmp(opt_name, "debug-layers") == 0) {
-					g_bDebugLayers = true;
 				} else if (strcmp(opt_name, "disable-color-management") == 0) {
 					g_bForceDisableColorMgmt = true;
 				} else if (strcmp(opt_name, "xwayland-count") == 0) {
@@ -741,12 +669,6 @@ int main(int argc, char **argv)
 					cv_composite_debug |= CompositeDebugFlag::PlaneBorders;
 				} else if (strcmp(opt_name, "hdr-debug-heatmap") == 0) {
 					cv_composite_debug |= CompositeDebugFlag::Heatmap;
-				} else if (strcmp(opt_name, "default-touch-mode") == 0) {
-					gamescope::cv_touch_click_mode = (gamescope::TouchClickMode) parse_integer( optarg, opt_name );
-				} else if (strcmp(opt_name, "generate-drm-mode") == 0) {
-					g_eGamescopeModeGeneration = parse_gamescope_mode_generation( optarg );
-				} else if (strcmp(opt_name, "force-orientation") == 0) {
-					g_DesiredInternalOrientation = force_orientation( optarg );
 				} else if (strcmp(opt_name, "sharpness") == 0 ||
 						   strcmp(opt_name, "fsr-sharpness") == 0) {
 					g_upscaleFilterSharpness = parse_integer( optarg, opt_name );
@@ -758,8 +680,6 @@ int main(int argc, char **argv)
 					sscanf( optarg, "%X:%X", &vendorID, &deviceID );
 					g_preferVendorID = vendorID;
 					g_preferDeviceID = deviceID;
-				} else if (strcmp(opt_name, "immediate-flips") == 0) {
-					cv_tearing_enabled = true;
 				} else if (strcmp(opt_name, "force-grab-cursor") == 0) {
 					g_bForceRelativeMouse = true;
 				} else if (strcmp(opt_name, "display-index") == 0) {
@@ -840,8 +760,10 @@ int main(int argc, char **argv)
 			eCurrentBackend = gamescope::GamescopeBackend::Wayland;
 		else if ( g_pOriginalDisplay != NULL )
 			eCurrentBackend = gamescope::GamescopeBackend::SDL;
-		else
-			eCurrentBackend = gamescope::GamescopeBackend::DRM;
+		else {
+			fprintf( stderr, "DISPLAY env failed\n" );
+			return 1;
+		}
 	}
 
 	if ( g_pOriginalWaylandDisplay != NULL )
@@ -867,11 +789,6 @@ int main(int argc, char **argv)
 
 	switch ( eCurrentBackend )
 	{
-#if HAVE_DRM
-		case gamescope::GamescopeBackend::DRM:
-			gamescope::IBackend::Set<gamescope::CDRMBackend>();
-			break;
-#endif
 #if HAVE_SDL2
 		case gamescope::GamescopeBackend::SDL:
 			gamescope::IBackend::Set<gamescope::CSDLBackend>();

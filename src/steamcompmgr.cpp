@@ -443,7 +443,6 @@ create_color_mgmt_luts(const gamescope_color_mgmt_t& newColorMgmt, gamescope_col
 	}
 }
 
-gamescope::ConVar<bool> cv_tearing_enabled{ "tearing_enabled", false, "Whether or not tearing is enabled." };
 int g_nSteamMaxHeight = 0;
 bool g_bVRRCapable_CachedValue = false;
 bool g_bVRRInUse_CachedValue = false;
@@ -613,98 +612,6 @@ bool set_color_mgmt_enabled( bool bEnabled )
 	return true;
 }
 
-static gamescope::OwningRc<CVulkanTexture> s_MuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT];
-static std::shared_ptr<gamescope::BackendBlob> s_MuraCTMBlob[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT];
-static float g_flMuraScale = 1.0f;
-static bool g_bMuraCompensationDisabled = false;
-
-bool is_mura_correction_enabled()
-{
-	if ( !GetBackend()->GetCurrentConnector() )
-		return false;
-
-	return s_MuraCorrectionImage[GetBackend()->GetCurrentConnector()->GetScreenType()] != nullptr && !g_bMuraCompensationDisabled;
-}
-
-void update_mura_ctm()
-{
-	s_MuraCTMBlob[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] = nullptr;
-	if (s_MuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] == nullptr)
-		return;
-
-	static constexpr float kMuraMapScale = 0.0625f;
-	static constexpr float kMuraOffset = -127.0f / 255.0f;
-
-	// Mura's influence scales non-linearly with brightness, so we have an additional scale
-	// on top of the scale factor for the underlying mura map.
-	const float flScale = g_flMuraScale * kMuraMapScale;
-	glm::mat3x4 mura_scale_offset = glm::mat3x4
-	{
-		flScale, 0,       0,       kMuraOffset * flScale,
-		0,       flScale, 0,       kMuraOffset * flScale,
-		0,       0,       0,       0, // No mura comp for blue channel.
-	};
-	s_MuraCTMBlob[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] = GetBackend()->CreateBackendBlob( mura_scale_offset );
-}
-
-bool g_bMuraDebugFullColor = false;
-
-bool set_mura_overlay( const char *path )
-{
-	xwm_log.infof("[josh mura correction] Setting mura correction image to: %s", path);
-	s_MuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] = nullptr;
-	update_mura_ctm();
-
-	std::string red_path = std::string(path) + "_red.png";
-	std::string green_path = std::string(path) + "_green.png";
-
-	int red_w, red_h, red_comp;
-	unsigned char *red_data = stbi_load(red_path.c_str(), &red_w, &red_h, &red_comp, 1);
-	int green_w, green_h, green_comp;
-	unsigned char *green_data = stbi_load(green_path.c_str(), &green_w, &green_h, &green_comp, 1);
-	if (!red_data || !green_data || red_w != green_w || red_h != green_h || red_comp != green_comp || red_comp != 1 || green_comp != 1)
-	{
-		xwm_log.infof("[josh mura correction] Couldn't load mura correction image, disabling mura correction.");
-		return true;
-	}
-
-	int w = red_w;
-	int h = red_h;
-	unsigned char *data = (unsigned char*)malloc(red_w * red_h * 4);
-
-	for (int y = 0; y < h; y++)
-	{
-		for (int x = 0; x < w; x++)
-		{
-			data[(y * w * 4) + (x * 4) + 0] = g_bMuraDebugFullColor ? 255 : red_data[y * w + x];
-			data[(y * w * 4) + (x * 4) + 1] = g_bMuraDebugFullColor ? 255 : green_data[y * w + x];
-			data[(y * w * 4) + (x * 4) + 2] = 127; // offset of 0.
-			data[(y * w * 4) + (x * 4) + 3] = 0;   // Make alpha = 0 so we act as addtive.
-		}
-	}
-	free(red_data);
-	free(green_data);
-
-	CVulkanTexture::createFlags texCreateFlags;
-	texCreateFlags.bFlippable = true;
-	texCreateFlags.bSampled = true;
-	s_MuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] = vulkan_create_texture_from_bits(w, h, w, h, DRM_FORMAT_ABGR8888, texCreateFlags, (void*)data);
-	free(data);
-
-	xwm_log.infof("[josh mura correction] Loaded new mura correction image!");
-
-	update_mura_ctm();
-
-	return true;
-}
-
-bool set_mura_scale(float new_scale)
-{
-	bool diff = g_flMuraScale != new_scale;
-	g_flMuraScale = new_scale;
-	update_mura_ctm();
-	return diff;
-}
 
 bool set_color_3dlut_override(const char *path)
 {
@@ -2422,7 +2329,6 @@ gamescope::ConVar<bool> cv_paint_override_redirect_plane{ "paint_override_redire
 gamescope::ConVar<bool> cv_paint_steam_overlay_plane{ "paint_steam_overlay_plane", true };
 gamescope::ConVar<bool> cv_paint_external_overlay_plane{ "paint_external_overlay_plane", true };
 gamescope::ConVar<bool> cv_paint_cursor_plane{ "paint_cursor_plane", true };
-gamescope::ConVar<bool> cv_paint_mura_plane{ "paint_mura_plane", true };
 
 static void
 paint_all( global_focus_t *pFocus, bool async )
@@ -2611,36 +2517,6 @@ paint_all( global_focus_t *pFocus, bool async )
 			if ( overlay == pFocus->inputFocusWindow && pFocus == GetCurrentFocus() )
 				update_touch_scaling( &frameInfo );
 		}
-		else if ( !GetBackend()->UsesVulkanSwapchain() && GetBackend()->IsSessionBased() )
-		{
-			auto tex = vulkan_get_hacky_blank_texture();
-			if ( tex != nullptr )
-			{
-				// HACK! HACK HACK HACK
-				// To avoid stutter when toggling the overlay on 
-				int curLayer = frameInfo.layerCount++;
-
-				FrameInfo_t::Layer_t *layer = &frameInfo.layers[ curLayer ];
-
-
-				layer->scale.x = g_nOutputWidth == tex->width() ? 1.0f : tex->width() / (float)g_nOutputWidth;
-				layer->scale.y = g_nOutputHeight == tex->height() ? 1.0f : tex->height() / (float)g_nOutputHeight;
-				layer->offset.x = 0.0f;
-				layer->offset.y = 0.0f;
-				layer->opacity = 1.0f; // BLAH
-				layer->zpos = g_zposOverlay;
-				layer->applyColorMgmt = g_ColorMgmt.pending.enabled;
-				layer->eAlphaBlendingMode = cv_overlay_unmultiplied_alpha ? ALPHA_BLENDING_MODE_COVERAGE : ALPHA_BLENDING_MODE_PREMULTIPLIED;
-
-				layer->colorspace = GAMESCOPE_APP_TEXTURE_COLORSPACE_LINEAR;
-				layer->hdr_metadata_blob = nullptr;
-				layer->ctm = nullptr;
-				layer->tex = tex;
-
-				layer->filter = GamescopeUpscaleFilter::NEAREST;
-				layer->blackBorder = true;
-			}
-		}
 	}
 	
 	if (notification)
@@ -2703,62 +2579,6 @@ paint_all( global_focus_t *pFocus, bool async )
 
 	update_app_target_refresh_cycle();
 
-#if HAVE_DRM
-	const bool bSupportsDynamicRefresh = pConnector && !pConnector->GetValidDynamicRefreshRates().empty();
-	if ( bSupportsDynamicRefresh )
-	{
-		auto rates = pConnector->GetValidDynamicRefreshRates();
-
-		int nDynamicRefreshHz = g_nDynamicRefreshRate[GetBackend()->GetScreenType()];
-
-		int nTargetRefreshHz = nDynamicRefreshHz && steamcompmgr_window_should_refresh_switch( pFocus->focusWindow )
-			? nDynamicRefreshHz
-			: int( rates[ rates.size() - 1 ] );
-
-		uint64_t now = get_time_in_nanos();
-
-		// The actual output hz generated by the mode, could be off by one either side, due to rounding.
-		//
-		// Check what we cached for the current dynamic refresh Hz we put in -- otherwise, convert
-		// g_nOutputRefresh -> Hz rounded.
-		int32_t nCurrentDynamicOutputHz = g_nDynamicRefreshHz
-			? g_nDynamicRefreshHz
-			: gamescope::ConvertmHzToHz( g_nOutputRefresh );
-
-		if ( nCurrentDynamicOutputHz == nTargetRefreshHz )
-		{
-			g_uDynamicRefreshEqualityTime = now;
-		}
-		else if ( g_uDynamicRefreshEqualityTime + g_uDynamicRefreshDelay < now )
-		{
-			GetBackend()->HackTemporarySetDynamicRefresh( nTargetRefreshHz );
-		}
-	}
-#endif
-
-	bool bDoMuraCompensation = is_mura_correction_enabled() && frameInfo.layerCount && cv_paint_mura_plane;
-	if ( bDoMuraCompensation )
-	{
-		auto& MuraCorrectionImage = s_MuraCorrectionImage[GetBackend()->GetScreenType()];
-		int curLayer = frameInfo.layerCount++;
-
-		FrameInfo_t::Layer_t *layer = &frameInfo.layers[ curLayer ];
-
-		layer->applyColorMgmt = false;
-		layer->scale = vec2_t{ 1.0f, 1.0f };
-		layer->blackBorder = true;
-		layer->colorspace = GAMESCOPE_APP_TEXTURE_COLORSPACE_PASSTHRU;
-		layer->hdr_metadata_blob = nullptr;
-		layer->opacity = 1.0f;
-		layer->zpos = g_zposMuraCorrection;
-		layer->filter = GamescopeUpscaleFilter::NEAREST;
-		layer->tex = MuraCorrectionImage;
-		layer->ctm = s_MuraCTMBlob[GetBackend()->GetScreenType()];
-
-		// Blending needs to be done in Gamma 2.2 space for mura correction to work.
-		frameInfo.applyOutputColorMgmt = false;
-	}
-
 	for (uint32_t i = 0; i < EOTF_Count; i++)
 	{
 		if ( g_ColorMgmtLuts[i].HasLuts() )
@@ -2819,21 +2639,6 @@ paint_all( global_focus_t *pFocus, bool async )
 						{
 							frameInfo.layerCount = i;
 							break;
-						}
-					}
-				}
-				else
-				{
-					if ( is_mura_correction_enabled() )
-					{
-						// Remove the last layer which is for mura...
-						for (int i = 0; i < frameInfo.layerCount; i++)
-						{
-							if (frameInfo.layers[i].zpos >= (int)g_zposMuraCorrection)
-							{
-								frameInfo.layerCount = i;
-								break;
-							}
 						}
 					}
 				}
@@ -4314,19 +4119,6 @@ determine_and_apply_focus( global_focus_t *pFocus )
 		}
 	}
 
-	// Some games such as Disgaea PC (405900) don't take controller input until
-	// the window is first clicked on despite it having focus.
-	if ( pFocus->inputFocusWindow && pFocus->inputFocusWindow->appID == 405900 )
-	{
-		auto now = get_time_in_milliseconds();
-
-		wlserver_lock();
-		wlserver_touchdown( 0.5, 0.5, 0, now );
-		wlserver_touchup( 0, now + 1 );
-		wlserver_mousehide();
-		wlserver_unlock();
-	}
-
 	pFocus->ulCurrentFocusSerial = GetFocusSerial();
 }
 
@@ -5708,10 +5500,6 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 			MakeFocusDirty();
 		}
 	}
-	if (ev->atom == ctx->atoms.steamTouchClickModeAtom )
-	{
-		gamescope::cv_touch_click_mode = (gamescope::TouchClickMode) get_prop(ctx, ctx->root, ctx->atoms.steamTouchClickModeAtom, 0u );
-	}
 	if (ev->atom == ctx->atoms.steamStreamingClientAtom)
 	{
 		steamcompmgr_win_t * w = find_win(ctx, ev->window);
@@ -6053,10 +5841,6 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 
 		hasRepaint = true;
 	}
-	if ( ev->atom == ctx->atoms.gamescopeAllowTearing )
-	{
-		cv_tearing_enabled = !!get_prop( ctx, ctx->root, ctx->atoms.gamescopeAllowTearing, 0 );
-	}
 	if ( ev->atom == ctx->atoms.gamescopeSteamMaxHeight )
 	{
 		g_nSteamMaxHeight = get_prop( ctx, ctx->root, ctx->atoms.gamescopeSteamMaxHeight, 0 );
@@ -6290,30 +6074,6 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 		uint32_t val = get_prop(ctx, ctx->root, ctx->atoms.gamescopeColorChromaticAdaptationMode, 0);
 		g_ColorMgmt.pending.chromaticAdaptationMode = ( EChromaticAdaptationMethod ) val;
 	}
-	// TODO: Hook up gamescopeColorMuraCorrectionImage for external.
-	if ( ev->atom == ctx->atoms.gamescopeColorMuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] )
-	{
-		std::string path = get_string_prop( ctx, ctx->root, ctx->atoms.gamescopeColorMuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] );
-		if ( set_mura_overlay( path.c_str() ) )
-			hasRepaint = true;
-	}
-	// TODO: Hook up gamescopeColorMuraScale for external.
-	if ( ev->atom == ctx->atoms.gamescopeColorMuraScale[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] )
-	{
-		uint32_t val = get_prop(ctx, ctx->root, ctx->atoms.gamescopeColorMuraScale[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL], 0);
-		float new_scale = bit_cast<float>(val);
-		if ( set_mura_scale( new_scale ) )
-			hasRepaint = true;
-	}
-	// TODO: Hook up gamescopeColorMuraCorrectionDisabled for external.
-	if ( ev->atom == ctx->atoms.gamescopeColorMuraCorrectionDisabled[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] )
-	{
-		bool disabled = !!get_prop(ctx, ctx->root, ctx->atoms.gamescopeColorMuraCorrectionDisabled[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL], 0);
-		if ( g_bMuraCompensationDisabled != disabled ) {
-			g_bMuraCompensationDisabled = disabled;
-			hasRepaint = true;
-		}
-	}
 	if (ev->atom == ctx->atoms.gamescopeCreateXWaylandServer)
 	{
 		uint32_t identifier = get_prop(ctx, ctx->root, ctx->atoms.gamescopeCreateXWaylandServer, 0);
@@ -6478,11 +6238,6 @@ steamcompmgr_exit(void)
 		g_ColorMgmt.current.appHDRMetadata = nullptr;
 
 		s_scRGB709To2020Matrix = nullptr;
-		for (int i = 0; i < gamescope::GAMESCOPE_SCREEN_TYPE_COUNT; i++)
-		{
-			s_MuraCorrectionImage[i] = nullptr;
-			s_MuraCTMBlob[i] = nullptr;
-		}
 	}
 
 	g_VirtualConnectorFocuses.clear();
@@ -7528,7 +7283,6 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 	/* get atoms */
 	ctx->atoms.steamAtom = XInternAtom(ctx->dpy, STEAM_PROP, false);
 	ctx->atoms.steamInputFocusAtom = XInternAtom(ctx->dpy, "STEAM_INPUT_FOCUS", false);
-	ctx->atoms.steamTouchClickModeAtom = XInternAtom(ctx->dpy, "STEAM_TOUCH_CLICK_MODE", false);
 	ctx->atoms.gameAtom = XInternAtom(ctx->dpy, GAME_PROP, false);
 	ctx->atoms.overlayAtom = XInternAtom(ctx->dpy, OVERLAY_PROP, false);
 	ctx->atoms.externalOverlayAtom = XInternAtom(ctx->dpy, EXTERNAL_OVERLAY_PROP, false);
@@ -7653,13 +7407,7 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 	ctx->atoms.gamescopeColorAppHDRMetadataFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_APP_HDR_METADATA_FEEDBACK", false );
 	ctx->atoms.gamescopeColorSliderInUse = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_MANAGEMENT_CHANGING_HINT", false );
 	ctx->atoms.gamescopeColorChromaticAdaptationMode = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_CHROMATIC_ADAPTATION_MODE", false );
-	ctx->atoms.gamescopeColorMuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_MURA_CORRECTION_IMAGE", false );
-	ctx->atoms.gamescopeColorMuraCorrectionImage[gamescope::GAMESCOPE_SCREEN_TYPE_EXTERNAL] = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_MURA_CORRECTION_IMAGE_EXTERNAL", false );
-	ctx->atoms.gamescopeColorMuraScale[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_MURA_SCALE", false );
-	ctx->atoms.gamescopeColorMuraScale[gamescope::GAMESCOPE_SCREEN_TYPE_EXTERNAL] = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_MURA_SCALE_EXTERNAL", false );
-	ctx->atoms.gamescopeColorMuraCorrectionDisabled[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_MURA_CORRECTION_DISABLED", false );
-	ctx->atoms.gamescopeColorMuraCorrectionDisabled[gamescope::GAMESCOPE_SCREEN_TYPE_EXTERNAL] = XInternAtom( ctx->dpy, "GAMESCOPE_COLOR_MURA_CORRECTION_DISABLED_EXTERNAL", false );
-
+	
 	ctx->atoms.gamescopeCreateXWaylandServer = XInternAtom( ctx->dpy, "GAMESCOPE_CREATE_XWAYLAND_SERVER", false );
 	ctx->atoms.gamescopeCreateXWaylandServerFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_CREATE_XWAYLAND_SERVER_FEEDBACK", false );
 	ctx->atoms.gamescopeDestroyXWaylandServer = XInternAtom( ctx->dpy, "GAMESCOPE_DESTROY_XWAYLAND_SERVER", false );
@@ -8113,8 +7861,6 @@ steamcompmgr_main(int argc, char **argv)
 					g_reshade_effect = optarg;
 				} else if (strcmp(opt_name, "reshade-technique-idx") == 0) {
 					g_reshade_technique_idx = atoi(optarg);
-				} else if (strcmp(opt_name, "mura-map") == 0) {
-					set_mura_overlay(optarg);
 				}
 				break;
 			case '?':
@@ -8761,7 +8507,7 @@ steamcompmgr_main(int argc, char **argv)
 			// for composition to finish before submitting.
 			// If we want to do async + composite, we should set up syncfile stuff and have DRM wait on it.
 			const bool bSurfaceWantsAsync = (g_HeldCommits[HELD_COMMIT_BASE] != nullptr && g_HeldCommits[HELD_COMMIT_BASE]->async);
-			const bool bTearing = cv_tearing_enabled && GetBackend()->SupportsTearing() && bSurfaceWantsAsync;
+			const bool bTearing = GetBackend()->SupportsTearing() && bSurfaceWantsAsync;
 
 			enum class FlipType
 			{
