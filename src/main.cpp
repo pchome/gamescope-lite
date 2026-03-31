@@ -94,26 +94,6 @@ const struct option *gamescope_options = (struct option[]){
 	{ "immediate-flips", no_argument, nullptr, 0 },
 	{ "framerate-limit", required_argument, nullptr, 0 },
 
-	// openvr options
-#if HAVE_OPENVR
-	{ "vr-overlay-key", required_argument, nullptr, 0 },
-	{ "vr-app-overlay-key", required_argument, nullptr, 0 },
-	{ "vr-overlay-explicit-name", required_argument, nullptr, 0 },
-	{ "vr-overlay-default-name", required_argument, nullptr, 0 },
-	{ "vr-overlay-icon", required_argument, nullptr, 0 },
-	{ "vr-overlay-show-immediately", no_argument, nullptr, 0 },
-	{ "vr-overlay-enable-control-bar", no_argument, nullptr, 0 },
-	{ "vr-overlay-enable-control-bar-keyboard", no_argument, nullptr, 0 },
-	{ "vr-overlay-enable-control-bar-close", no_argument, nullptr, 0 },
-	{ "vr-overlay-enable-click-stabilization", no_argument, nullptr, 0 },
-	{ "vr-overlay-modal", no_argument, nullptr, 0 },
-	{ "vr-overlay-physical-width", required_argument, nullptr, 0 },
-	{ "vr-overlay-physical-curvature", required_argument, nullptr, 0 },
-	{ "vr-overlay-physical-pre-curve-pitch", required_argument, nullptr, 0 },
-	{ "vr-scroll-speed", required_argument, nullptr, 0 },
-	{ "vr-session-manager", no_argument, nullptr, 0 },
-#endif
-
 	// wlserver options
 	{ "xwayland-count", required_argument, nullptr, 0 },
 
@@ -186,9 +166,6 @@ const char usage[] =
 #if HAVE_SDL2
 	"                                     sdl => use SDL backend\n"
 #endif
-#if HAVE_OPENVR
-	"                                     openvr => use OpenVR backend (outputs as a VR overlay)\n"
-#endif
 	"                                     headless => use headless backend (no window, no DRM output)\n"
 	"                                     wayland => use Wayland backend\n"
 	"  --cursor                       path to default cursor image\n"
@@ -230,25 +207,6 @@ const char usage[] =
 	"  --generate-drm-mode            DRM mode generation algorithm (cvt, fixed)\n"
 	"  --immediate-flips              Enable immediate flips, may result in tearing\n"
 	"\n"
-#if HAVE_OPENVR
-	"VR mode options:\n"
-	"  --vr-overlay-key                         Sets the SteamVR overlay key to this string\n"
-	"  --vr-app-overlay-key						Sets the SteamVR overlay key to use for child apps\n"
-	"  --vr-overlay-explicit-name               Force the SteamVR overlay name to always be this string\n"
-	"  --vr-overlay-default-name                Sets the fallback SteamVR overlay name when there is no window title\n"
-	"  --vr-overlay-icon                        Sets the SteamVR overlay icon to this file\n"
-	"  --vr-overlay-show-immediately            Makes our VR overlay take focus immediately\n"
-	"  --vr-overlay-enable-control-bar          Enables the SteamVR control bar\n"
-	"  --vr-overlay-enable-control-bar-keyboard Enables the SteamVR keyboard button on the control bar\n"
-	"  --vr-overlay-enable-control-bar-close    Enables the SteamVR close button on the control bar\n"
-	"  --vr-overlay-enable-click-stabilization  Enables the SteamVR click stabilization\n"
-	"  --vr-overlay-modal                       Makes our VR overlay appear as a modal\n"
-	"  --vr-overlay-physical-width              Sets the physical width of our VR overlay in metres\n"
-	"  --vr-overlay-physical-curvature          Sets the curvature of our VR overlay\n"
-	"  --vr-overlay-physical-pre-curve-pitch    Sets the pre-curve pitch of our VR overlay\n"
-	"  --vr-scrolls-speed                       Mouse scrolling speed of trackpad scroll in VR. Default: 8.0\n"
-	"\n"
-#endif
 	"Debug options:\n"
 	"  --disable-layers               disable libliftoff (hardware planes)\n"
 	"  --debug-layers                 debug libliftoff\n"
@@ -427,10 +385,6 @@ static enum gamescope::GamescopeBackend parse_backend_name(const char *str)
 #if HAVE_SDL2
 	} else if (strcmp(str, "sdl") == 0) {
 		return gamescope::GamescopeBackend::SDL;
-#endif
-#if HAVE_OPENVR
-	} else if (strcmp(str, "openvr") == 0) {
-		return gamescope::GamescopeBackend::OpenVR;
 #endif
 	} else if (strcmp(str, "headless") == 0) {
 		return gamescope::GamescopeBackend::Headless;
@@ -921,11 +875,6 @@ int main(int argc, char **argv)
 #if HAVE_SDL2
 		case gamescope::GamescopeBackend::SDL:
 			gamescope::IBackend::Set<gamescope::CSDLBackend>();
-			break;
-#endif
-#if HAVE_OPENVR
-		case gamescope::GamescopeBackend::OpenVR:
-			gamescope::IBackend::Set<gamescope::COpenVRBackend>();
 			break;
 #endif
 		case gamescope::GamescopeBackend::Headless:

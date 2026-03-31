@@ -53,27 +53,8 @@ vulkan_dep = dependency('vulkan')
 glm_dep = dependency('glm')
 stb_dep = dependency('stb')
 
-if get_option('enable_openvr_support')
-  openvr_dep = dependency('openvr', version: '>= 2.7', required : false)
-  if not openvr_dep.found()
-    cmake = import('cmake')
-    openvr_var = cmake.subproject_options()
-    openvr_var.add_cmake_defines({'USE_LIBCXX': false,
-    #HACK: remove me when openvr supports CMake 4.0
-    'CMAKE_POLICY_VERSION_MINIMUM': '3.5'})
-    #ENDHACK
-    openvr_var.set_override_option('warning_level', '0')
-    openvr_proj = cmake.subproject('openvr', options : openvr_var)
-    openvr_dep = openvr_proj.dependency('openvr_api')
-  endif
-else
-  # null dep
-  openvr_dep = dependency('', required : false)
-endif
-
 add_project_arguments(
   '-DHAVE_PIPEWIRE=@0@'.format(pipewire_dep.found().to_int()),
-  '-DHAVE_OPENVR=@0@'.format(openvr_dep.found().to_int()),
   '-DSCRIPT_DIR="@0@"'.format(prefix / data_dir / 'gamescope/scripts'),
   language: 'cpp',
 )

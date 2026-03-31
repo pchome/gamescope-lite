@@ -159,10 +159,6 @@ if pipewire_dep.found()
   src += 'pipewire.cpp'
 endif
 
-if openvr_dep.found()
-  src += 'Backends/OpenVRBackend.cpp'
-endif
-
 foreach feat : required_wlroots_features
   if wlroots_dep.get_variable('have_' + feat) != 'true'
     error('Cannot use wlroots built without ' + feat + ' support')
@@ -195,7 +191,7 @@ gamescope_version = configure_file(
       dep_xxf86vm, dep_xres, glm_dep, drm_dep, wayland_server,
       xkbcommon, thread_dep, sdl2_dep, wlroots_dep,
       vulkan_dep, liftoff_dep, dep_xtst, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
-      stb_dep, displayinfo_dep, openvr_dep, dep_xcursor, avif_dep, dep_xi,
+      stb_dep, displayinfo_dep, dep_xcursor, avif_dep, dep_xi,
       libdecor_dep, eis_dep, luajit_dep, libinput_dep, pixman_dep, udev_dep,
     ],
     install: true,
