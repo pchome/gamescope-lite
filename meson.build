@@ -55,7 +55,6 @@ stb_dep = dependency('stb')
 
 add_project_arguments(
   '-DHAVE_PIPEWIRE=@0@'.format(pipewire_dep.found().to_int()),
-  '-DSCRIPT_DIR="@0@"'.format(prefix / data_dir / 'gamescope/scripts'),
   language: 'cpp',
 )
 
@@ -77,9 +76,3 @@ endif
 subdir('protocol')
 subdir('src')
 
-# Handle default script/config/looks stuff
-meson.add_install_script('default_extras_install.sh')
-
-devenv = environment()
-devenv.set('GAMESCOPE_SCRIPT_PATH', join_paths(meson.current_source_dir(), 'scripts'))
-meson.add_devenv(devenv)

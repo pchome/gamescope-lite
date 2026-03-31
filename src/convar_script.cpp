@@ -44,9 +44,5 @@ namespace gamescope
     {
         CScriptScopedLock().Manager().Gamescope().Convars.Base[name] = cmd;
     }
-#else
-    void ConCommand::RegisterScript( std::string_view, ConCommand * )
-    {
-    }
 #endif
 }

@@ -91,7 +91,6 @@ src = [
   'Utils/TempFiles.cpp',
   'Utils/Version.cpp',
   'Utils/Process.cpp',
-  'Script/Script.cpp',
   'BufferMemo.cpp',
   'steamcompmgr.cpp',
   'convar.cpp',
@@ -113,7 +112,7 @@ src = [
   'LibInputHandler.cpp',
 ]
 
-luajit_dep = dependency( 'luajit' )
+luajit_dep = dependency('luajit', required: get_option('scripting'))
 libinput_dep = dependency('libinput', required: true)
 
 gamescope_cpp_args = []
@@ -121,10 +120,22 @@ gamescope_cpp_args = []
 
 src += 'Backends/SDLBackend.cpp'
 
+if luajit_dep.found()
+  src += 'Script/Script.cpp'
+  gamescope_cpp_args += '-DSCRIPT_DIR="@0@"'.format(prefix / data_dir / 'gamescope/scripts')
+
+  # Handle default script/config/looks stuff
+  meson.add_install_script('default_extras_install.sh')
+
+  devenv = environment()
+  devenv.set('GAMESCOPE_SCRIPT_PATH', join_paths(meson.current_source_dir(), 'scripts'))
+  meson.add_devenv(devenv)
+endif
+
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(avif_dep.found().to_int())
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(cap_dep.found().to_int())
 gamescope_cpp_args += '-DHAVE_LIBEIS=@0@'.format(eis_dep.found().to_int())
-gamescope_cpp_args += '-DHAVE_SCRIPTING=1'
+gamescope_cpp_args += '-DHAVE_SCRIPTING=@0@'.format(luajit_dep.found().to_int())
 
 src += spirv_shaders
 src += protocols_server_src
