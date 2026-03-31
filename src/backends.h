@@ -8,11 +8,9 @@ namespace gamescope
         Auto,
         SDL,
         Headless,
-        Wayland,
     };
 
     // Backend forward declarations.
     class CSDLBackend;
     class CHeadlessBackend;
-    class CWaylandBackend;
 }

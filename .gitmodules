@@ -1,9 +1,6 @@
 [submodule "subprojects/wlroots"]
 	path = subprojects/wlroots
 	url = https://github.com/Joshua-Ashton/wlroots.git
-[submodule "subprojects/libdisplay-info"]
-	path = subprojects/libdisplay-info
-	url = https://gitlab.freedesktop.org/emersion/libdisplay-info
 [submodule "src/reshade"]
 	path = src/reshade
 	url = https://github.com/Joshua-Ashton/reshade

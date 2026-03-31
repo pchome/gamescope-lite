@@ -30,13 +30,6 @@ wlroots_dep = dependency(
   default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=libinput', 'renderers=[]', 'allocators=[]', 'session=enabled'],
 )
 
-displayinfo_dep = dependency(
-  'libdisplay-info',
-  version: ['>= 0.0.0', '< 0.4.0'],
-  fallback: 'libdisplay-info',
-  default_options: ['default_library=static'],
-)
-
 libdecor_dep = dependency('libdecor-0')
 
 glsl_compiler = find_program('glslang', 'glslangValidator', native: true)
@@ -95,7 +88,6 @@ required_wlroots_features = ['xwayland']
 
 src = [
   'Backends/HeadlessBackend.cpp',
-  'Backends/WaylandBackend.cpp',
   'Utils/TempFiles.cpp',
   'Utils/Version.cpp',
   'Utils/Process.cpp',
@@ -106,7 +98,6 @@ src = [
   'commit.cpp',
   'color_helpers.cpp',
   'main.cpp',
-  'edid.cpp',
   'wlserver.cpp',
   'vblankmanager.cpp',
   'rendervulkan.cpp',
@@ -129,8 +120,6 @@ gamescope_cpp_args = []
 
 src += 'Backends/SDLBackend.cpp'
 
-gamescope_cpp_args += '-DHAVE_DRM=0'
-gamescope_cpp_args += '-DHAVE_SDL2=1'
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(avif_dep.found().to_int())
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(cap_dep.found().to_int())
 gamescope_cpp_args += '-DHAVE_LIBEIS=@0@'.format(eis_dep.found().to_int())
@@ -176,7 +165,7 @@ gamescope_version = configure_file(
       dep_xxf86vm, dep_xres, glm_dep, wayland_server,
       xkbcommon, thread_dep, sdl2_dep, wlroots_dep,
       vulkan_dep, dep_xtst, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
-      stb_dep, displayinfo_dep, dep_xcursor, avif_dep, dep_xi,
+      stb_dep, dep_xcursor, avif_dep, dep_xi,
       libdecor_dep, eis_dep, luajit_dep, libinput_dep, pixman_dep, udev_dep,
     ],
     install: true,

@@ -49,7 +49,6 @@ extern gamescope::ConVar<bool> cv_shutdown_on_primary_child_death;
 
 const char *gamescope_optstring = nullptr;
 const char *g_pOriginalDisplay = nullptr;
-const char *g_pOriginalWaylandDisplay = nullptr;
 
 bool g_bAllowDeferredBackend = false;
 
@@ -148,11 +147,8 @@ const char usage[] =
 	"  -s, --mouse-sensitivity        multiply mouse movement by given decimal number\n"
 	"  --backend                      select rendering backend\n"
 	"                                     auto => autodetect (default)\n"
-#if HAVE_SDL2
 	"                                     sdl => use SDL backend\n"
-#endif
 	"                                     headless => use headless backend (no window, no DRM output)\n"
-	"                                     wayland => use Wayland backend\n"
 	"  --cursor                       path to default cursor image\n"
 	"  -R, --ready-fd                 notify FD when ready\n"
 	"  --rt                           Use realtime scheduling\n"
@@ -316,14 +312,10 @@ static enum gamescope::GamescopeBackend parse_backend_name(const char *str)
 {
 	if (strcmp(str, "auto") == 0) {
 		return gamescope::GamescopeBackend::Auto;
-#if HAVE_SDL2
 	} else if (strcmp(str, "sdl") == 0) {
 		return gamescope::GamescopeBackend::SDL;
-#endif
 	} else if (strcmp(str, "headless") == 0) {
 		return gamescope::GamescopeBackend::Headless;
-	} else if (strcmp(str, "wayland") == 0) {
-		return gamescope::GamescopeBackend::Wayland;
 	} else {
 		fprintf( stderr, "gamescope: invalid value for --backend\n" );
 		exit(1);
@@ -425,26 +417,6 @@ static constexpr wl_registry_listener s_registryListener = {
     },
 };
 
-static bool CheckWaylandPresentationTime()
-{
-	wl_display *display = wl_display_connect(g_pOriginalWaylandDisplay);
-	if (!display) {
-		fprintf(stderr, "Failed to connect to wayland socket: %s.\n", g_pOriginalWaylandDisplay);
-        exit(1);
-        return false;
-	}
-	wl_registry *registry = wl_display_get_registry(display);
-
-    wl_registry_add_listener(registry, &s_registryListener, nullptr);
-
-	wl_display_dispatch(display);
-	wl_display_roundtrip(display);
-
-	wl_registry_destroy(registry);
-	wl_display_disconnect(display);
-
-    return g_bSupportsWaylandPresentationTime;
-}
 
 #if 0
 static bool IsInDebugSession()
@@ -752,13 +724,10 @@ int main(int argc, char **argv)
 	g_mainThread = pthread_self();
 
 	g_pOriginalDisplay = getenv("DISPLAY");
-	g_pOriginalWaylandDisplay = getenv("WAYLAND_DISPLAY");
 
 	if ( eCurrentBackend == gamescope::GamescopeBackend::Auto )
 	{
-		if ( g_pOriginalWaylandDisplay != NULL )
-			eCurrentBackend = gamescope::GamescopeBackend::Wayland;
-		else if ( g_pOriginalDisplay != NULL )
+		if ( g_pOriginalDisplay != NULL )
 			eCurrentBackend = gamescope::GamescopeBackend::SDL;
 		else {
 			fprintf( stderr, "DISPLAY env failed\n" );
@@ -766,44 +735,18 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if ( g_pOriginalWaylandDisplay != NULL )
-	{
-        if (CheckWaylandPresentationTime())
-        {
-            // Default to SDL_VIDEODRIVER wayland under Wayland and force enable vk_khr_present_wait
-            // (not enabled by default in Mesa because instance does not know if Wayland
-            //  compositor supports wp_presentation, but we can check that ourselves.)
-            setenv("vk_khr_present_wait", "true", 0);
-            setenv("SDL_VIDEODRIVER", "wayland", 0);
-        }
-        else
-        {
-            fprintf(stderr,
-                "Your Wayland compositor does NOT support wp_presentation/presentation-time which is required for VK_KHR_present_wait and VK_KHR_present_id.\n"
-                "Please complain to your compositor vendor for support. Falling back to X11 window with less accurate present wait.\n");
-            setenv("SDL_VIDEODRIVER", "x11", 1);
-        }
-	}
-
 	g_ForcedNV12ColorSpace = parse_colorspace_string( getenv( "GAMESCOPE_NV12_COLORSPACE" ) );
 
 	switch ( eCurrentBackend )
 	{
-#if HAVE_SDL2
 		case gamescope::GamescopeBackend::SDL:
 			gamescope::IBackend::Set<gamescope::CSDLBackend>();
 			break;
-#endif
 		case gamescope::GamescopeBackend::Headless:
 			gamescope::IBackend::Set<gamescope::CHeadlessBackend>();
 			break;
-
-		case gamescope::GamescopeBackend::Wayland:
-			gamescope::IBackend::Set<gamescope::CWaylandBackend>();
-#if HAVE_SDL2
 			if ( !GetBackend() )
 				gamescope::IBackend::Set<gamescope::CSDLBackend>();
-#endif
 			break;
 		default:
 			abort();

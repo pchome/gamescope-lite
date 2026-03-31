@@ -88,8 +88,6 @@
 #include "log.hpp"
 #include "Utils/Defer.h"
 #include "win32_styles.h"
-#include "edid.h"
-#include "hdmi.h"
 #include "convar.h"
 #include "refresh_rate.h"
 #include "commit.h"
@@ -7667,27 +7665,6 @@ void steamcompmgr_check_xdg(bool vblank, uint64_t vblank_idx)
 	check_new_xdg_res();
 }
 
-void update_edid_prop()
-{
-	const char *filename = gamescope::GetPatchedEdidPath();
-	if (!filename)
-		return;
-
-	gamescope_xwayland_server_t *server = NULL;
-	for (size_t i = 0; (server = wlserver_get_xwayland_server(i)); i++)
-	{
-		XTextProperty text_property =
-		{
-			.value = (unsigned char *)filename,
-			.encoding = server->ctx->atoms.utf8StringAtom,
-			.format = 8,
-			.nitems = strlen(filename),
-		};
-
-		XSetTextProperty( server->ctx->dpy, server->ctx->root, &text_property, server->ctx->atoms.gamescopeDisplayEdidPath );
-	}
-}
-
 extern bool g_bLaunchMangoapp;
 
 extern void ShutdownGamescope();
@@ -7972,8 +7949,6 @@ steamcompmgr_main(int argc, char **argv)
 
 	if ( !GetBackend()->PostInit() )
 		return;
-
-	update_edid_prop();
 
 	update_screenshot_color_mgmt();
 
