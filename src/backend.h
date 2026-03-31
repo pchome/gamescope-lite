@@ -95,6 +95,21 @@ namespace gamescope
         Mouse,
     };
 
+    namespace TouchClickModes
+    {
+        enum TouchClickMode : uint32_t
+        {
+            Hover,
+            Left,
+            Right,
+            Middle,
+            Passthrough,
+            Disabled,
+            Trackpad,
+        };
+    }
+    using TouchClickMode = TouchClickModes::TouchClickMode;
+
     struct BackendConnectorHDRInfo
     {
         // We still want to set up HDR info for Steam Deck LCD with some good
@@ -363,6 +378,8 @@ namespace gamescope
 
         virtual bool NeedsFrameSync() const = 0;
 
+        virtual TouchClickMode GetTouchClickMode() = 0;
+
         virtual void DumpDebugInfo() = 0;
 
         virtual bool UsesVirtualConnectors() = 0;
@@ -398,6 +415,8 @@ namespace gamescope
         virtual void HackUpdatePatchedEdid() override {}
 
         virtual bool NeedsFrameSync() const override;
+
+        virtual TouchClickMode GetTouchClickMode() override;
 
         virtual void DumpDebugInfo() override;
 
@@ -470,6 +489,7 @@ namespace gamescope
         bool m_bOwned = false;
     };
 
+    extern ConVar<TouchClickMode> cv_touch_click_mode;
 }
 
 inline gamescope::IBackend *GetBackend()

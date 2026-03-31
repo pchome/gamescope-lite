@@ -289,6 +289,12 @@ namespace gamescope
             return false;
         }
 
+        virtual TouchClickMode GetTouchClickMode() override
+        {
+            // Doesn't need to be 'initted' for this check.
+            return m_pChild->GetTouchClickMode();
+        }
+
         virtual void DumpDebugInfo() override
         {
             // Doesn't need to be 'initted' for this check.

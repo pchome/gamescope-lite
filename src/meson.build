@@ -27,7 +27,7 @@ wlroots_dep = dependency(
   'wlroots-0.18',
   version: ['>= 0.18.0', '< 0.19.0'],
   fallback: 'wlroots',
-  default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=[]', 'renderers=[]', 'allocators=[]', 'session=disabled'],
+  default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=libinput', 'renderers=[]', 'allocators=[]', 'session=enabled'],
 )
 
 displayinfo_dep = dependency(

@@ -4119,6 +4119,19 @@ determine_and_apply_focus( global_focus_t *pFocus )
 		}
 	}
 
+	// Some games such as Disgaea PC (405900) don't take controller input until
+	// the window is first clicked on despite it having focus.
+	if ( pFocus->inputFocusWindow && pFocus->inputFocusWindow->appID == 405900 )
+	{
+		auto now = get_time_in_milliseconds();
+
+		wlserver_lock();
+		wlserver_touchdown( 0.5, 0.5, 0, now );
+		wlserver_touchup( 0, now + 1 );
+		wlserver_mousehide();
+		wlserver_unlock();
+	}
+
 	pFocus->ulCurrentFocusSerial = GetFocusSerial();
 }
 
@@ -5499,6 +5512,10 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 			w->inputFocusMode = get_prop(ctx, w->xwayland().id, ctx->atoms.steamInputFocusAtom, 0);
 			MakeFocusDirty();
 		}
+	}
+	if (ev->atom == ctx->atoms.steamTouchClickModeAtom )
+	{
+		gamescope::cv_touch_click_mode = (gamescope::TouchClickMode) get_prop(ctx, ctx->root, ctx->atoms.steamTouchClickModeAtom, 0u );
 	}
 	if (ev->atom == ctx->atoms.steamStreamingClientAtom)
 	{
@@ -7283,6 +7300,7 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 	/* get atoms */
 	ctx->atoms.steamAtom = XInternAtom(ctx->dpy, STEAM_PROP, false);
 	ctx->atoms.steamInputFocusAtom = XInternAtom(ctx->dpy, "STEAM_INPUT_FOCUS", false);
+	ctx->atoms.steamTouchClickModeAtom = XInternAtom(ctx->dpy, "STEAM_TOUCH_CLICK_MODE", false);
 	ctx->atoms.gameAtom = XInternAtom(ctx->dpy, GAME_PROP, false);
 	ctx->atoms.overlayAtom = XInternAtom(ctx->dpy, OVERLAY_PROP, false);
 	ctx->atoms.externalOverlayAtom = XInternAtom(ctx->dpy, EXTERNAL_OVERLAY_PROP, false);
