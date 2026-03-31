@@ -5,5 +5,4 @@ option('sdl2_backend',               type: 'feature', description: 'SDL2 Window 
 option('avif_screenshots',           type: 'feature', description: 'Support for saving .AVIF HDR screenshots')
 option('input_emulation' ,           type: 'feature', description: 'Support for XTest/Input Emulation with libei')
 option('enable_gamescope',           type : 'boolean', value : true, description: 'Build Gamescope executable')
-option('enable_gamescope_wsi_layer', type : 'boolean', value : true, description: 'Build Gamescope layer')
 option('benchmark', type: 'feature', description: 'Benchmark tools')
