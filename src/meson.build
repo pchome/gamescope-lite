@@ -21,13 +21,12 @@ epoll_dep = dependency('epoll-shim', required: false)
 sdl2_dep = dependency('SDL2')
 avif_dep = dependency('libavif', version: '>=1.0.0', required: get_option('avif_screenshots'))
 pixman_dep = dependency('pixman-1')
-udev_dep = dependency('libudev')
 
 wlroots_dep = dependency(
   'wlroots-0.18',
   version: ['>= 0.18.0', '< 0.19.0'],
   fallback: 'wlroots',
-  default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=libinput', 'renderers=[]', 'allocators=[]', 'session=enabled'],
+  default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=[]', 'renderers=[]', 'allocators=[]', 'session=disabled'],
 )
 
 libdecor_dep = dependency('libdecor-0')
@@ -109,11 +108,9 @@ src = [
   'backend.cpp',
   'x11cursor.cpp',
   'InputEmulation.cpp',
-  'LibInputHandler.cpp',
 ]
 
 luajit_dep = dependency('luajit', required: get_option('scripting'))
-libinput_dep = dependency('libinput', required: true)
 
 gamescope_cpp_args = []
 
@@ -178,7 +175,7 @@ gamescope_version = configure_file(
       xkbcommon, thread_dep, sdl2_dep, wlroots_dep,
       vulkan_dep, dep_xtst, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
       stb_dep, dep_xcursor, avif_dep, dep_xi,
-      libdecor_dep, eis_dep, luajit_dep, libinput_dep, pixman_dep, udev_dep,
+      libdecor_dep, eis_dep, luajit_dep, pixman_dep,
     ],
     install: true,
     cpp_args: gamescope_cpp_args,
