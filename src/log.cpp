@@ -118,13 +118,13 @@ void LogScope::log(enum LogPriority priority, std::string_view psvText)
 
 	std::string_view psvLogName = GetLogPriorityText( priority );
 	if ( bPrefixEnabled )
-		fprintf(stderr, "[%s] %.*s \e[0;37m%.*s:\e[0m %.*s\n",
+		fprintf(priority > 1 ? stdout : stderr, "[%s] %.*s \e[0;37m%.*s:\e[0m %.*s\n",
 		gamescope::Process::GetProcessName(),
 		(int)psvLogName.size(), psvLogName.data(),
 		(int)this->m_psvPrefix.size(), this->m_psvPrefix.data(),
 		(int)psvText.size(), psvText.data());
 	else
-	 	fprintf(stderr, "%.*s\n", (int)psvText.size(), psvText.data());
+	 	fprintf(priority > 1 ? stdout : stderr, "%.*s\n", (int)psvText.size(), psvText.data());
 }
 
 void LogScope::logf(enum LogPriority priority, const char *fmt, ...) {
