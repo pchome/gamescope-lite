@@ -126,14 +126,9 @@ LogScope g_WaitableLog("waitable");
 
 gamescope::ConVar<bool> cv_overlay_unmultiplied_alpha{ "overlay_unmultiplied_alpha", false };
 
-gamescope::ConVar<bool> cv_vr_show_forwarded_overlays{ "vr_show_forwarded_overlays", false };
-
-std::string *g_pVROverlayKey = nullptr;
 bool g_bWasPartialComposite = false;
 
 bool ShouldDrawCursor();
-
-std::atomic<uint32_t> g_unCurrentVRSceneAppId;
 
 ///
 // Color Mgmt
@@ -907,8 +902,6 @@ uint32_t		lastPublishedInputCounter;
 std::atomic<bool> hasRepaint = false;
 bool			hasRepaintNonBasePlane = false;
 
-bool			g_bUpdateForwardedVROverlays = false;
-
 static gamescope::ConCommand cc_debug_force_repaint( "debug_force_repaint", "Force a repaint",
 []( std::span<std::string_view> args )
 {
@@ -1042,17 +1035,11 @@ window_is_steam( steamcompmgr_win_t *w )
 	return w && ( w->isSteamLegacyBigPicture || w->appID == 769 );
 }
 
-static bool
-window_is_vr_scene_app( steamcompmgr_win_t *w )
-{
-	return w && w->appID && w->appID == g_unCurrentVRSceneAppId.load( std::memory_order_relaxed );
-}
-
 bool g_bChangeDynamicRefreshBasedOnGameOpenRatherThanActive = false;
 
 bool steamcompmgr_window_should_limit_fps( steamcompmgr_win_t *w )
 {
-	return w && !window_is_steam( w ) && !window_is_vr_scene_app( w ) && !w->isOverlay && !w->isExternalOverlay;
+	return w && !window_is_steam( w ) && !w->isOverlay && !w->isExternalOverlay;
 }
 
 static bool
@@ -1397,10 +1384,6 @@ import_commit (
 		commit->feedback = *swapchain_feedback;
 	commit->present_id = present_id;
 	commit->desired_present_time = desired_present_time;
-	if (window_is_vr_scene_app( w )) {
-		commit->async = true;
-		commit->fifo = false;
-	}
 
 	if ( gamescope::OwningRc<CVulkanTexture> pTexture = s_BufferMemos.LookupVulkanTexture( buf ) )
 	{
@@ -2432,35 +2415,6 @@ bool ShouldDrawCursor()
 		return false;
 
 	return !pFocus->GetNestedHints();
-}
-
-static void ForwardVROverlayTargets()
-{
-	gamescope_xwayland_server_t *server = NULL;
-	for (size_t i = 0; (server = wlserver_get_xwayland_server(i)); i++)
-	{
-		for ( steamcompmgr_win_t *w = server->ctx->list; w; w = w->xwayland().next )
-		{
-			if ( w->oulTargetVROverlay && w->bNeedsForwarding )
-			{
-				gamescope::Rc<commit_t> lastCommit;
-				get_window_last_done_commit( w, lastCommit );
-				if ( !lastCommit )
-					continue;
-
-                gamescope::IBackendFb* pFb = lastCommit->vulkanTex->GetBackendFb();
-				if ( !pFb )
-					continue;
-
-				const uint64_t ulOverlayHandle = *w->oulTargetVROverlay;
-				GetBackend()->ForwardFramebuffer( w->pForwarderPlane, pFb, &ulOverlayHandle );
-
-				w->bNeedsForwarding = false;
-			}
-		}
-	}
-
-	gpuvis_trace_printf( "Forward VR Overlays" );
 }
 
 gamescope::ConVar<bool> cv_paint_primary_plane{ "paint_primary_plane", true };
@@ -3668,12 +3622,6 @@ found:;
 			continue;
 		}
 
-		// Skip overlay targets
-		if ( w->oulTargetVROverlay && !cv_vr_show_forwarded_overlays )
-		{
-			continue;
-		}
-
 		// Skip streaming client video window
 		if ( w->isSteamStreamingClientVideo )
 		{
@@ -4553,13 +4501,13 @@ handle_desktop_window(steamcompmgr_win_t *w)
 	if ( !w )
 		return;
 
-	if ( win_has_game_id( w ) || w->bIsSteamPid || w->bIsSteamWebHelperPid || w->bIsVRWebHelperPid )
+	if ( win_has_game_id( w ) || w->bIsSteamPid || w->bIsSteamWebHelperPid )
 		return;
 
 	if ( w->type != steamcompmgr_win_type_t::XWAYLAND )
 		return;
 
-	if ( w->xwayland().a.override_redirect || ( w->oulTargetVROverlay && !cv_vr_show_forwarded_overlays ) )
+	if ( w->xwayland().a.override_redirect )
 		return;
 
 	if ( win_maybe_a_dropdown( w ) || win_is_useless( w ) )
@@ -4647,12 +4595,6 @@ map_win(xwayland_ctx_t* ctx, Window id, unsigned long sequence)
 	if ( w->isExternalOverlay )
 		w->appID = 0;
 
-	w->oulTargetVROverlay = get_u64_prop(ctx, w->xwayland().id, ctx->atoms.steamGamescopeVROverlayTarget);
-	if ( w->oulTargetVROverlay )
-	{
-		g_bUpdateForwardedVROverlays = true;
-		w->bNeedsForwarding = true;
-	}
 	w->pForwarderPlane = nullptr;
 
 	get_size_hints(ctx, w);
@@ -4969,8 +4911,6 @@ add_win(xwayland_ctx_t *ctx, Window id, Window prev, unsigned long sequence)
 		new_win->bIsSteamPid = true;
 	if ( pid_name == "steamwebhelper" )
 		new_win->bIsSteamWebHelperPid = true;
-	if ( pid_name == "vrwebhelper" )
-		new_win->bIsVRWebHelperPid = true;
 	if ( pid_name == "dolphin" )
 		new_win->bIsDolphin = true;
 
@@ -5221,8 +5161,7 @@ damage_win(xwayland_ctx_t *ctx, XDamageNotifyEvent *de)
 
 	bool bCareAboutWindow = true;
 
-	if ( win_is_useless( w ) || w->IsAnyOverlay() ||
-	    ( w->oulTargetVROverlay && !cv_vr_show_forwarded_overlays ) || w->isSysTrayIcon ||
+	if ( win_is_useless( w ) || w->IsAnyOverlay() || w->isSysTrayIcon ||
 		w->xwayland().a.map_state != IsViewable )
 	{
 		bCareAboutWindow = false;
@@ -5789,19 +5728,6 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 		{
 			w->isSteamStreamingClientVideo = get_prop(ctx, w->xwayland().id, ctx->atoms.steamStreamingClientVideoAtom, 0);
 			MakeFocusDirty();
-		}
-	}
-	if (ev->atom == ctx->atoms.steamGamescopeVROverlayTarget)
-	{
-		steamcompmgr_win_t * w = find_win(ctx, ev->window);
-		if (w)
-		{
-			w->oulTargetVROverlay = get_u64_prop(ctx, w->xwayland().id, ctx->atoms.steamGamescopeVROverlayTarget);
-			w->pForwarderPlane = nullptr;
-			MakeFocusDirty();
-			hasRepaint = true;
-			g_bUpdateForwardedVROverlays = true;
-			w->bNeedsForwarding = true;
 		}
 	}
 	if (ev->atom == ctx->atoms.gamescopeCtrlAppIDAtom )
@@ -6676,13 +6602,6 @@ bool handle_done_commit( steamcompmgr_win_t *w, xwayland_ctx_t *ctx, uint64_t co
 			bFoundWindow = true;
 
 			// Window just got a new available commit, determine if that's worth a repaint
-
-			// If this is a forwarded vr plane, repaint
-			if ( w->oulTargetVROverlay )
-			{
-				g_bUpdateForwardedVROverlays = true;
-				w->bNeedsForwarding = true;
-			}
 
 			for ( auto &iter : g_VirtualConnectorFocuses )
 			{
@@ -7643,9 +7562,7 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 	ctx->atoms.netSystemTrayOpcodeAtom = XInternAtom(ctx->dpy, "_NET_SYSTEM_TRAY_OPCODE", false);
 	ctx->atoms.steamStreamingClientAtom = XInternAtom(ctx->dpy, "STEAM_STREAMING_CLIENT", false);
 	ctx->atoms.steamStreamingClientVideoAtom = XInternAtom(ctx->dpy, "STEAM_STREAMING_CLIENT_VIDEO", false);
-	ctx->atoms.steamGamescopeVROverlayTarget = XInternAtom(ctx->dpy, "STEAM_GAMESCOPE_VROVERLAY_TARGET", false);
 	ctx->atoms.gamescopePid = XInternAtom(ctx->dpy, "GAMESCOPE_PID", false);
-	ctx->atoms.gamescopeVROverlayForwarding = XInternAtom(ctx->dpy, "GAMESCOPE_VROVERLAY_FORWARDING", false);
 	ctx->atoms.gamescopeFocusableAppsAtom = XInternAtom(ctx->dpy, "GAMESCOPE_FOCUSABLE_APPS", false);
 	ctx->atoms.gamescopeFocusableWindowsAtom = XInternAtom(ctx->dpy, "GAMESCOPE_FOCUSABLE_WINDOWS", false);
 	ctx->atoms.gamescopeFocusedAppAtom = XInternAtom( ctx->dpy, "GAMESCOPE_FOCUSED_APP", false );
@@ -7753,7 +7670,6 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 	ctx->atoms.gamescopeDisplayRefreshRateFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_DISPLAY_REFRESH_RATE_FEEDBACK", false );
 	ctx->atoms.gamescopeDisplayDynamicRefreshBasedOnGamePresence = XInternAtom( ctx->dpy, "GAMESCOPE_DISPLAY_DYNAMIC_REFRESH_BASED_ON_GAME_PRESENCE", false );
 
-	ctx->atoms.gamescopeMainSteamVROverlay = XInternAtom( ctx->dpy, "GAMESCOPE_MAIN_STEAMVR_OVERLAY", false );
 	ctx->atoms.steamosTouchPointerEmulation = XInternAtom( ctx->dpy, "_STEAMOS_TOUCH_POINTER_EMULATION", false );
 
 	ctx->atoms.wineHwndStyle = XInternAtom( ctx->dpy, "_WINE_HWND_STYLE", false );
@@ -7777,9 +7693,6 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 
 	uint32_t unPid = getpid();
 	XChangeProperty(ctx->dpy, ctx->root, ctx->atoms.gamescopePid, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&unPid, 1 );
-
-	uint32_t unVROverlayForwardingSupported = GetBackend()->SupportsVROverlayForwarding() ? 2 : 0;
-	XChangeProperty(ctx->dpy, ctx->root, ctx->atoms.gamescopeVROverlayForwarding, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&unVROverlayForwardingSupported, 1 );
 
 	XGrabServer(ctx->dpy);
 
@@ -8295,11 +8208,6 @@ steamcompmgr_main(int argc, char **argv)
 
 	if ( !GetBackend()->PostInit() )
 		return;
-
-	if ( g_pVROverlayKey )
-	{
-		set_string_prop( root_ctx, root_ctx->atoms.gamescopeMainSteamVROverlay, *g_pVROverlayKey );
-	}
 
 	update_edid_prop();
 
@@ -8950,15 +8858,6 @@ steamcompmgr_main(int argc, char **argv)
 
 				bPainted = true;
 			}
-		}
-
-		if ( vblank && g_bUpdateForwardedVROverlays )
-		{
-			ForwardVROverlayTargets();
-
-			g_bUpdateForwardedVROverlays = false;
-
-			bPainted = true;
 		}
 
 		if ( bPainted )

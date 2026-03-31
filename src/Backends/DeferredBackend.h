@@ -326,11 +326,6 @@ namespace gamescope
             }
         }
 
-        virtual bool SupportsVROverlayForwarding() override
-        {
-            // Doesn't need to be 'initted' for this check.
-            return m_pChild->SupportsVROverlayForwarding();
-        }
         virtual void ForwardFramebuffer( std::shared_ptr<IBackendPlane> &pPlane, IBackendFb *pFramebuffer, const void *pData ) override
         {
             {

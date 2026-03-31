@@ -387,7 +387,6 @@ namespace gamescope
 
         virtual void NotifyPhysicalInput( InputType eInputType ) = 0;
 
-        virtual bool SupportsVROverlayForwarding() = 0;
         virtual void ForwardFramebuffer( std::shared_ptr<IBackendPlane> &pPlane, IBackendFb *pFramebuffer, const void *pData ) = 0;
 
         virtual bool NewlyInitted() = 0;
@@ -426,7 +425,6 @@ namespace gamescope
 
         virtual void NotifyPhysicalInput( InputType eInputType ) override {}
 
-        virtual bool SupportsVROverlayForwarding() override { return false; }
         virtual void ForwardFramebuffer( std::shared_ptr<IBackendPlane> &pPlane, IBackendFb *pFramebuffer, const void *pData ) override {}
 
         virtual bool NewlyInitted() override { return false; }

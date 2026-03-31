@@ -119,7 +119,6 @@ struct steamcompmgr_win_t {
 
 	bool bIsSteamPid = false;
 	bool bIsSteamWebHelperPid = false;
-	bool bIsVRWebHelperPid = false;
 	bool bIsDolphin = false; // File Manager
 
 	std::string pid_name;
@@ -163,7 +162,6 @@ struct steamcompmgr_win_t {
 
 	steamcompmgr_win_type_t		type;
 
-	std::optional<uint64_t> oulTargetVROverlay;
 	std::shared_ptr<gamescope::IBackendPlane> pForwarderPlane;
 	bool bNeedsForwarding = false;
 
