@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <array>
-
+#include <ranges>
 #include <errno.h>
 #include <pthread.h>
 #include <fcntl.h>
@@ -102,18 +102,17 @@ namespace gamescope::Process
 
     void KillProcessTree( std::vector<pid_t> nPids, int nSignal )
     {
-        for ( pid_t nPid : nPids )
+        for ( auto nPid : nPids | std::views::reverse )
         {
-            auto nChildPids = GetChildPids( nPid );
             KillProcess( nPid, nSignal );
-            KillProcessTree( nChildPids, nSignal );
+            WaitForChild( nPid );
         }
     }
 
     void KillAllChildren( pid_t nParentPid, int nSignal )
     {
         std::vector<pid_t> nChildPids = GetChildPids( nParentPid );
-        return KillProcessTree( nChildPids, nSignal );
+        KillProcessTree( nChildPids, nSignal );
     }
 
     void KillProcess( pid_t nPid, int nSignal )
