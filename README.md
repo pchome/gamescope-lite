@@ -1,14 +1,20 @@
 # gamescope-lite: SDL-only gamescope
 
 ### Fork difference
-In progress:
-* [ ] Only SDL backend
-* [ ] Drop other backends
+
+#### So far:
+* [x] Only SDL, Headless, and Deferred backends left
+* [x] Droped DRM backend
+* [x] Droped OpenVP backend
+* [x] Droped Wayland backend
+* [x] Droped WSI layer (use upstream one if needed/applicable)
+* [x] Droped executables other than `gamescope-lite` and `gamescopereaper-lite` (use upstream one if needed/applicable)
+
+#### TODO:
 * [ ] Drop HDR (I don't have hw to test this)
 * [ ] Drop scripts/reshade/pipewire/debug-utils/... (we have reshade at home)
 * [ ] Clean/unbundle deps
 
-<hr>
 
 ## gamescope: the micro-compositor formerly known as steamcompmgr
 
