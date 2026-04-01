@@ -23,7 +23,10 @@ wlroots_dep = dependency(
   'wlroots-0.18',
   version: ['>= 0.18.0', '< 0.19.0'],
   fallback: 'wlroots',
-  default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=[]', 'renderers=[]', 'allocators=[]', 'session=disabled'],
+  default_options: ['default_library=static', 'auto_features=disabled', 'examples=false', 'icon_directory=', 'xcb-errors=disabled',
+    'xwayland=enabled', 'backends=[]', 'renderers=[]', 'allocators=[]',
+    'session=disabled', 'libliftoff=disabled', 'color-management=disabled'
+  ],
 )
 
 glsl_compiler = find_program('glslang', 'glslangValidator', native: true)
