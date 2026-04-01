@@ -29,8 +29,6 @@ wlroots_dep = dependency(
   default_options: ['default_library=static', 'examples=false', 'xwayland=enabled', 'backends=[]', 'renderers=[]', 'allocators=[]', 'session=disabled'],
 )
 
-libdecor_dep = dependency('libdecor-0')
-
 glsl_compiler = find_program('glslang', 'glslangValidator', native: true)
 
 # Use --depfile to rebuild shaders when included files have changed. Sadly debian based
@@ -175,7 +173,7 @@ gamescope_version = configure_file(
       xkbcommon, thread_dep, sdl2_dep, wlroots_dep,
       vulkan_dep, dep_xtst, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
       stb_dep, dep_xcursor, avif_dep, dep_xi,
-      libdecor_dep, eis_dep, luajit_dep, pixman_dep,
+      eis_dep, luajit_dep, pixman_dep,
     ],
     install: true,
     cpp_args: gamescope_cpp_args,
@@ -188,19 +186,4 @@ gamescope_core_src = [
   'Utils/Version.cpp',
 ]
 
-if get_option('pipewire').enabled()
-  executable( 'gamescopestream-lite', ['Apps/gamescopestream.cpp'], gamescope_core_src, gamescope_version, protocols_client_src, dependencies: [ pipewire_dep, dep_wayland, libdecor_dep, cap_dep ], install: true )
-endif
-
 executable('gamescopereaper-lite', ['Apps/gamescopereaper.cpp', gamescope_core_src], gamescope_version, dependencies: [cap_dep], install:true )
-
-benchmark_dep = dependency('benchmark', required: get_option('benchmark'), disabler: true)
-executable('gamescope_color_microbench-lite', ['color_bench.cpp', 'color_helpers.cpp'], gamescope_core_src, gamescope_version, dependencies:[benchmark_dep, glm_dep, cap_dep])
-
-executable('gamescope_color_tests-lite', ['color_tests.cpp', 'color_helpers.cpp'], gamescope_core_src, gamescope_version, dependencies:[glm_dep, cap_dep])
-
-executable('gamescopectl-lite', ['Apps/gamescopectl.cpp'], gamescope_core_src, gamescope_version, protocols_client_src, dependencies: [dep_wayland, cap_dep], install:true )
-
-executable('gamescope-type-lite', ['Apps/gamescope_type.c'], protocols_client_src, dependencies: [dep_wayland, cap_dep], install:true )
-
-executable('gamescope_hotkey_example-lite', ['Apps/gamescope_hotkey_example.cpp'], gamescope_core_src, gamescope_version, protocols_client_src, dependencies: [dep_wayland, xkbcommon, cap_dep], install: false )
