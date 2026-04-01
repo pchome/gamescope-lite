@@ -53,7 +53,7 @@ glm_dep = dependency('glm')
 stb_dep = dependency('stb')
 
 add_project_arguments(
-  '-DHAVE_PIPEWIRE=@0@'.format(pipewire_dep.found().to_int()),
+  '-DHAVE_PIPEWIRE=@0@'.format(get_option('pipewire').enabled().to_int()),
   language: 'cpp',
 )
 

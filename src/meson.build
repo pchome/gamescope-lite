@@ -117,28 +117,28 @@ gamescope_cpp_args = []
 
 src += 'Backends/SDLBackend.cpp'
 
-if luajit_dep.found()
+if get_option('scripting').enabled()
   src += 'Script/Script.cpp'
   gamescope_cpp_args += '-DSCRIPT_DIR="@0@"'.format(prefix / data_dir / 'gamescope/scripts')
 
   # Handle default script/config/looks stuff
-  meson.add_install_script('default_extras_install.sh')
+  meson.add_install_script(meson.project_source_root() / 'default_extras_install.sh')
 
   devenv = environment()
-  devenv.set('GAMESCOPE_SCRIPT_PATH', join_paths(meson.current_source_dir(), 'scripts'))
+  devenv.set('GAMESCOPE_SCRIPT_PATH', join_paths(meson.project_source_root(), 'scripts'))
   meson.add_devenv(devenv)
 endif
 
-gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(avif_dep.found().to_int())
-gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(cap_dep.found().to_int())
-gamescope_cpp_args += '-DHAVE_LIBEIS=@0@'.format(eis_dep.found().to_int())
-gamescope_cpp_args += '-DHAVE_SCRIPTING=@0@'.format(luajit_dep.found().to_int())
+gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(get_option('rt_cap').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_LIBEIS=@0@'.format(get_option('input_emulation').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_SCRIPTING=@0@'.format(get_option('scripting').enabled().to_int())
 
 src += spirv_shaders
 src += protocols_server_src
 src += protocols_client_src
 
-if pipewire_dep.found()
+if get_option('pipewire').enabled()
   src += 'pipewire.cpp'
 endif
 
@@ -188,7 +188,7 @@ gamescope_core_src = [
   'Utils/Version.cpp',
 ]
 
-if pipewire_dep.found()
+if get_option('pipewire').enabled()
   executable( 'gamescopestream-lite', ['Apps/gamescopestream.cpp'], gamescope_core_src, gamescope_version, protocols_client_src, dependencies: [ pipewire_dep, dep_wayland, libdecor_dep, cap_dep ], install: true )
 endif
 
