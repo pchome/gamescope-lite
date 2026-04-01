@@ -57,10 +57,8 @@
 #include "steamcompmgr.hpp"
 #include "color_helpers.h"
 #include "log.hpp"
-#include "ime.hpp"
 #include "xwayland_ctx.hpp"
 #include "refresh_rate.h"
-#include "InputEmulation.h"
 #include "commit.h"
 #include "Timeline.h"
 #include "Utils/NonCopyable.h"
@@ -342,21 +340,6 @@ static void wlserver_handle_pointer_motion(struct wl_listener *listener, void *d
 	struct wlr_pointer_motion_event *event = (struct wlr_pointer_motion_event *) data;
 
 	wlserver_mousemotion(event->unaccel_dx, event->unaccel_dy, event->time_msec);
-}
-
-void wlserver_open_steam_menu( bool qam )
-{
-	gamescope_xwayland_server_t *server = wlserver_get_xwayland_server( 0 );
-	if (!server)
-		return;
-
-	uint32_t keycode = qam ? XK_2 : XK_1;
-
-	XTestFakeKeyEvent(server->get_xdisplay(), XKeysymToKeycode( server->get_xdisplay(), XK_Control_L ), True, CurrentTime);
-	XTestFakeKeyEvent(server->get_xdisplay(), XKeysymToKeycode( server->get_xdisplay(), keycode ), True, CurrentTime);
-
-	XTestFakeKeyEvent(server->get_xdisplay(), XKeysymToKeycode( server->get_xdisplay(), keycode ), False, CurrentTime);
-	XTestFakeKeyEvent(server->get_xdisplay(), XKeysymToKeycode( server->get_xdisplay(), XK_Control_L ), False, CurrentTime);
 }
 
 static void wlserver_handle_pointer_button(struct wl_listener *listener, void *data)
@@ -1798,12 +1781,6 @@ void layer_shell_surface_new(struct wl_listener *listener, void *data)
 	surface_info->win->isExternalOverlay = true;
 }
 
-#if HAVE_LIBEIS
-static gamescope::CAsyncWaiter g_LibEisWaiter( "gamescope-eis" );
-// TODO: Move me into some ownership of eg. wlserver.
-static std::unique_ptr<gamescope::GamescopeInputServer> g_InputServer;
-#endif
-
 bool wlserver_init( void ) {
 	assert( wlserver.display != nullptr );
 
@@ -1848,8 +1825,6 @@ bool wlserver_init( void ) {
 	wlserver.wlr.compositor = wlr_compositor_create(wlserver.display, 5, wlserver.wlr.renderer);
 
 	wl_signal_add( &wlserver.wlr.compositor->events.new_surface, &new_surface_listener );
-
-	create_ime_manager( &wlserver );
 
 	create_reshade();
 
@@ -1945,29 +1920,6 @@ bool wlserver_init( void ) {
 	}
 
 	wl_signal_emit( &wlserver.wlr.multi_backend->events.new_input, kbd );
-
-#if HAVE_LIBEIS
-	{
-		char szEISocket[ 64 ];
-		snprintf( szEISocket, sizeof( szEISocket ), "%s-ei", wlserver.wl_display_name );
-
-		std::unique_ptr<gamescope::GamescopeInputServer> pInputServer = std::make_unique<gamescope::GamescopeInputServer>();
-		if ( pInputServer->Init( szEISocket ) )
-		{
-			g_InputServer = std::move( pInputServer );
-
-			setenv( "LIBEI_SOCKET", szEISocket, 1 );
-			g_LibEisWaiter.AddWaitable( g_InputServer.get() );
-			wl_log.infof( "Successfully initialized libei for input emulation!" );
-		}
-		else
-		{
-			wl_log.errorf( "Initializing libei failed, XTEST will not be available!" );
-		}
-	}
-#else
-	wl_log.errorf( "Gamescope built without libei, XTEST will not be available!" );
-#endif
 
 	for (int i = 0; i < g_nXWaylandCount; i++)
 	{

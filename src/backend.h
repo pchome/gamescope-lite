@@ -6,7 +6,7 @@
 #include "Timeline.h"
 #include "convar.h"
 #include "rc.h"
-#include "drm_include.h"
+#include <drm_fourcc.h>
 #include "Utils/Algorithm.h"
 
 #include <cassert>

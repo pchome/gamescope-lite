@@ -5,12 +5,9 @@ dep_xrender = dependency('xrender')
 dep_xext = dependency('xext')
 dep_xfixes = dependency('xfixes')
 dep_xxf86vm = dependency('xxf86vm')
-dep_xtst = dependency('xtst')
 dep_xres = dependency('xres')
 dep_xmu = dependency('xmu')
 dep_xi = dependency('xi')
-
-eis_dep = dependency('libeis-1.0', required : get_option('input_emulation'))
 
 wayland_server = dependency('wayland-server', version: '>=1.21')
 wayland_protos = dependency('wayland-protocols', version: '>=1.17')
@@ -85,6 +82,7 @@ required_wlroots_features = ['xwayland']
 
 src = [
   'Backends/HeadlessBackend.cpp',
+  'Backends/SDLBackend.cpp',
   'Utils/TempFiles.cpp',
   'Utils/Version.cpp',
   'Utils/Process.cpp',
@@ -99,21 +97,16 @@ src = [
   'vblankmanager.cpp',
   'rendervulkan.cpp',
   'log.cpp',
-  'ime.cpp',
   'mangoapp.cpp',
   'Timeline.cpp',
   'reshade_effect_manager.cpp',
   'backend.cpp',
   'x11cursor.cpp',
-  'InputEmulation.cpp',
 ]
 
 luajit_dep = dependency('luajit', required: get_option('scripting'))
 
 gamescope_cpp_args = []
-
-
-src += 'Backends/SDLBackend.cpp'
 
 if get_option('scripting').enabled()
   src += 'Script/Script.cpp'
@@ -129,7 +122,6 @@ endif
 
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(get_option('rt_cap').enabled().to_int())
-gamescope_cpp_args += '-DHAVE_LIBEIS=@0@'.format(get_option('input_emulation').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCRIPTING=@0@'.format(get_option('scripting').enabled().to_int())
 
 src += spirv_shaders
@@ -167,12 +159,12 @@ gamescope_version = configure_file(
     src, reshade_src, gamescope_version,
     include_directories : [reshade_include, sol2_include],
     dependencies: [
-      dep_wayland, dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
+      dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
       dep_xxf86vm, dep_xres, glm_dep, wayland_server,
       xkbcommon, thread_dep, sdl2_dep, wlroots_dep,
-      vulkan_dep, dep_xtst, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
+      vulkan_dep, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
       stb_dep, dep_xcursor, avif_dep, dep_xi,
-      eis_dep, luajit_dep, pixman_dep,
+      luajit_dep, pixman_dep,
     ],
     install: true,
     cpp_args: gamescope_cpp_args,

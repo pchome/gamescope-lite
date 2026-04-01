@@ -46,7 +46,6 @@ pipewire_dep = dependency('libpipewire-0.3', required: get_option('pipewire'))
 librt_dep = cppc.find_library('rt', required : get_option('pipewire'))
 
 dep_x11 = dependency('x11')
-dep_wayland = dependency('wayland-client')
 vulkan_dep = dependency('vulkan')
 
 glm_dep = dependency('glm')

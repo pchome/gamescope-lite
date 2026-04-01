@@ -11,7 +11,7 @@
 #include <bitset>
 #include <thread>
 #include <dlfcn.h>
-#include "vulkan_include.h"
+
 #include "Utils/Algorithm.h"
 
 #if defined(__linux__)
@@ -23,7 +23,7 @@
 // NIS_Config needs to be included before the X11 headers because of conflicting defines introduced by X11
 #include "shaders/NVIDIAImageScaling/NIS/NIS_Config.h"
 
-#include <drm_fourcc.h>
+#include <xf86drm.h>
 #include "wlr_begin.hpp"
 #include <wlr/render/drm_format_set.h>
 #include "wlr_end.hpp"
