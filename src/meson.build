@@ -134,7 +134,6 @@ gamescope_cpp_args += '-DHAVE_SCRIPTING=@0@'.format(get_option('scripting').enab
 
 src += spirv_shaders
 src += protocols_server_src
-src += protocols_client_src
 
 if get_option('pipewire').enabled()
   src += 'pipewire.cpp'
