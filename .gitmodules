@@ -1,6 +1,6 @@
 [submodule "subprojects/wlroots"]
 	path = subprojects/wlroots
-	url = https://github.com/Joshua-Ashton/wlroots.git
+	url = https://github.com/pchome/wlroots.git
 [submodule "src/reshade"]
 	path = src/reshade
 	url = https://github.com/Joshua-Ashton/reshade
