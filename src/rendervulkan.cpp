@@ -658,14 +658,14 @@ bool CVulkanDevice::createDevice()
 	VkResult res = vk.CreateDevice(physDev(), &deviceCreateInfo, nullptr, &m_device);
 	if ( res == VK_ERROR_NOT_PERMITTED_KHR && gamescope::Process::HasCapSysNice() )
 	{
-		fprintf(stderr, "vkCreateDevice failed with a high-priority queue (general + compute). Falling back to regular priority (general).\n");
+		vk_log.warnf("vkCreateDevice failed with a high-priority queue (general + compute). Falling back to regular priority (for general).\n");
 		queueCreateInfos[1].pNext = nullptr;
 		res = vk.CreateDevice(physDev(), &deviceCreateInfo, nullptr, &m_device);
 
 
 		if ( res == VK_ERROR_NOT_PERMITTED_KHR && gamescope::Process::HasCapSysNice() )
 		{
-			fprintf(stderr, "vkCreateDevice failed with a high-priority queue (compute). Falling back to regular priority (all).\n");
+			vk_log.warnf("vkCreateDevice failed with a high-priority queue (for compute). Falling back to regular priority (all).\n");
 			queueCreateInfos[0].pNext = nullptr;
 			res = vk.CreateDevice(physDev(), &deviceCreateInfo, nullptr, &m_device);
 		}
