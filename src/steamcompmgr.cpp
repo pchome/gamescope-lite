@@ -1361,6 +1361,7 @@ get_window_last_done_commit_peek( steamcompmgr_win_t *w )
 	return w->commit_queue[ lastCommit ].get();
 }
 
+#if HAVE_PIPEWIRE
 static int64_t
 window_last_done_commit_id( steamcompmgr_win_t *w )
 {
@@ -1373,6 +1374,7 @@ window_last_done_commit_id( steamcompmgr_win_t *w )
 
 	return pCommit->commitID;
 }
+#endif
 
 // For Steam, etc.
 static bool
