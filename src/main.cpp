@@ -138,7 +138,7 @@ const char usage[] =
 	"  -h, --nested-height            game height\n"
 	"  -r, --nested-refresh           game refresh rate (frames per second)\n"
 	"  -m, --max-scale                maximum scale factor\n"
-	"  -S, --scaler                   upscaler type (auto, integer, fit, fill, stretch)\n"
+	"  -S, --scaler                   upscaler type (auto, integer, fit, fill, stretch, native)\n"
 	"  -F, --filter                   upscaler filter (linear, nearest, fsr, nis, pixel)\n"
 	"                                     fsr => AMD FidelityFX™ Super Resolution 1.0\n"
 	"                                     nis => NVIDIA Image Scaling v1.0.3\n"
@@ -288,6 +288,8 @@ static enum GamescopeUpscaleScaler parse_upscaler_scaler(const char *str)
 		return GamescopeUpscaleScaler::FILL;
 	} else if (strcmp(str, "stretch") == 0) {
 		return GamescopeUpscaleScaler::STRETCH;
+	} else if (strcmp(str, "native") == 0) {
+		return GamescopeUpscaleScaler::NATIVE;
 	} else {
 		fprintf( stderr, "gamescope: invalid value for --scaler\n" );
 		exit(1);

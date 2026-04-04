@@ -1416,7 +1416,7 @@ void calc_scale_factor_scaler(float &out_scale_x, float &out_scale_y, float sour
 		out_scale_y = std::max(XRatio, YRatio);
 	}
 
-	if (g_upscaleScaler == GamescopeUpscaleScaler::AUTO)
+	if (g_upscaleScaler == GamescopeUpscaleScaler::FIT)
 	{
 		out_scale_x = std::min(g_flMaxWindowScale, out_scale_x);
 		out_scale_y = std::min(g_flMaxWindowScale, out_scale_y);
@@ -1432,6 +1432,12 @@ void calc_scale_factor_scaler(float &out_scale_x, float &out_scale_y, float sour
 			// x == y here always.
 			out_scale_x = out_scale_y = floor(out_scale_x);
 		}
+	}
+	
+	if (g_upscaleScaler == GamescopeUpscaleScaler::AUTO)
+	{
+		// x == y here always.
+		out_scale_x = out_scale_y = 1.0f;
 	}
 }
 
