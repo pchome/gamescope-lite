@@ -144,7 +144,6 @@ gamescope_color_mgmt_luts g_ScreenshotColorMgmtLutsHDR[ EOTF_Count ];
 static lut1d_t g_tmpLut1d;
 static lut3d_t g_tmpLut3d;
 
-extern int g_nDynamicRefreshHz;
 
 bool g_bForceHDRSupportDebug = false;
 extern float g_flInternalDisplayBrightnessNits;
@@ -834,10 +833,7 @@ uint32_t g_uCurrentBasePlaneAppID = 0;
 bool g_bCurrentBasePlaneIsFifo = false;
 
 static int g_nSteamCompMgrTargetFPS = 0;
-static uint64_t g_uDynamicRefreshEqualityTime = 0;
-static int g_nDynamicRefreshRate[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT] = { 0, 0 };
 // Delay to stop modes flickering back and forth.
-static const uint64_t g_uDynamicRefreshDelay = 600'000'000; // 600ms
 
 static int g_nCombinedAppRefreshCycleOverride[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT] = { 0, 0 };
 bool g_nCombinedAppRefreshCycleChangeRefresh[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT] = { true, true };
@@ -852,7 +848,6 @@ static void _update_app_target_refresh_cycle()
 
 	int target_fps = g_nCombinedAppRefreshCycleOverride[type];
 
-	g_nDynamicRefreshRate[ type ] = 0;
 	g_nSteamCompMgrTargetFPS = 0;
 
 	if ( !target_fps )
@@ -874,7 +869,6 @@ static void _update_app_target_refresh_cycle()
 		{
 			if (*rate % target_fps == 0)
 			{
-				g_nDynamicRefreshRate[ type ] = *rate;
 				return;
 			}
 		}
@@ -938,13 +932,12 @@ window_is_steam( steamcompmgr_win_t *w )
 	return w && ( w->isSteamLegacyBigPicture || w->appID == 769 );
 }
 
-bool g_bChangeDynamicRefreshBasedOnGameOpenRatherThanActive = false;
 
 bool steamcompmgr_window_should_limit_fps( steamcompmgr_win_t *w )
 {
 	return w && !window_is_steam( w ) && !w->isOverlay && !w->isExternalOverlay;
 }
-
+#if 0
 static bool
 steamcompmgr_user_has_any_game_open()
 {
@@ -966,12 +959,10 @@ bool steamcompmgr_window_should_refresh_switch( steamcompmgr_win_t *w )
 	if ( GetBackend()->GetCurrentConnector() && GetBackend()->GetCurrentConnector()->IsVRRActive() )
 		return false;
 
-	if ( g_bChangeDynamicRefreshBasedOnGameOpenRatherThanActive )
-		return steamcompmgr_user_has_any_game_open();
 
 	return steamcompmgr_window_should_limit_fps( w );
 }
-
+#endif
 
 enum HeldCommitTypes_t
 {
@@ -5813,13 +5804,6 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 		g_nSteamCompMgrTargetFPS = get_prop( ctx, ctx->root, ctx->atoms.gamescopeFPSLimit, 0 );
 		update_runtime_info();
 	}
-	for (int i = 0; i < gamescope::GAMESCOPE_SCREEN_TYPE_COUNT; i++)
-	{
-		if ( ev->atom == ctx->atoms.gamescopeDynamicRefresh[i] )
-		{
-			g_nDynamicRefreshRate[i] = get_prop( ctx, ctx->root, ctx->atoms.gamescopeDynamicRefresh[i], 0 );
-		}
-	}
 	if ( ev->atom == ctx->atoms.gamescopeLowLatency )
 	{
 		g_bLowLatency = !!get_prop( ctx, ctx->root, ctx->atoms.gamescopeLowLatency, 0 );
@@ -6189,10 +6173,6 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 		std::string path = get_string_prop( ctx, ctx->root, ctx->atoms.gamescopeReshadeEffect );
 		g_reshade_effect = path;
 	}
-	if (ev->atom == ctx->atoms.gamescopeDisplayDynamicRefreshBasedOnGamePresence)
-	{
-		g_bChangeDynamicRefreshBasedOnGameOpenRatherThanActive = !!get_prop(ctx, ctx->root, ctx->atoms.gamescopeDisplayDynamicRefreshBasedOnGamePresence, 0);
-	}
 	if (ev->atom == ctx->atoms.wineHwndStyle)
 	{
 		steamcompmgr_win_t * w = find_win(ctx, ev->window);
@@ -6522,6 +6502,7 @@ void handle_done_commits_xwayland( xwayland_ctx_t *ctx, bool vblank, uint64_t vb
 	ctx->doneCommits.listCommitsDone.swap( commits_before_their_time );
 }
 
+#if 0
 void handle_done_commits_xdg( bool vblank, uint64_t vblank_idx )
 {
 	std::lock_guard<std::mutex> lock( g_steamcompmgr_xdg_done_commits.listCommitsDoneLock );
@@ -6578,6 +6559,7 @@ void handle_done_commits_xdg( bool vblank, uint64_t vblank_idx )
 
 	g_steamcompmgr_xdg_done_commits.listCommitsDone.swap( commits_before_their_time );
 }
+#endif
 
 gamescope::ConVar<bool> cv_mangoapp_use_output_timing{ "mangoapp_use_output_timing", true };
 
@@ -7362,8 +7344,6 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 
 	ctx->atoms.gamescopeXWaylandModeControl = XInternAtom( ctx->dpy, "GAMESCOPE_XWAYLAND_MODE_CONTROL", false );
 	ctx->atoms.gamescopeFPSLimit = XInternAtom( ctx->dpy, "GAMESCOPE_FPS_LIMIT", false );
-	ctx->atoms.gamescopeDynamicRefresh[gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL] = XInternAtom( ctx->dpy, "GAMESCOPE_DYNAMIC_REFRESH", false );
-	ctx->atoms.gamescopeDynamicRefresh[gamescope::GAMESCOPE_SCREEN_TYPE_EXTERNAL] = XInternAtom( ctx->dpy, "GAMESCOPE_DYNAMIC_REFRESH_EXTERNAL", false );
 	ctx->atoms.gamescopeLowLatency = XInternAtom( ctx->dpy, "GAMESCOPE_LOW_LATENCY", false );
 
 	ctx->atoms.gamescopeFSRFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_FSR_FEEDBACK", false );
@@ -7435,7 +7415,6 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 	ctx->atoms.gamescopeReshadeTechniqueIdx = XInternAtom( ctx->dpy, "GAMESCOPE_RESHADE_TECHNIQUE_IDX", false );
 
 	ctx->atoms.gamescopeDisplayRefreshRateFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_DISPLAY_REFRESH_RATE_FEEDBACK", false );
-	ctx->atoms.gamescopeDisplayDynamicRefreshBasedOnGamePresence = XInternAtom( ctx->dpy, "GAMESCOPE_DISPLAY_DYNAMIC_REFRESH_BASED_ON_GAME_PRESENCE", false );
 
 	ctx->atoms.steamosTouchPointerEmulation = XInternAtom( ctx->dpy, "_STEAMOS_TOUCH_POINTER_EMULATION", false );
 
@@ -7625,7 +7604,7 @@ extern int g_nPreferredOutputHeight;
 static bool g_bWasFSRActive = false;
 
 bool g_bAppWantsHDRCached = false;
-
+#if 0
 void steamcompmgr_check_xdg(bool vblank, uint64_t vblank_idx)
 {
 	if (wlserver_xdg_dirty())
@@ -7667,7 +7646,7 @@ void steamcompmgr_check_xdg(bool vblank, uint64_t vblank_idx)
 
 	check_new_xdg_res();
 }
-
+#endif
 extern bool g_bLaunchMangoapp;
 
 extern void ShutdownGamescope();
@@ -8297,7 +8276,6 @@ steamcompmgr_main(int argc, char **argv)
 			}
 		}
 
-		steamcompmgr_check_xdg(vblank, vblank_idx);
 
 		if ( s_oLowestFPSLimitScheduleVRR )
 		{

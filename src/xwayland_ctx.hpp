@@ -163,7 +163,7 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom gamescopeXWaylandModeControl;
 
 		Atom gamescopeFPSLimit;
-		Atom gamescopeDynamicRefresh[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT];
+		// Atom gamescopeDynamicRefresh[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT];
 		Atom gamescopeLowLatency;
 
 		Atom gamescopeFSRFeedback;
@@ -238,7 +238,7 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom gamescopeReshadeTechniqueIdx;
 
 		Atom gamescopeDisplayRefreshRateFeedback;
-		Atom gamescopeDisplayDynamicRefreshBasedOnGamePresence;
+		// Atom gamescopeDisplayDynamicRefreshBasedOnGamePresence;
 
 		Atom steamosTouchPointerEmulation;
 
