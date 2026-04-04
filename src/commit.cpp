@@ -3,8 +3,6 @@
 #include "steamcompmgr.hpp"
 #include "commit.h"
 
-#include "gpuvis_trace_utils.h"
-
 extern gamescope::CAsyncWaiter<gamescope::Rc<commit_t>> g_ImageWaiter;
 
 commit_t::commit_t()
@@ -51,7 +49,7 @@ int commit_t::GetFD()
 
 void commit_t::OnPollIn()
 {
-    gpuvis_trace_end_ctx_printf( commitID, "wait fence" );
+    // wait fence
 
     {
         std::unique_lock lock( m_WaitableCommitStateMutex );

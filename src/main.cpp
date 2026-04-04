@@ -26,7 +26,6 @@
 #include "rendervulkan.hpp"
 #include "wlserver.hpp"
 #include "convar.h"
-#include "gpuvis_trace_utils.h"
 #include "Utils/TempFiles.h"
 #include "Utils/Version.h"
 #include "Utils/Process.h"
@@ -716,10 +715,6 @@ int main(int argc, char **argv)
 
 	gamescope::Process::RaiseFdLimit();
 
-	if ( gpuvis_trace_init() != -1 )
-	{
-		fprintf( stderr, "Tracing is enabled\n");
-	}
 #if HAVE_SCRIPTING
 	{
 		gamescope::CScriptScopedLock script;

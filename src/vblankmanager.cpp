@@ -12,8 +12,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "gpuvis_trace_utils.h"
-
 #include "vblankmanager.hpp"
 #include "steamcompmgr.hpp"
 #include "main.hpp"
@@ -277,7 +275,7 @@ namespace gamescope
 				.ulWakeupTime = m_TimerFDSchedule.ulScheduledWakeupPoint,
 			};
 
-			gpuvis_trace_printf( "vblank timerfd wakeup" );
+			// vblank timerfd wakeup
 
 			ITimerWaitable::DisarmTimer();
 		}
@@ -312,12 +310,12 @@ namespace gamescope
 			uint64_t ulDiff = get_time_in_nanos() - time.ulWakeupTime;
 			if ( ulDiff > 1'000'000ul )
 			{
-				gpuvis_trace_printf( "Ignoring stale vblank... Pre-emptively re-arming." );
+				// Ignoring stale vblank... Pre-emptively re-arming.
 				ArmNextVBlank( true );
 				return;
 			}
 
-			gpuvis_trace_printf( "got vblank" );
+			// got vblank
 			m_PendingVBlank = time;
 		}
 	}
@@ -395,7 +393,7 @@ namespace gamescope
 				}
 				else
 				{
-					gpuvis_trace_printf( "sent vblank (nudge thread)" );
+					// sent vblank (nudge thread)
 				}
 			}
 		}

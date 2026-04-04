@@ -67,8 +67,6 @@
 #include "pipewire.hpp"
 #endif
 
-#include "gpuvis_trace_utils.h"
-
 #include <algorithm>
 #include <list>
 #include <set>
@@ -240,7 +238,7 @@ void xwayland_surface_commit(struct wlr_surface *wlr_surface) {
 
 	struct wlr_buffer *buf = wlr_buffer_lock( tex->buf );
 
-	gpuvis_trace_printf( "xwayland_surface_commit wlr_surface %p", wlr_surface );
+	// xwayland_surface_commit wlr_surface %p
 
 	if (wlserver_x11_surface_info)
 	{

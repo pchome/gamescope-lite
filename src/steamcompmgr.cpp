@@ -117,9 +117,6 @@ static const int g_nBaseCursorScale = 36;
 #include <stb_image_write.h>
 #include <deprecated/stb_image_resize.h>
 
-#define GPUVIS_TRACE_IMPLEMENTATION
-#include "gpuvis_trace_utils.h"
-
 LogScope xwm_log("xwm");
 LogScope g_WaitableLog("waitable");
 
@@ -2355,7 +2352,7 @@ paint_all( global_focus_t *pFocus, bool async )
 	update_color_mgmt();
 
 	paintID++;
-	gpuvis_trace_begin_ctx_printf( paintID, "paint_all" );
+	// paint_all
 	steamcompmgr_win_t	*w;
 	steamcompmgr_win_t	*overlay;
 	steamcompmgr_win_t *externalOverlay;
@@ -2907,8 +2904,6 @@ paint_all( global_focus_t *pFocus, bool async )
 	}
 
 
-	gpuvis_trace_end_ctx_printf( paintID, "paint_all" );
-	gpuvis_trace_printf( "paint_all %i layers", (int)frameInfo.layerCount );
 }
 
 /* Get prop from window
@@ -3545,7 +3540,7 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 		* iconic, so never do that. Only take them out of iconic. */
 		set_wm_state( ctx, ctx->focus.focusWindow->xwayland().id, ICCCM_NORMAL_STATE );
 
-		gpuvis_trace_printf( "determine_and_apply_focus focus %lu", ctx->focus.focusWindow->xwayland().id );
+		// determine_and_apply_focus focus %lu
 
 		if ( debugFocus == true )
 		{
@@ -5000,7 +4995,6 @@ damage_win(xwayland_ctx_t *ctx, XDamageNotifyEvent *de)
 		XDamageSubtract(ctx->dpy, w->xwayland().damage, None, None);
 	}
 
-	gpuvis_trace_printf( "damage_win win %lx appID %u", w->xwayland().id, w->appID );
 }
 
 static void
@@ -6374,7 +6368,7 @@ bool handle_done_commit( steamcompmgr_win_t *w, xwayland_ctx_t *ctx, uint64_t co
 
 		if ( w->commit_queue[ j ]->commitID == commitID )
 		{
-			gpuvis_trace_printf( "commit %lu done", w->commit_queue[ j ]->commitID );
+			// commit %lu done
 			w->commit_queue[ j ]->done = true;
 			w->commit_queue[ j ]->earliest_present_time = earliestPresentTime;
 			w->commit_queue[ j ]->present_margin = earliestPresentTime - earliestLatchTime;
@@ -6956,7 +6950,7 @@ void update_wayland_res(CommitDoneList_t *doneCommits, steamcompmgr_win_t *w, Re
 			}
 		}
 
-		gpuvis_trace_printf( "pushing wait for commit %lu win %lx", newCommit->commitID, w->type == steamcompmgr_win_type_t::XWAYLAND ? w->xwayland().id : 0 );
+		// pushing wait for commit %lu win %lx
 		{
 			newCommit->SetFence( fence, mango_nudge, doneCommits );
 			if ( bKnownReady )
@@ -7030,7 +7024,7 @@ void xwayland_ctx_t::Dispatch()
 		}
 		if (debugEvents)
 		{
-			gpuvis_trace_printf("event %d", ev.type);
+			// event %d
 			printf("event %d\n", ev.type);
 		}
 		switch (ev.type) {
