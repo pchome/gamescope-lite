@@ -833,7 +833,6 @@ uint32_t g_uCurrentBasePlaneAppID = 0;
 bool g_bCurrentBasePlaneIsFifo = false;
 
 static int g_nSteamCompMgrTargetFPS = 0;
-// Delay to stop modes flickering back and forth.
 
 static int g_nCombinedAppRefreshCycleOverride[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT] = { 0, 0 };
 bool g_nCombinedAppRefreshCycleChangeRefresh[gamescope::GAMESCOPE_SCREEN_TYPE_COUNT] = { true, true };
@@ -2338,11 +2337,8 @@ paint_all( global_focus_t *pFocus, bool async )
 	gamescope_xwayland_server_t *root_server = wlserver_get_xwayland_server(0);
 	xwayland_ctx_t *root_ctx = root_server->ctx.get();
 
-	static long long int paintID = 0;
-
 	update_color_mgmt();
 
-	paintID++;
 	// paint_all
 	steamcompmgr_win_t	*w;
 	steamcompmgr_win_t	*overlay;
