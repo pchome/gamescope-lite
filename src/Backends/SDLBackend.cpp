@@ -5,6 +5,7 @@
 #include <mutex>
 #include <string>
 #include <optional>
+#include <utility>
 
 #include <linux/input-event-codes.h>
 #include <signal.h>
@@ -180,7 +181,7 @@ namespace gamescope
         void SetVisible( bool bVisible );
         void SetTitle( std::shared_ptr<std::string> szTitle );
         void SetIcon( std::shared_ptr<std::vector<uint32_t>> uIconPixels );
-        void SetSelection( std::shared_ptr<std::string> szContents, GamescopeSelection eSelection );
+        void SetSelection( const std::shared_ptr<std::string>& szContents, GamescopeSelection eSelection );
 	protected:
 		virtual void OnBackendBlobDestroyed( BackendBlob *pBlob ) override;
 	private:
@@ -523,31 +524,39 @@ namespace gamescope
 
 	void CSDLBackend::SetCursorImage( std::shared_ptr<INestedHints::CursorInfo> info )
 	{
-		m_pApplicationCursor = info;
+		m_pApplicationCursor = std::move(info);
 		PushUserEvent( GAMESCOPE_SDL_EVENT_CURSOR );
 	}
 	void CSDLBackend::SetRelativeMouseMode( bool bRelative )
 	{
+		// Do not spam SDL events
+		if (bRelative == m_bApplicationGrabbed)
+			return;
+
 		m_bApplicationGrabbed = bRelative;
 		PushUserEvent( GAMESCOPE_SDL_EVENT_GRAB );
 	}
 	void CSDLBackend::SetVisible( bool bVisible )
 	{
+		// Do not spam SDL events
+		if (m_bApplicationVisible == bVisible)
+			return;
+
 		m_bApplicationVisible = bVisible;
 		PushUserEvent( GAMESCOPE_SDL_EVENT_VISIBLE );
 	}
 	void CSDLBackend::SetTitle( std::shared_ptr<std::string> szTitle )
 	{
-		m_pApplicationTitle = szTitle;
+		m_pApplicationTitle = std::move(szTitle);
 		PushUserEvent( GAMESCOPE_SDL_EVENT_TITLE );
 	}
 	void CSDLBackend::SetIcon( std::shared_ptr<std::vector<uint32_t>> uIconPixels )
 	{
-		m_pApplicationIcon = uIconPixels;
+		m_pApplicationIcon = std::move(uIconPixels);
 		PushUserEvent( GAMESCOPE_SDL_EVENT_ICON );
 	}
 
-	void CSDLBackend::SetSelection( std::shared_ptr<std::string> szContents, GamescopeSelection eSelection )
+	void CSDLBackend::SetSelection( const std::shared_ptr<std::string>& szContents, GamescopeSelection eSelection )
 	{
 		if (eSelection == GAMESCOPE_SELECTION_CLIPBOARD)
 			SDL_SetClipboardText(szContents->c_str());

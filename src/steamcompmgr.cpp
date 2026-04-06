@@ -8445,6 +8445,7 @@ steamcompmgr_main(int argc, char **argv)
 					pPaintFocus->cursor->UpdatePosition();
 			}
 
+			// TODO: fork: do not spam SetRelativeMouseMode
 			if ( pPaintFocus->GetNestedHints() && !g_bForceRelativeMouse )
 			{
 				const bool bImageEmpty =
