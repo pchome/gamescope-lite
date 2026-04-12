@@ -100,6 +100,7 @@ const struct option *gamescope_options = (struct option[]){
 	{ "debug-events", no_argument, nullptr, 0 },
 	{ "steam", no_argument, nullptr, 'e' },
 	{ "force-composition", no_argument, nullptr, 'c' },
+	{ "force-preemptive-upscaling", no_argument, nullptr, 0 },
 	{ "composite-debug", no_argument, nullptr, 0 },
 	{ "disable-xres", no_argument, nullptr, 'x' },
 	{ "fade-out-duration", required_argument, nullptr, 0 },
@@ -187,6 +188,7 @@ const char usage[] =
 	"  --debug-hud                    paint HUD with debug info\n"
 	"  --debug-events                 debug X11 events\n"
 	"  --force-composition            disable direct scan-out\n"
+	"  --force-preemptive-upscaling   always use preemptive upscaling for FSR/NIS\n"
 	"  --composite-debug              draw frame markers on alternating corners of the screen when compositing\n"
 	"  --disable-color-management     disable color management\n"
 	"  --disable-xres                 disable XRes for PID lookup\n"
@@ -242,6 +244,7 @@ GamescopeUpscaleScaler g_upscaleScaler = GamescopeUpscaleScaler::AUTO;
 GamescopeUpscaleFilter g_wantedUpscaleFilter = GamescopeUpscaleFilter::LINEAR;
 GamescopeUpscaleScaler g_wantedUpscaleScaler = GamescopeUpscaleScaler::AUTO;
 int g_upscaleFilterSharpness = 2;
+bool g_bForcePreemptiveUpscaling = false;
 
 bool g_bBorderlessOutputWindow = false;
 
@@ -649,6 +652,8 @@ int main(int argc, char **argv)
 				} else if (strcmp(opt_name, "sharpness") == 0 ||
 						   strcmp(opt_name, "fsr-sharpness") == 0) {
 					g_upscaleFilterSharpness = parse_integer( optarg, opt_name );
+				} else if (strcmp(opt_name, "force-preemptive-upscaling") == 0) {
+					g_bForcePreemptiveUpscaling = true;
 				} else if (strcmp(opt_name, "rt") == 0) {
 					g_bRt = true;
 				} else if (strcmp(opt_name, "prefer-vk-device") == 0) {

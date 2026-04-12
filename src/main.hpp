@@ -62,6 +62,7 @@ extern GamescopeUpscaleScaler g_upscaleScaler;
 extern GamescopeUpscaleFilter g_wantedUpscaleFilter;
 extern GamescopeUpscaleScaler g_wantedUpscaleScaler;
 extern int g_upscaleFilterSharpness;
+extern bool g_bForcePreemptiveUpscaling;
 
 extern bool g_bBorderlessOutputWindow;
 

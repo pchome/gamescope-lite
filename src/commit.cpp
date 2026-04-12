@@ -132,7 +132,8 @@ bool commit_t::ShouldPreemptivelyUpscale()
 {
     // Don't pre-emptively upscale if we are not a FIFO commit.
     // Don't want to FSR upscale 1000fps content.
-    if ( !fifo )
+    // TODO: wrong mouse cursor offset w/ FSR/NIS
+    if ( !fifo && !g_bForcePreemptiveUpscaling )
         return false;
 
     // If we support the upscaling filter in hardware, don't
