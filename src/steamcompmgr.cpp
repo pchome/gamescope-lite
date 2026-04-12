@@ -2343,7 +2343,8 @@ paint_all( global_focus_t *pFocus, bool async )
 	gamescope_xwayland_server_t *root_server = wlserver_get_xwayland_server(0);
 	xwayland_ctx_t *root_ctx = root_server->ctx.get();
 
-	update_color_mgmt();
+	if ( g_ColorMgmt.pending.enabled )
+		update_color_mgmt();
 
 	// paint_all
 	steamcompmgr_win_t	*w;
@@ -7779,6 +7780,10 @@ steamcompmgr_main(int argc, char **argv)
 	int o;
 	int opt_index = -1;
 	bool bForceWindowsFullscreen = false;
+
+	// Enable color mgmt by default.
+	g_ColorMgmt.pending.enabled = true;
+
 	while ((o = getopt_long(argc, argv, gamescope_optstring, gamescope_options, &opt_index)) != -1)
 	{
 		const char *opt_name;
@@ -7830,6 +7835,8 @@ steamcompmgr_main(int argc, char **argv)
 					g_bForceHDR10OutputDebug = true;
 				} else if (strcmp(opt_name, "hdr-itm-enabled") == 0 || strcmp(opt_name, "hdr-itm-enable") == 0) {
 					g_bHDRItmEnable = true;
+				} else if (strcmp(opt_name, "disable-color-management") == 0) {
+					g_ColorMgmt.pending.enabled = false;
 				} else if (strcmp(opt_name, "sdr-gamut-wideness") == 0) {
 					g_ColorMgmt.pending.sdrGamutWideness = atof(optarg);
 				} else if (strcmp(opt_name, "hdr-sdr-content-nits") == 0) {
@@ -7862,9 +7869,6 @@ steamcompmgr_main(int argc, char **argv)
 	{
 		cv_composite_force = true;
 	}
-
-	// Enable color mgmt by default.
-	g_ColorMgmt.pending.enabled = true;
 
 	currentOutputWidth = g_nPreferredOutputWidth;
 	currentOutputHeight = g_nPreferredOutputHeight;

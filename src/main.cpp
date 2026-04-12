@@ -559,7 +559,6 @@ int g_nPreferredOutputWidth = 0;
 int g_nPreferredOutputHeight = 0;
 bool g_bExposeWayland = false;
 const char *g_sOutputName = nullptr;
-bool g_bForceDisableColorMgmt = false;
 bool g_bRt = false;
 
 // This will go away when we remove the getopt stuff from vr session.
@@ -640,8 +639,6 @@ int main(int argc, char **argv)
 				} else if (strcmp(opt_name, "version") == 0) {
 					// We always print the version to stderr anyway.
 					return 0;
-				} else if (strcmp(opt_name, "disable-color-management") == 0) {
-					g_bForceDisableColorMgmt = true;
 				} else if (strcmp(opt_name, "xwayland-count") == 0) {
 					g_nXWaylandCount = parse_integer( optarg, opt_name );
 				} else if (strcmp(opt_name, "composite-debug") == 0) {
