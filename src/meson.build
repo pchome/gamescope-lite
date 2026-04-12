@@ -126,6 +126,7 @@ endif
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(get_option('rt_cap').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCRIPTING=@0@'.format(get_option('scripting').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_SCREENSHOT=@0@'.format(get_option('screenshot').enabled().to_int())
 
 src += spirv_shaders
 src += protocols_server_src

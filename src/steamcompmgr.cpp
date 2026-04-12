@@ -2590,6 +2590,7 @@ paint_all( global_focus_t *pFocus, bool async )
 		return;
 	}
 
+#if HAVE_SCREENSHOT
 	std::optional<gamescope::GamescopeScreenshotInfo> oScreenshotInfo =
 		gamescope::CScreenshotManager::Get().ProcessPendingScreenshot();
 
@@ -2895,7 +2896,7 @@ paint_all( global_focus_t *pFocus, bool async )
 			}
 		}
 	}
-
+#endif // HAVE_SCREENSHOT
 
 }
 
