@@ -1599,6 +1599,8 @@ gamescope_xwayland_server_t::gamescope_xwayland_server_t(wl_display *display, in
 		height = g_nOutputHeight;
 	}
 
+	wl_log.infof("Using %dx%d@%d output", width, height, refresh/1000);
+
 	wlr_output_state_set_enabled(output_state, true);
 	wlr_output_state_set_custom_mode(output_state, width, height, refresh);
 	if (!wlr_output_commit_state(output, output_state))

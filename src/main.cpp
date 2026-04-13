@@ -59,6 +59,7 @@ const struct option *gamescope_options = (struct option[]){
 	{ "nested-width", required_argument, nullptr, 'w' },
 	{ "nested-height", required_argument, nullptr, 'h' },
 	{ "nested-refresh", required_argument, nullptr, 'r' },
+	{ "aspect-ratio", required_argument, nullptr, 'a' },
 	{ "max-scale", required_argument, nullptr, 'm' },
 	{ "scaler", required_argument, nullptr, 'S' },
 	{ "filter", required_argument, nullptr, 'F' },
@@ -137,6 +138,14 @@ const char usage[] =
 	"  -w, --nested-width             game width\n"
 	"  -h, --nested-height            game height\n"
 	"  -r, --nested-refresh           game refresh rate (frames per second)\n"
+	"  -a, --aspect-ratio             change default 16:9 aspect tatio\n"
+	"                                     (also aplied with -H option when the output width is not set)\n"
+	"                                      4:3  =>  960×720\n"
+	"                                     16:9  => 1280×720\n"
+	"                                     16:10 => 1280×800 (-H 800)\n"
+	"                                     24:10 => 1728×720 ('21:9' variant)\n"
+	"                                     43:18 => 1720×720 ('21:9' variant)\n"
+	"                                     64:27 => 1706×720 ('21:9' variant)\n"
 	"  -m, --max-scale                maximum scale factor\n"
 	"  -S, --scaler                   upscaler type (auto, integer, fit, fill, stretch, native)\n"
 	"  -F, --filter                   upscaler filter (linear, nearest, fsr, nis, pixel)\n"
@@ -216,6 +225,14 @@ const char usage[] =
 	"  Super + O                      decrease FSR sharpness by 1\n"
 	"  Super + S                      take a screenshot\n"
 	"  Super + G                      toggle keyboard grab\n"
+	"\n"
+	"Good aspect ratio examples to play in window:\n"
+	"  43:18  \"21:9\" ultrawide        2064x864    (monitor resolutions based on 720 lines)\n"
+	"  64:27  \"21:9\" ultrawide        2048x864    (for multiples of 1080 lines, also 4/3 * 4/3 * 4/3)\n"
+	"  24:10  UltraWide               1920x800    (monitor resolutions based either on 960 pixels width or 900 lines height)\n"
+	"  16:9   Widescreen              1536x864    (universal standard, also 4/3 * 4/3)\n"
+	"  16:10  golden ratio            1280x800    (allow of 16:9 content with application interface occupying the lower tenth of the display)\n"
+	"   4:3   VGA  (Fullscreen)       1152x864    (early standard)\n"
 	"";
 
 std::atomic< bool > g_bRun{true};
@@ -235,6 +252,8 @@ bool g_bFullscreen = false;
 bool g_bForceRelativeMouse = false;
 
 bool g_bGrabbed = false;
+
+float g_aspectRatio = 16. / 9.;
 
 float g_mouseSensitivity = 1.0;
 
@@ -356,6 +375,29 @@ static float parse_float(const char *str, const char *optionName)
 		fprintf( stderr, "gamescope: invalid value for --%s, \"%s\" could not be interpreted as a real number\n", optionName, str );
 		exit(1);
 	}
+}
+
+static float parse_aspect_ratio(const char *str)
+{
+	// TODO: maybe preffer resolutions, limit some heights, add hints, etc...
+	// https://en.wikipedia.org/wiki/Ultrawide_formats#Comparison
+	if (strcmp(str, "auto") == 0)
+		return 16. / 9.;
+	if (strcmp(str, "4:3") == 0)
+		return 4. / 3.;
+	if (strcmp(str, "16:9") == 0)
+		return 16. / 9.;
+	if (strcmp(str, "16:10") == 0)
+		return 16. / 10.;
+	if (strcmp(str, "24:10") == 0)
+		return 24. / 10.;
+	if (strcmp(str, "43:18") == 0)
+		return 43. / 18.;
+	if (strcmp(str, "64:27") == 0)
+		return 64. / 27.;
+
+	fprintf( stderr, "gamescope: invalid value for --aspect-ratio, \"%s\" is not supported\n", str );
+	exit(1);
 }
 
 struct sigaction handle_signal_action = {};
@@ -596,6 +638,9 @@ int main(int argc, char **argv)
 			case 'r':
 				g_nNestedRefresh = gamescope::ConvertHztomHz( parse_integer( optarg, "nested-refresh" ) );
 				break;
+			case 'a':
+				g_aspectRatio = parse_aspect_ratio( optarg );
+				break;
 			case 'W':
 				g_nPreferredOutputWidth = parse_integer( optarg, "output-width" );
 				break;
@@ -807,7 +852,7 @@ int main(int argc, char **argv)
 		g_nNestedHeight = g_nOutputHeight;
 	}
 	if ( g_nNestedWidth == 0 )
-		g_nNestedWidth = g_nNestedHeight * 16 / 9;
+		g_nNestedWidth = g_nNestedHeight * g_aspectRatio;
 
 	if ( !wlserver_init() )
 	{

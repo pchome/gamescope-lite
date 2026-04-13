@@ -239,7 +239,7 @@ namespace gamescope
 			g_nOutputHeight = 720;
 		}
 		if ( g_nOutputWidth == 0 )
-			g_nOutputWidth = g_nOutputHeight * 16 / 9;
+			g_nOutputWidth = g_nOutputHeight * g_aspectRatio;
 		if ( g_nOutputRefresh == 0 )
 			g_nOutputRefresh = gamescope::ConvertHztomHz( 60 );
 
