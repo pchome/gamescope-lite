@@ -10,6 +10,22 @@
 * [x] Droped WSI layer (use upstream one if needed/applicable)
 * [x] Droped executables other than `gamescope-lite` and `gamescopereaper-lite` (use upstream one if needed/applicable)
 
+* [x] Updated wlroots version to 0.18.3
+    - + patch to run gamescope in containers (unshare, flatpack, ...)
+    - + patch to silence error about X0 socket already in use
+* [x] Disabled upscaling by default (prev. default was `-S fit`, cur. default: `-S native`)
+* [x] Initial support for aspect ratio option `-a, --aspect-ratio`
+    - currently some fixed values are added: 4:3, 16:9, 16:10, 24:10, 43:18, 64:27
+    - for e.g. 16:10 use `gamescope-lite -a 16:10 -H 800 -- vkgears` (will start in 1280×800 window)
+* [x] Merged some pending (useful or experimental) upstream PRs
+    - disabled global `-ffast-math` compiler flag
+    - fixed (almost) gamescope abort at exit
+    - Anime4K 2x CNN UL upscaling filter `-F anime4k` (well.., would be base for something more lightwaight e.g. Anime4K 2x 3DGraphics US)
+    - Bicubic downscaling filter `-F bicubic`
+* [x] Debug options
+    - reenable unused `--disable-color-management` (I'd remove color management but output is too dark. Need more info.)
+    - added `--force-preemptive-upscaling` (Ok with lower fps but higher load w/o vsync. Need more info.)
+
 #### TODO:
 * [ ] Drop HDR (I don't have hw to test this)
 * [ ] Drop scripts/reshade/pipewire/debug-utils/... (we have reshade at home)
