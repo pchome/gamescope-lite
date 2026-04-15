@@ -419,7 +419,7 @@ void vulkan_present_to_window( void );
 
 void vulkan_garbage_collect( void );
 bool vulkan_remake_swapchain( void );
-bool vulkan_remake_output_images( void );
+// bool vulkan_remake_output_images( void );
 bool acquire_next_image( void );
 
 bool vulkan_primary_dev_id(dev_t *id);

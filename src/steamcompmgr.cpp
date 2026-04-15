@@ -2341,8 +2341,8 @@ paint_all( global_focus_t *pFocus, bool async )
 	if ( !pConnector )
 		pConnector = GetBackend()->GetCurrentConnector();
 
-	gamescope_xwayland_server_t *root_server = wlserver_get_xwayland_server(0);
-	xwayland_ctx_t *root_ctx = root_server->ctx.get();
+	// gamescope_xwayland_server_t *root_server = wlserver_get_xwayland_server(0);
+	// xwayland_ctx_t *root_ctx = root_server->ctx.get();
 
 	if ( g_ColorMgmt.pending.enabled )
 		update_color_mgmt();
@@ -8228,12 +8228,15 @@ steamcompmgr_main(int argc, char **argv)
 
 				while ( !acquire_next_image() )
 					vulkan_remake_swapchain();
+				
+				xwm_log.infof("Using new %dx%d window", g_nOutputWidth, g_nOutputHeight);
 			}
+#if 0
 			else
 			{
 				vulkan_remake_output_images();
 			}
-
+#endif
 
 			{
 				gamescope_xwayland_server_t *server = NULL;

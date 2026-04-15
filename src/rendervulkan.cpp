@@ -3261,7 +3261,15 @@ bool vulkan_make_swapchain( VulkanOutput_t *pOutput )
 		.pViewFormats = formats,
 	};
 
-	vk_log.infof("Creating Gamescope nested swapchain with format %u and colorspace %u", eVkFormat, pOutput->surfaceFormats[surfaceFormat].colorSpace);
+	vk_log.infof("Creating nested swapchain with format %s and colorspace %s",
+		eVkFormat == VK_FORMAT_B8G8R8A8_UNORM ? "B8G8R8A8_UNORM" :
+		eVkFormat == VK_FORMAT_A2R10G10B10_UNORM_PACK32 ? "A2R10G10B10_UNORM_PACK32" :
+		eVkFormat == VK_FORMAT_A2B10G10R10_UNORM_PACK32 ? "A2B10G10R10_UNORM_PACK32" :
+		"<unknown>",
+		pOutput->surfaceFormats[surfaceFormat].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR ? "SRGB_NONLINEAR_KHR" :
+		pOutput->surfaceFormats[surfaceFormat].colorSpace == VK_COLOR_SPACE_HDR10_ST2084_EXT ? "HDR10_ST2084_EXT" :
+		"<unknown>"
+	);
 
 	VkSwapchainCreateInfoKHR createInfo = {
 		.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -3336,6 +3344,7 @@ bool vulkan_remake_swapchain( void )
 	return bRet;
 }
 
+#if 0
 static bool vulkan_make_output_images( VulkanOutput_t *pOutput )
 {
 	CVulkanTexture::createFlags outputImageflags;
@@ -3431,6 +3440,7 @@ bool vulkan_remake_output_images()
 	assert( bRet );
 	return bRet;
 }
+#endif
 
 bool vulkan_make_output()
 {
@@ -3489,6 +3499,7 @@ bool vulkan_make_output()
 		while ( !acquire_next_image() )
 			vulkan_remake_swapchain();
 	}
+#if 0
 	else
 	{
 		GetBackend()->GetPreferredOutputFormat( &pOutput->uOutputFormat, &pOutput->uOutputFormatOverlay );
@@ -3508,7 +3519,7 @@ bool vulkan_make_output()
 		if ( !vulkan_make_output_images( pOutput ) )
 			return false;
 	}
-
+#endif
 	return true;
 }
 

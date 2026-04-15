@@ -38,6 +38,8 @@ extern int g_nPreferredOutputHeight;
 
 namespace gamescope
 {
+	static LogScope sdl_log("backend");
+
 	enum class SDLInitState
 	{
 		SDLInit_Waiting,
@@ -575,7 +577,8 @@ namespace gamescope
 	CSDLBackend::~CSDLBackend() 
 	{
 		PushUserEvent(GAMESCOPE_SDL_EVENT_REQ_EXIT);
-		m_SDLThread.join();
+		if ( m_SDLThread.joinable() )
+			m_SDLThread.join();
 	}
 
 	void CSDLBackend::SDLThreadFunc()
@@ -593,6 +596,8 @@ namespace gamescope
 			m_eSDLInit.notify_all();
 			return;
 		}
+
+		sdl_log.infof("Using SDL backend");
 
 		if ( SDL_Vulkan_LoadLibrary( nullptr ) != 0 )
 		{
@@ -641,6 +646,8 @@ namespace gamescope
 		#endif
 			g_nOutputWidth = width;
 			g_nOutputHeight = height;
+			
+			sdl_log.infof("Using %dx%d window", width, height);
 		}
 
 		if ( g_bForceRelativeMouse )

@@ -960,7 +960,8 @@ int main(int argc, char **argv)
 
 	wlserver_run();
 
-	steamCompMgrThread.join();
+	if ( steamCompMgrThread.joinable() )
+		steamCompMgrThread.join();
 
 	gamescope::Process::KillAllChildren( getpid(), SIGTERM );
 	gamescope::Process::WaitForAllChildren();
