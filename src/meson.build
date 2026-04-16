@@ -86,7 +86,6 @@ sol2_include = include_directories(['../thirdparty'])
 required_wlroots_features = ['xwayland']
 
 src = [
-  'Backends/HeadlessBackend.cpp',
   'Backends/SDLBackend.cpp',
   'Utils/TempFiles.cpp',
   'Utils/Version.cpp',
@@ -112,6 +111,12 @@ src = [
 luajit_dep = dependency('luajit', required: get_option('scripting'))
 
 gamescope_cpp_args = []
+
+if get_option('headless').enabled()
+  src += 'Backends/HeadlessBackend.cpp'
+else
+  gamescope_cpp_args += '-DHAVE_HEADLESS=0'
+endif
 
 if get_option('scripting').enabled()
   src += 'Script/Script.cpp'

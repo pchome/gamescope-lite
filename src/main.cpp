@@ -840,6 +840,7 @@ int main(int argc, char **argv)
 
 	g_ForcedNV12ColorSpace = parse_colorspace_string( getenv( "GAMESCOPE_NV12_COLORSPACE" ) );
 
+#if HAVE_HEADLESS
 	switch ( eCurrentBackend )
 	{
 		case gamescope::GamescopeBackend::SDL:
@@ -854,6 +855,9 @@ int main(int argc, char **argv)
 		default:
 			abort();
 	}
+#else
+    gamescope::IBackend::Set<gamescope::CSDLBackend>();
+#endif
 
 	if ( !GetBackend() )
 	{
