@@ -86,7 +86,9 @@ sol2_include = include_directories(['../thirdparty'])
 required_wlroots_features = ['xwayland']
 
 src = [
-  'Backends/SDLBackend.cpp',
+  'backend/sdl/sdl_connector.cpp',
+  'backend/sdl/sdl_backend.cpp',
+
   'Utils/TempFiles.cpp',
   'Utils/Version.cpp',
   'Utils/Process.cpp',

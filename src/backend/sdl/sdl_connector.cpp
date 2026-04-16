@@ -1,0 +1,166 @@
+#include <optional>
+#include <format>
+#include <print>
+
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_vulkan.h>
+#include <SDL2/SDL_clipboard.h>
+
+#include "sdl_connector.hpp"
+#include "sdl_backend.hpp"
+
+#include "constants_include.hpp"
+#include "gamescope_shared.h"
+#include "main.hpp"
+#include "refresh_rate.h"
+#include "rendervulkan.hpp"
+#include "steamcompmgr.hpp"
+#include "vblankmanager.hpp"
+
+extern bool g_bForceHDR10OutputDebug;
+// extern bool g_bFirstFrame;
+extern int g_nPreferredOutputWidth;
+extern int g_nPreferredOutputHeight;
+
+namespace gamescope {
+//////////////////
+// CSDLConnector
+//////////////////
+
+CSDLConnector::CSDLConnector(CSDLBackend *pBackend) : m_pBackend{pBackend} {}
+
+CSDLConnector::~CSDLConnector() {
+  if (m_pWindow != nullptr) {
+    SDL_DestroyWindow(m_pWindow);
+  }
+}
+
+auto CSDLConnector::GetName() const -> const char * { return "SDLWindow"; }
+auto CSDLConnector::GetMake() const -> const char * { return "Gamescope Lite"; }
+auto CSDLConnector::GetModel() const -> const char * { return "Virtual Display"; }
+
+auto CSDLConnector::Init() -> bool {
+  g_nOutputWidth = g_nPreferredOutputWidth;
+  g_nOutputHeight = g_nPreferredOutputHeight;
+  g_nOutputRefresh = g_nNestedRefresh;
+
+  if (g_nOutputHeight == 0) {
+    if (g_nOutputWidth != 0) {
+      std::println(stderr, "Cannot specify -W without -H");
+      return false;
+    }
+    g_nOutputHeight = defaults::nestedH;
+  }
+
+  if (g_nOutputWidth == 0) {
+    g_nOutputWidth = g_nOutputHeight * g_aspectRatio;
+  }
+
+  if (g_nOutputRefresh == 0) {
+    g_nOutputRefresh = gamescope::ConvertHztomHz(defaults::refreshHz);
+  }
+
+  uint32_t unusedFlags = 0;
+  uint32_t uSDLWindowFlags = SDL_WINDOW_VULKAN;
+
+  uSDLWindowFlags |= SDL_WINDOW_RESIZABLE;
+  uSDLWindowFlags |= SDL_WINDOW_HIDDEN;
+  uSDLWindowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
+
+  (g_bBorderlessOutputWindow ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_BORDERLESS;
+  (g_bFullscreen ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+  (g_bGrabbed ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_KEYBOARD_GRABBED;
+
+  auto pos_x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(g_nNestedDisplayIndex);
+  auto pos_y = SDL_WINDOWPOS_UNDEFINED_DISPLAY(g_nNestedDisplayIndex);
+
+  m_pWindow = SDL_CreateWindow(GetName(), pos_x, pos_y, g_nOutputWidth, g_nOutputHeight, uSDLWindowFlags);
+
+  if (m_pWindow == nullptr) {
+    return false;
+  }
+
+  if (SDL_Vulkan_CreateSurface(m_pWindow, vulkan_get_instance(), &m_pVkSurface) == SDL_FALSE) {
+    std::println(stderr, "SDL_Vulkan_CreateSurface failed: {0}", SDL_GetError());
+    return false;
+  }
+
+  return true;
+}
+
+auto CSDLConnector::GetCurrentOrientation() const -> GamescopePanelOrientation { return GAMESCOPE_PANEL_ORIENTATION_0; }
+auto CSDLConnector::GetHDRInfo() const -> const BackendConnectorHDRInfo & { return m_HDRInfo; }
+auto CSDLConnector::GetModes() const -> std::span<const BackendMode> { return std::span<const BackendMode>{}; }
+auto CSDLConnector::GetRawEDID() const -> std::span<const uint8_t> { return std::span<const uint8_t>{}; }
+auto CSDLConnector::GetScreenType() const -> GamescopeScreenType { return gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL; }
+auto CSDLConnector::GetValidDynamicRefreshRates() const -> std::span<const uint32_t> {
+  return std::span<const uint32_t>{};
+}
+auto CSDLConnector::IsHDRActive() const -> bool { return false; }
+auto CSDLConnector::IsVRRActive() const -> bool { return false; }
+auto CSDLConnector::SupportsHDR() const -> bool { return GetHDRInfo().IsHDR10(); }
+auto CSDLConnector::SupportsVRR() const -> bool { return false; }
+
+
+void CSDLConnector::GetNativeColorimetry(bool /*bHDR10*/, displaycolorimetry_t *displayColorimetry, EOTF *displayEOTF,
+                                         displaycolorimetry_t *outputEncodingColorimetry,
+                                         EOTF *outputEncodingEOTF) const {
+  if (g_bForceHDR10OutputDebug) {
+    *displayColorimetry = displaycolorimetry_2020;
+    *displayEOTF = EOTF_PQ;
+    *outputEncodingColorimetry = displaycolorimetry_2020;
+    *outputEncodingEOTF = EOTF_PQ;
+  } else {
+    *displayColorimetry = displaycolorimetry_709;
+    *displayEOTF = EOTF_Gamma22;
+    *outputEncodingColorimetry = displaycolorimetry_709;
+    *outputEncodingEOTF = EOTF_Gamma22;
+  }
+}
+
+auto CSDLConnector::Present(const FrameInfo_t *pFrameInfo, bool /*bAsync*/) -> int {
+  // TODO: Resolve const crap
+  std::optional oCompositeResult = vulkan_composite((FrameInfo_t *)pFrameInfo, nullptr, false);
+  if (!oCompositeResult) {
+    return -EINVAL;
+  }
+
+  vulkan_present_to_window();
+
+  // TODO: Hook up PresentationFeedback.
+
+  // Wait for the composite result on our side *after* we
+  // commit the buffer to the compositor to avoid a bubble.
+  vulkan_wait(*oCompositeResult, true);
+
+  GetVBlankTimer().UpdateWasCompositing(true);
+  GetVBlankTimer().UpdateLastDrawTime(get_time_in_nanos() - g_SteamCompMgrVBlankTime.ulWakeupTime);
+
+  return 0;
+}
+
+void CSDLConnector::SetCursorImage(std::shared_ptr<INestedHints::CursorInfo> info) {
+  m_pBackend->SetCursorImage(std::move(info));
+}
+
+void CSDLConnector::SetRelativeMouseMode(bool bRelative) { m_pBackend->SetRelativeMouseMode(bRelative); }
+void CSDLConnector::SetVisible(bool bVisible) { m_pBackend->SetVisible(bVisible); }
+void CSDLConnector::SetTitle(std::shared_ptr<std::string> szTitle) { m_pBackend->SetTitle(std::move(szTitle)); }
+void CSDLConnector::SetIcon(std::shared_ptr<std::vector<uint32_t>> uIconPixels) {
+  m_pBackend->SetIcon(std::move(uIconPixels));
+}
+
+void CSDLConnector::SetSelection(std::shared_ptr<std::string> szContents, GamescopeSelection eSelection) {
+  switch (eSelection) {
+    case GAMESCOPE_SELECTION_CLIPBOARD:
+      SDL_SetClipboardText(szContents->c_str());
+      break;
+    case GAMESCOPE_SELECTION_PRIMARY:
+      SDL_SetPrimarySelectionText(szContents->c_str());
+      break;
+    case GAMESCOPE_SELECTION_COUNT:
+    default:
+      break;
+  }
+}
+} // namespace gamescope
