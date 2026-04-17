@@ -1,3 +1,4 @@
+#include "GamescopeVersion.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
 #define _GNU_SOURCE 1
 
@@ -72,6 +73,7 @@
 #include <set>
 
 static LogScope wl_log("wlserver");
+static LogScope wlroots_log("wlroots");
 
 using namespace std::literals;
 
@@ -1489,7 +1491,7 @@ static void handle_wlr_log(enum wlr_log_importance importance, const char *fmt, 
 		break;
 	}
 
-	wl_log.vlogf(prio, fmt, args);
+	wlroots_log.vlogf(prio, fmt, args);
 }
 
 void wlserver_set_output_info( const wlserver_output_info *info )
@@ -1547,7 +1549,9 @@ bool wlsession_init( void ) {
 	if ( s_bInitted )
 		return true;
 
-	wlr_log_init(WLR_DEBUG, handle_wlr_log);
+    if constexpr (gamescope::build::buildtype == "debug"sv) {
+        wlr_log_init(WLR_DEBUG, handle_wlr_log);
+    }
 
 	wlserver.display = wl_display_create();
 	wlserver.event_loop = wl_display_get_event_loop( wlserver.display );

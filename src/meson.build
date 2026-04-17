@@ -160,6 +160,12 @@ version_tag = vcs_tag + ' (' + compiler_name + ' ' + compiler_version + ')'
 
 gamescope_version_conf = configuration_data()
 gamescope_version_conf.set('VCS_TAG', version_tag)
+gamescope_version_conf.set('BUILDTYPE', get_option('buildtype'))
+gamescope_version_conf.set('PREFIX', get_option('prefix'))
+gamescope_version_conf.set('DATADIR', get_option('datadir'))
+gamescope_version_conf.set('LIBDIR', get_option('libdir'))
+gamescope_version_conf.set('BINDIR', get_option('bindir'))
+gamescope_version_conf.set('HAVE_HEADLESS', get_option('headless').enabled().to_string().to_lower())
 
 gamescope_version = configure_file(
   input : 'GamescopeVersion.h.in',

@@ -805,7 +805,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		fprintf( stderr, "No CAP_SYS_NICE, falling back to regular-priority compute and threads.\nPerformance will be affected.\n" );
+		console_log.warnf("No CAP_SYS_NICE, falling back to regular-priority compute and threads.");
 	}
 
 #if 0

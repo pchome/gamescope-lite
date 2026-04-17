@@ -1,14 +1,15 @@
-#include "Version.h"
+#include <print>
+
 #include "Process.h"
+#include "Version.h"
 
 #include "GamescopeVersion.h"
 
-#include "convar.h"
-
-namespace gamescope
-{
-    void PrintVersion()
-    {
-        console_log.infof( "%s version %s", Process::GetProcessName(), gamescope::k_szGamescopeVersion );
-    }
+namespace gamescope {
+void PrintVersion() {
+    std::println("[{0}] [version]  {1} ({2})",
+                 Process::GetProcessName(),
+                 gamescope::k_szGamescopeVersion,
+                 gamescope::build::buildtype);
 }
+} // namespace gamescope

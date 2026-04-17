@@ -3,4 +3,15 @@
 namespace gamescope
 {
     static constexpr const char k_szGamescopeVersion[] = "@VCS_TAG@";
+
+    namespace build {
+        //static constexpr bool have_headless = @HAVE_HEADLESS@;
+        static constexpr auto buildtype = "@BUILDTYPE@";
+        
+        static constexpr auto prefix = "@PREFIX@";
+        static constexpr auto datadir = "@DATADIR@";
+        static constexpr auto libdir = "@LIBDIR@";
+        static constexpr auto bindir = "@BINDIR@";
+        // whatever dir we may need ... see `$ meson setup --help`
+    }
 }
