@@ -1,6 +1,29 @@
-option('pipewire',          type: 'feature', description: 'Screen capture via PipeWire')
-option('rt_cap',            type: 'feature', description: 'Support for creating real-time threads + compute queues')
-option('screenshot',        type: 'feature', description: 'Support for saving screenshots')
-option('avif_screenshots',  type: 'feature', description: 'Support for saving .AVIF HDR screenshots')
-option('scripting',         type: 'feature', description: 'Support for lua scripting')
-option('headless',          type: 'feature', description: 'Support headless backend')
+option('pipewire',
+  description: 'Screen capture via PipeWire',
+  type:        'feature',
+  value:       'disabled')
+
+option('rt_cap',
+  description: 'Support for creating real-time threads + compute queues',
+  type:        'feature',
+  value:       'disabled')
+
+option('screenshot',
+  description: 'Support for saving screenshots',
+  type:        'feature',
+  value:       'disabled')
+
+option('avif_screenshots',
+  description: 'Support for saving .AVIF HDR screenshots',
+  type:        'feature',
+  value:       'disabled')
+
+option('scripting',
+  description: 'Support for lua scripting',
+  type:        'feature',
+  value:       'disabled')
+
+option('headless',
+  description: 'Support headless backend',
+  type:        'feature',
+  value:       'disabled')

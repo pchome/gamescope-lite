@@ -5,6 +5,7 @@ project(
   meson_version: '>=0.58.0',
   default_options: [
     'cpp_std=c++23',
+    'c_std=c23,c11',
     'warning_level=2',
     'force_fallback_for=wlroots',
   ],
@@ -36,6 +37,14 @@ add_project_arguments(cppc.get_supported_arguments([
   '-Wno-ignored-qualifiers', # reshade warning
   '-Wno-missing-braces',
 ]), language: 'cpp')
+
+# These warnings indicate likely runtime problems with LTO, so promote them to errors.
+# If a package fails to build with these, LTO should not be used there.
+add_project_arguments(cppc.get_supported_arguments([
+  '-Werror=odr',
+  '-Werror=lto-type-mismatch',
+  '-Werror=strict-aliasing',
+]), language: ['c','cpp'])
 
 add_project_arguments(cppc.get_supported_arguments([
   '-fno-exceptions',
