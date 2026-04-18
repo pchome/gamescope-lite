@@ -4035,7 +4035,7 @@ void bind_all_layers(CVulkanCmdBuffer* cmdBuffer, const struct FrameInfo_t *fram
 		cmdBuffer->bindTexture(i, nullptr);
 	}
 }
-
+#if HAVE_PIPEWIRE || HAVE_SCREENSHOT
 std::optional<uint64_t> vulkan_screenshot( const struct FrameInfo_t *frameInfo, gamescope::Rc<CVulkanTexture> pScreenshotTexture, gamescope::Rc<CVulkanTexture> pYUVOutTexture )
 {
 	EOTF outputTF = frameInfo->outputEncodingEOTF;
@@ -4090,6 +4090,7 @@ std::optional<uint64_t> vulkan_screenshot( const struct FrameInfo_t *frameInfo, 
 	uint64_t sequence = g_device.submit(std::move(cmdBuffer));
 	return sequence;
 }
+#endif
 #if HAVE_RESHADE
 extern std::string g_reshade_effect;
 extern uint32_t g_reshade_technique_idx;

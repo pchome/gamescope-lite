@@ -431,7 +431,9 @@ void vulkan_update_luts(const gamescope::Rc<CVulkanTexture>& lut1d, const gamesc
 
 gamescope::Rc<CVulkanTexture> vulkan_get_hacky_blank_texture();
 
+#if HAVE_PIPEWIRE || HAVE_SCREENSHOT
 std::optional<uint64_t> vulkan_screenshot( const struct FrameInfo_t *frameInfo, gamescope::Rc<CVulkanTexture> pScreenshotTexture, gamescope::Rc<CVulkanTexture> pYUVOutTexture );
+#endif
 
 struct wlr_renderer *vulkan_renderer_create( void );
 
