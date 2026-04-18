@@ -45,8 +45,9 @@
 #include "cs_nis.h"
 #include "cs_nis_fp16.h"
 #include "cs_rgb_to_nv12.h"
+#if HAVE_ANIME4K
 #include "cs_anime4k_2x_cnn_ul.h"
-
+#endif
 #define A_CPU
 #include "shaders/ffx_a.h"
 #include "shaders/ffx_fsr1.h"
@@ -311,8 +312,10 @@ bool CVulkanDevice::BInit(VkInstance instance, VkSurfaceKHR surface)
 		return false;
 	if (!createShaders())
 		return false;
+#if HAVE_ANIME4K
 	if (!createAnime4kULPipelines())
 		return false;
+#endif
 	if (!createScratchResources())
 		return false;
 
@@ -768,7 +771,11 @@ bool CVulkanDevice::createLayouts()
 	for (auto& sampler : ycbcrSamplers)
 		sampler = m_ycbcrSampler;
 
+#if HAVE_ANIME4K
 	std::array<VkDescriptorSetLayoutBinding, 8 > layoutBindings = {
+#else
+    std::array<VkDescriptorSetLayoutBinding, 7 > layoutBindings = {
+#endif
 		VkDescriptorSetLayoutBinding {
 			.binding = 0,
 			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -787,12 +794,14 @@ bool CVulkanDevice::createLayouts()
 			.descriptorCount = 1,
 			.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
 		},
+#if HAVE_ANIME4K
 		VkDescriptorSetLayoutBinding {
 			.binding = 7,
 			.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
 			.descriptorCount = 1,
 			.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
 		},
+#endif
 		VkDescriptorSetLayoutBinding {
 			.binding = 3,
 			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
@@ -956,7 +965,9 @@ bool CVulkanDevice::createShaders()
 		SHADER(NIS, cs_nis);
 	}
 	SHADER(RGB_TO_NV12, cs_rgb_to_nv12);
+#if HAVE_ANIME4K
 	SHADER(ANIME4K_2X_CNN_UL, cs_anime4k_2x_cnn_ul);
+#endif
 #undef SHADER
 
 	for (uint32_t i = 0; i < shaderInfos.size(); i++)
@@ -977,7 +988,7 @@ bool CVulkanDevice::createShaders()
 
 	return true;
 }
-
+#if HAVE_ANIME4K
 bool CVulkanDevice::createAnime4kULPipelines()
 {
 	VkSpecializationMapEntry passEntry = {
@@ -1015,7 +1026,7 @@ bool CVulkanDevice::createAnime4kULPipelines()
 
 	return true;
 }
-
+#endif
 bool CVulkanDevice::createScratchResources()
 {
 	std::vector<VkDescriptorSetLayout> descriptorSetLayouts(m_descriptorSets.size(), m_descriptorSetLayout);
@@ -1701,8 +1712,11 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 	insertBarrier();
 
 	VkDescriptorSet descriptorSet = m_device->descriptorSet();
-
+#if HAVE_ANIME4K
 	std::array<VkWriteDescriptorSet, 8> writeDescriptorSets;
+#else
+    std::array<VkWriteDescriptorSet, 7> writeDescriptorSets;
+#endif
 	std::array<VkDescriptorImageInfo, VKR_SAMPLER_SLOTS> imageDescriptors = {};
 	std::array<VkDescriptorImageInfo, VKR_SAMPLER_SLOTS> ycbcrImageDescriptors = {};
 	std::array<VkDescriptorImageInfo, VKR_TARGET_SLOTS> targetDescriptors = {};
@@ -1739,7 +1753,7 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
 		.pImageInfo = &targetDescriptors[1],
 	};
-
+#if HAVE_ANIME4K
 	writeDescriptorSets[3] = {
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
@@ -1749,8 +1763,13 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
 		.pImageInfo = &targetDescriptors[2],
 	};
+#endif
 
-	writeDescriptorSets[4] = {
+#if HAVE_ANIME4K
+    writeDescriptorSets[4] = {
+#else
+    writeDescriptorSets[3] = {
+#endif
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 3,
@@ -1760,7 +1779,11 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.pImageInfo = imageDescriptors.data(),
 	};
 
-	writeDescriptorSets[5] = {
+#if HAVE_ANIME4K
+    writeDescriptorSets[5] = {
+#else
+    writeDescriptorSets[4] = {
+#endif
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 4,
@@ -1770,7 +1793,11 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.pImageInfo = ycbcrImageDescriptors.data(),
 	};
 
-	writeDescriptorSets[6] = {
+#if HAVE_ANIME4K
+    writeDescriptorSets[6] = {
+#else
+    writeDescriptorSets[5] = {
+#endif
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 5,
@@ -1779,8 +1806,11 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 		.pImageInfo = shaperLutDescriptor.data(),
 	};
-
+#if HAVE_ANIME4K
 	writeDescriptorSets[7] = {
+#else
+    writeDescriptorSets[6] = {
+#endif
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 6,
@@ -3546,7 +3576,7 @@ static void update_tmp_images( uint32_t width, uint32_t height )
 	}
 }
 
-
+#if HAVE_ANIME4K
 // TODO: Free the textures when anime4k UL is not used anymore
 static void update_anime4k_ul_buffers(uint32_t width, uint32_t height, uint32_t outWidth, uint32_t outHeight)
 {
@@ -3588,7 +3618,7 @@ static void update_anime4k_ul_buffers(uint32_t width, uint32_t height, uint32_t 
         return;
     }
 }
-
+#endif
 
 static bool init_nis_data()
 {
@@ -4002,7 +4032,7 @@ struct NisPushData_t
 			tempX, tempY);
 	}
 };
-
+#if HAVE_ANIME4K
 struct Anime4kPushData_t {
     uvec2_t u_inputSize;
     uvec2_t u_outputSize;
@@ -4012,7 +4042,7 @@ struct Anime4kPushData_t {
         , u_outputSize{outputX, outputY}
     {}
 };
-
+#endif
 #pragma pack(pop)
 
 void bind_all_layers(CVulkanCmdBuffer* cmdBuffer, const struct FrameInfo_t *frameInfo)
@@ -4266,6 +4296,7 @@ std::optional<uint64_t> vulkan_composite( struct FrameInfo_t *frameInfo, gamesco
 
 		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
 	}
+#if HAVE_ANIME4K
 	else if ( frameInfo->useAnime4k2xCnnULLayer0 )
 	{
 		uint32_t inputX = frameInfo->layers[0].tex->width();
@@ -4349,6 +4380,7 @@ std::optional<uint64_t> vulkan_composite( struct FrameInfo_t *frameInfo, gamesco
 		cmdBuffer->uploadConstants<BlitPushData_t>(&anime4kFrameInfo);
 		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
 	}
+#endif
 	else if ( frameInfo->blurLayer0 )
 	{
 		update_tmp_images(currentOutputWidth, currentOutputHeight);

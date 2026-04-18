@@ -336,8 +336,10 @@ static enum GamescopeUpscaleFilter parse_upscaler_filter(const char *str)
 		return GamescopeUpscaleFilter::NIS;
 	} else if (strcmp(str, "pixel") == 0) {
 		return GamescopeUpscaleFilter::PIXEL;
+#if HAVE_ANIME4K
 	} else if (strcmp(str, "anime4k") == 0) {
 		return GamescopeUpscaleFilter::ANIME4K_2X_CNN_UL;
+#endif
 	} else {
 		fprintf( stderr, "gamescope: invalid value for --filter\n" );
 		exit(1);
@@ -398,8 +400,10 @@ static enum gamescope::GamescopeBackend parse_backend_name(const char *str)
 		return gamescope::GamescopeBackend::Auto;
 	} else if (strcmp(str, "sdl") == 0) {
 		return gamescope::GamescopeBackend::SDL;
+#if HAVE_HEADLESS
 	} else if (strcmp(str, "headless") == 0) {
 		return gamescope::GamescopeBackend::Headless;
+#endif
 	} else {
 		fprintf( stderr, "gamescope: invalid value for --backend\n" );
 		exit(1);

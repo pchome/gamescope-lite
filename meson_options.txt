@@ -32,3 +32,8 @@ option('headless',
   description: 'Support headless backend',
   type:        'feature',
   value:       'disabled')
+
+option('anime4k',
+  description: 'Support Anime4k 2x CNN UL (Ultra Large) upscaling',
+  type:        'feature',
+  value:       'disabled')
