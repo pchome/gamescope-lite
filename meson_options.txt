@@ -18,6 +18,11 @@ option('avif_screenshots',
   type:        'feature',
   value:       'disabled')
 
+option('reshade',
+  description: 'Support for ReShadeFX shaders (applied to original app output)',
+  type:        'feature',
+  value:       'disabled')
+
 option('scripting',
   description: 'Support for lua scripting',
   type:        'feature',

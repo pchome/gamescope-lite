@@ -119,10 +119,10 @@ const struct option *gamescope_options = (struct option[]){
 	{ "hdr-debug-force-support", no_argument, nullptr, 0 },
 	{ "hdr-debug-force-output", no_argument, nullptr, 0 },
 	{ "hdr-debug-heatmap", no_argument, nullptr, 0 },
-
+#if HAVE_RESHADE
 	{ "reshade-effect", required_argument, nullptr, 0 },
 	{ "reshade-technique-idx", required_argument, nullptr, 0 },
-
+#endif
 	{ "allow-deferred-backend", no_argument, nullptr, 0 },
 	{ "keep-alive", no_argument, nullptr, 0 },
 
@@ -207,11 +207,13 @@ const char usage[] =
 	"                                 HDR clients will be outputted as SDR still in that case.\n"
 	"  --hdr-debug-force-output       forces support and output to HDR10 PQ even if the output does not support it (will look very wrong if it doesn't)\n"
 	"  --hdr-debug-heatmap            displays a heatmap-style debug view of HDR luminence across the scene in nits.\n"
+#if HAVE_RESHADE
 	"\n"
 	"Reshade shader options:\n"
 	"  --reshade-effect               sets the name of a reshade shader to use in either /usr/share/gamescope/reshade/Shaders\n"
 	"                                 or ~/.local/share/gamescope/reshade/Shaders\n"
 	"  --reshade-technique-idx        sets technique idx to use from the reshade effect\n"
+#endif
 	"\n"
 	"Platform options:\n"
 	"  --allow-deferred-backend       Allows initting the backend in a deferred way, if it doesn't work immediately.\n"

@@ -92,7 +92,9 @@
 #include "Script/Script.h"
 #include "refresh_rate.h"
 #include "commit.h"
+#if HAVE_RESHADE
 #include "reshade_effect_manager.hpp"
+#endif
 #include "BufferMemo.h"
 #include "Utils/Process.h"
 #include "Utils/Algorithm.h"
@@ -111,11 +113,11 @@ static const int g_nBaseCursorScale = 36;
 #include "pipewire.hpp"
 #endif
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image.h>
-#include <stb_image_write.h>
-#include <deprecated/stb_image_resize.h>
+#include <stb/stb_image.h>
+#if HAVE_SCREENSHOT
+#include <stb/stb_image_write.h>
+#endif
+#include <stb/deprecated/stb_image_resize.h>
 
 LogScope xwm_log("xwm");
 LogScope g_WaitableLog("waitable");
@@ -156,11 +158,11 @@ static std::shared_ptr<gamescope::BackendBlob> s_scRGB709To2020Matrix;
 
 std::string clipboard;
 std::string primarySelection;
-
+#if HAVE_RESHADE
 std::string g_reshade_effect{};
 extern ReshadeEffectPipeline *g_pLastReshadeEffect;
 uint32_t g_reshade_technique_idx = 0;
-
+#endif
 bool g_bSteamIsActiveWindow = false;
 bool g_bForceInternal = false;
 
@@ -5197,7 +5199,7 @@ void gamescope_set_selection(std::string contents, GamescopeSelection eSelection
 			x11_set_selection_owner(ctx, contents, eSelection);
 	}
 }
-
+#if HAVE_RESHADE
 void gamescope_set_reshade_effect(std::string effect_path)
 {
 	gamescope_xwayland_server_t *server = wlserver_get_xwayland_server(0);
@@ -5208,7 +5210,7 @@ void gamescope_clear_reshade_effect() {
 	gamescope_xwayland_server_t *server = wlserver_get_xwayland_server(0);
 	clear_prop(server->ctx.get(), server->ctx->atoms.gamescopeReshadeEffect);
 }
-
+#endif
 static void
 handle_selection_request(xwayland_ctx_t *ctx, XSelectionRequestEvent *ev)
 {
@@ -6179,6 +6181,7 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 			MakeFocusDirty();
 		}
 	}
+#if HAVE_RESHADE
 	if (ev->atom == ctx->atoms.gamescopeReshadeTechniqueIdx)
 	{
 		uint32_t technique_idx = get_prop(ctx, ctx->root, ctx->atoms.gamescopeReshadeTechniqueIdx, 0);
@@ -6189,6 +6192,7 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 		std::string path = get_string_prop( ctx, ctx->root, ctx->atoms.gamescopeReshadeEffect );
 		g_reshade_effect = path;
 	}
+#endif
 	if (ev->atom == ctx->atoms.wineHwndStyle)
 	{
 		steamcompmgr_win_t * w = find_win(ctx, ev->window);
@@ -7431,10 +7435,10 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 	ctx->atoms.gamescopeCreateXWaylandServer = XInternAtom( ctx->dpy, "GAMESCOPE_CREATE_XWAYLAND_SERVER", false );
 	ctx->atoms.gamescopeCreateXWaylandServerFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_CREATE_XWAYLAND_SERVER_FEEDBACK", false );
 	ctx->atoms.gamescopeDestroyXWaylandServer = XInternAtom( ctx->dpy, "GAMESCOPE_DESTROY_XWAYLAND_SERVER", false );
-
+#if HAVE_RESHADE
 	ctx->atoms.gamescopeReshadeEffect = XInternAtom( ctx->dpy, "GAMESCOPE_RESHADE_EFFECT", false );
 	ctx->atoms.gamescopeReshadeTechniqueIdx = XInternAtom( ctx->dpy, "GAMESCOPE_RESHADE_TECHNIQUE_IDX", false );
-
+#endif
 	ctx->atoms.gamescopeDisplayRefreshRateFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_DISPLAY_REFRESH_RATE_FEEDBACK", false );
 
 	ctx->atoms.steamosTouchPointerEmulation = XInternAtom( ctx->dpy, "_STEAMOS_TOUCH_POINTER_EMULATION", false );
@@ -7862,10 +7866,12 @@ steamcompmgr_main(int argc, char **argv)
 					g_flHDRItmTargetNits = atof(optarg);
 				} else if (strcmp(opt_name, "framerate-limit") == 0) {
 					g_nSteamCompMgrTargetFPS = atoi(optarg);
+#if HAVE_RESHADE
 				} else if (strcmp(opt_name, "reshade-effect") == 0) {
 					g_reshade_effect = optarg;
 				} else if (strcmp(opt_name, "reshade-technique-idx") == 0) {
 					g_reshade_technique_idx = atoi(optarg);
+#endif
 				}
 				break;
 			case '?':

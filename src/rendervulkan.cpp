@@ -51,9 +51,9 @@
 #include "shaders/ffx_a.h"
 #include "shaders/ffx_fsr1.h"
 #include "shaders/bicubic.h"
-
+#if HAVE_RESHADE
 #include "reshade_effect_manager.hpp"
-
+#endif
 extern bool g_bWasPartialComposite;
 extern bool g_bAllowDeferredBackend;
 
@@ -320,9 +320,9 @@ bool CVulkanDevice::BInit(VkInstance instance, VkSurfaceKHR surface)
 
 	std::thread piplelineThread([this](){compileAllPipelines();});
 	piplelineThread.detach();
-
+#if HAVE_RESHADE
 	g_reshadeManager.init(this);
-
+#endif
 	return true;
 }
 
@@ -4090,18 +4090,18 @@ std::optional<uint64_t> vulkan_screenshot( const struct FrameInfo_t *frameInfo, 
 	uint64_t sequence = g_device.submit(std::move(cmdBuffer));
 	return sequence;
 }
-
+#if HAVE_RESHADE
 extern std::string g_reshade_effect;
 extern uint32_t g_reshade_technique_idx;
 
 ReshadeEffectPipeline *g_pLastReshadeEffect = nullptr;
-
+#endif
 std::optional<uint64_t> vulkan_composite( struct FrameInfo_t *frameInfo, gamescope::Rc<CVulkanTexture> pPipewireTexture, bool partial, gamescope::Rc<CVulkanTexture> pOutputOverride, bool increment, std::unique_ptr<CVulkanCmdBuffer> pInCommandBuffer )
 {
 	EOTF outputTF = frameInfo->outputEncodingEOTF;
 	if (!frameInfo->applyOutputColorMgmt)
 		outputTF = EOTF_Count; //Disable blending stuff.
-
+#if HAVE_RESHADE
 	g_pLastReshadeEffect = nullptr;
 	if (!g_reshade_effect.empty())
 	{
@@ -4131,7 +4131,7 @@ std::optional<uint64_t> vulkan_composite( struct FrameInfo_t *frameInfo, gamesco
 	{
 		g_reshadeManager.clear();
 	}
-
+#endif
 	gamescope::Rc<CVulkanTexture> compositeImage;
 	if ( pOutputOverride )
 		compositeImage = pOutputOverride;

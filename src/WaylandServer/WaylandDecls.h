@@ -12,8 +12,10 @@ namespace gamescope::WaylandServer
     class CLinuxDrmSyncobjTimeline;
     using CLinuxDrmSyncobj = CWaylandProtocol<CLinuxDrmSyncobjManager>;
 
+#if HAVE_RESHADE
     class CReshadeManager;
     using CReshade = CWaylandProtocol<CReshadeManager>;
+#endif
 
     class CGamescopeActionBindingManager;
     using CGamescopeActionBindingProtocol = CWaylandProtocol<CGamescopeActionBindingManager>;

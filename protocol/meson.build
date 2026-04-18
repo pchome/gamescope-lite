@@ -19,10 +19,10 @@ protocols = [
 
 	# Gamescope protocols
 	'gamescope-xwayland.xml',
-	'gamescope-pipewire.xml',
+
 	'gamescope-input-method.xml',
 	'gamescope-control.xml',
-	'gamescope-reshade.xml',
+
 	'gamescope-swapchain.xml',
 	'gamescope-private.xml',
 	'gamescope-action-binding.xml',
@@ -30,6 +30,14 @@ protocols = [
 	# wlroots protocols
 	'wlr-layer-shell-unstable-v1.xml',
 ]
+
+if get_option('pipewire').enabled()
+  protocols += 'gamescope-pipewire.xml'
+endif
+
+if get_option('reshade').enabled()
+  protocols += 'gamescope-reshade.xml'
+endif
 
 protocols_server_src = []
 

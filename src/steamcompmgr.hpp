@@ -148,9 +148,10 @@ extern std::atomic<std::shared_ptr<std::string>> focusWindow_engine;
 
 void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_server);
 void gamescope_set_selection(std::string contents, GamescopeSelection eSelection);
+#if HAVE_RESHADE
 void gamescope_set_reshade_effect(std::string effect_path);
 void gamescope_clear_reshade_effect();
-
+#endif
 MouseCursor *steamcompmgr_get_current_cursor();
 MouseCursor *steamcompmgr_get_server_cursor(uint32_t serverId);
 

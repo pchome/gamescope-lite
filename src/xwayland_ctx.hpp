@@ -234,10 +234,10 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom gamescopeCreateXWaylandServer;
 		Atom gamescopeCreateXWaylandServerFeedback;
 		Atom gamescopeDestroyXWaylandServer;
-
+#if HAVE_RESHADE
 		Atom gamescopeReshadeEffect;
 		Atom gamescopeReshadeTechniqueIdx;
-
+#endif
 		Atom gamescopeDisplayRefreshRateFeedback;
 		// Atom gamescopeDisplayDynamicRefreshBasedOnGamePresence;
 

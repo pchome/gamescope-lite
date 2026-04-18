@@ -15,9 +15,8 @@
 #include "reshade_api_format.hpp"
 #include "convar.h"
 
-#include <stb_image.h>
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <deprecated/stb_image_resize.h>
+#include <stb/stb_image.h>
+#include <stb/deprecated/stb_image_resize.h>
 
 #include <mutex>
 #include <unistd.h>

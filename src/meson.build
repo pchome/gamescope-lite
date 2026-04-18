@@ -65,6 +65,10 @@ shader_src = [
 
 spirv_shaders = glsl_generator.process(shader_src)
 
+reshade_src = []
+reshade_include = include_directories()
+
+if get_option('reshade').enabled()
 reshade_src = [
   'reshade/source/effect_codegen_spirv.cpp',
   'reshade/source/effect_expression.cpp',
@@ -80,6 +84,7 @@ reshade_include = include_directories([
   'reshade/include',
   '../thirdparty/SPIRV-Headers/include/spirv/unified1'
 ])
+endif
 
 sol2_include = include_directories(['../thirdparty'])
 
@@ -105,25 +110,38 @@ src = [
   'log.cpp',
   'mangoapp.cpp',
   'Timeline.cpp',
-  'reshade_effect_manager.cpp',
   'backend.cpp',
   'x11cursor.cpp',
 ]
 
-luajit_dep = dependency('luajit', required: get_option('scripting'))
+stb_src = [
+  'Utils/stb_image_impl.c',
+  'Utils/stb_image_resize_impl.c',
+]
 
-gamescope_cpp_args = []
+if get_option('screenshot').enabled()
+  stb_src += 'Utils/stb_image_write_impl.c'
+endif
 
 if get_option('headless').enabled()
   src += 'Backends/HeadlessBackend.cpp'
-else
-  gamescope_cpp_args += '-DHAVE_HEADLESS=0'
+endif
+
+if get_option('reshade').enabled()
+  src += 'reshade_effect_manager.cpp'
 endif
 
 if get_option('scripting').enabled()
   src += 'Script/Script.cpp'
-  gamescope_cpp_args += '-DSCRIPT_DIR="@0@"'.format(prefix / data_dir / 'gamescope/scripts')
+endif
 
+if get_option('pipewire').enabled()
+  src += 'pipewire.cpp'
+endif
+
+luajit_dep = dependency('luajit', required: get_option('scripting'))
+
+if get_option('scripting').enabled()
   # Handle default script/config/looks stuff
   meson.add_install_script(meson.project_source_root() / 'default_extras_install.sh')
 
@@ -132,17 +150,17 @@ if get_option('scripting').enabled()
   meson.add_devenv(devenv)
 endif
 
+gamescope_cpp_args = []
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(get_option('rt_cap').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_RESHADE=@0@'.format(get_option('reshade').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_HEADLESS=@0@'.format(get_option('headless').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCRIPTING=@0@'.format(get_option('scripting').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCREENSHOT=@0@'.format(get_option('screenshot').enabled().to_int())
+gamescope_cpp_args += '-DSCRIPT_DIR="@0@"'.format(prefix / data_dir / 'gamescope/scripts')
 
 src += spirv_shaders
 src += protocols_server_src
-
-if get_option('pipewire').enabled()
-  src += 'pipewire.cpp'
-endif
 
 foreach feat : required_wlroots_features
   if wlroots_dep.get_variable('have_' + feat) != 'true'
@@ -175,7 +193,7 @@ gamescope_version = configure_file(
 
   executable(
     'gamescope-lite',
-    src, reshade_src, gamescope_version,
+    src, stb_src, reshade_src, gamescope_version,
     include_directories : [reshade_include, sol2_include],
     dependencies: [
       dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
