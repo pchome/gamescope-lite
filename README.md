@@ -9,6 +9,7 @@
 * [x] Droped Wayland backend
 * [x] Droped WSI layer (use upstream one if needed/applicable)
 * [x] Droped executables other than `gamescope-lite` and `gamescopereaper-lite` (use upstream one if needed/applicable)
+* [x] Optional (disabled by default) scripts, reshade, pipewire, screenshots, headless backend, anime4k UL upscaling filter
 
 * [x] Updated wlroots version to 0.18.3
     - + patch to run gamescope in containers (unshare, flatpack, ...)
@@ -27,9 +28,10 @@
     - added `--force-preemptive-upscaling` (Ok with lower fps but higher load w/o vsync. Need more info.)
 
 #### TODO:
-* [ ] Drop HDR (I don't have hw to test this)
-* [ ] Drop scripts/reshade/pipewire/debug-utils/... (we have reshade at home)
-* [ ] Clean/unbundle deps
+* [ ] Port to SDL3
+* [ ] Upgrade to wlroots 0.19 or 0.20 (if it worth it)
+* [ ] Drop VRR (seems not used by sdl backend)
+* [ ] Drop HDR (I don't have hw to test this. Low priority.)
 
 
 ## gamescope: the micro-compositor formerly known as steamcompmgr
@@ -120,7 +122,3 @@ Using Reshade effects is **highly discouraged** for doing simple transformations
 The looks system where you can specify your own 3D LUTs would be a better alternative for such transformations.
 
 Pull requests for improving Reshade compatibility support are appreciated.
-
-## Status of Gamescope Packages
-
-[![Packaging status](https://repology.org/badge/vertical-allrepos/gamescope.svg?exclude_unsupported=1)](https://repology.org/project/gamescope/versions)
