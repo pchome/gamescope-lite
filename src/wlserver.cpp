@@ -1819,7 +1819,7 @@ bool wlserver_init( void ) {
 	struct xkb_keymap *keymap = xkb_keymap_new_from_names2(context, &rules, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
 	wlserver.keyboard_group = wlr_keyboard_group_create();
 	struct wlr_keyboard *keyboard = &wlserver.keyboard_group->keyboard;
-	wlr_keyboard_set_repeat_info(keyboard, 25, 600);
+	wlr_keyboard_set_repeat_info(keyboard, 30, 500);
 	wlr_keyboard_set_keymap(keyboard, keymap);
 	wlserver.keyboard_group_modifiers.notify = wlserver_handle_modifiers;
 	wl_signal_add(&keyboard->events.modifiers, &wlserver.keyboard_group_modifiers);
