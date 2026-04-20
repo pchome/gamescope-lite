@@ -39,7 +39,7 @@
 #include "pipewire.hpp"
 #endif
 
-#include <wayland-client.h>
+// #include <wayland-client.h>
 
 using namespace std::literals;
 
