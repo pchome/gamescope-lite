@@ -1261,7 +1261,7 @@ import_commit (
 	struct wlr_buffer *buf,
 	bool async,
 	std::shared_ptr<wlserver_vk_swapchain_feedback> swapchain_feedback,
-	std::vector<struct wl_resource*> presentation_feedbacks,
+	// std::vector<struct wl_resource*> presentation_feedbacks,
 	std::optional<uint32_t> present_id,
 	uint64_t desired_present_time,
 	bool fifo )
@@ -1275,7 +1275,7 @@ import_commit (
 	commit->fifo = fifo;
 	commit->is_steam = window_is_steam( w );
 	commit->appID = w->appID;
-	commit->presentation_feedbacks = std::move(presentation_feedbacks);
+	// commit->presentation_feedbacks = std::move(presentation_feedbacks);
 	if (swapchain_feedback)
 		commit->feedback = *swapchain_feedback;
 	commit->present_id = present_id;
@@ -6614,8 +6614,9 @@ void handle_presented_for_window( steamcompmgr_win_t* w )
 			}
 		}
 
-		if (!lastCommit->presentation_feedbacks.empty() || lastCommit->present_id)
+		if (/*!lastCommit->presentation_feedbacks.empty() ||*/ lastCommit->present_id)
 		{
+#if 0
 			if (!lastCommit->presentation_feedbacks.empty())
 			{
 				wlserver_presentation_feedback_presented(
@@ -6624,7 +6625,7 @@ void handle_presented_for_window( steamcompmgr_win_t* w )
 					next_refresh_time,
 					refresh_cycle);
 			}
-
+#endif
 			if (lastCommit->present_id)
 			{
 				wlserver_past_present_timing(
@@ -6750,7 +6751,7 @@ void update_wayland_res(CommitDoneList_t *doneCommits, steamcompmgr_win_t *w, Re
 		wlserver_lock();
 		wlr_buffer_unlock( buf );
 		wlserver_unlock();
-
+#if 0
 		// Make sure to send the discarded event if we hit this
 		// to ensure forward progress.
 		if (!reslistentry.presentation_feedbacks.empty())
@@ -6758,7 +6759,7 @@ void update_wayland_res(CommitDoneList_t *doneCommits, steamcompmgr_win_t *w, Re
 			wlserver_presentation_feedback_discard( reslistentry.surf, reslistentry.presentation_feedbacks );
 			// presentation_feedbacks cleared by wlserver_presentation_feedback_discard
 		}
-
+#endif
 		xwm_log.errorf( "waylandres but no win" );
 		return;
 	}
@@ -6804,7 +6805,7 @@ void update_wayland_res(CommitDoneList_t *doneCommits, steamcompmgr_win_t *w, Re
 			already_exists = true;
 	}
 
-	if ( already_exists && !reslistentry.feedback && reslistentry.presentation_feedbacks.empty() )
+	if ( already_exists && !reslistentry.feedback /*&& reslistentry.presentation_feedbacks.empty()*/ )
 	{
 		wlserver_lock();
 		wlr_buffer_unlock( buf );
@@ -6824,7 +6825,7 @@ void update_wayland_res(CommitDoneList_t *doneCommits, steamcompmgr_win_t *w, Re
 		buf,
 		reslistentry.async,
 		std::move(reslistentry.feedback),
-		std::move(reslistentry.presentation_feedbacks),
+		// std::move(reslistentry.presentation_feedbacks),
 		reslistentry.present_id,
 		reslistentry.desired_present_time,
 		reslistentry.fifo );

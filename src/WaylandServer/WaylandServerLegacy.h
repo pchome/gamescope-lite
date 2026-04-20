@@ -50,7 +50,7 @@ struct wlserver_wl_surface_info
 	std::optional<VkPresentModeKHR> oCurrentPresentMode;
 
 	uint64_t sequence = 0;
-	std::vector<struct wl_resource*> pending_presentation_feedbacks;
+	// std::vector<struct wl_resource*> pending_presentation_feedbacks;
 
 	std::vector<struct wl_resource *> gamescope_swapchains;
 	std::optional<uint32_t> present_id = std::nullopt;

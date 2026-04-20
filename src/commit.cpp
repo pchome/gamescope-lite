@@ -21,11 +21,13 @@ commit_t::~commit_t()
         vulkanTex = nullptr;
 
     wlserver_lock();
+#if 0
     if (!presentation_feedbacks.empty())
     {
         wlserver_presentation_feedback_discard(surf, presentation_feedbacks);
         // presentation_feedbacks cleared by wlserver_presentation_feedback_discard
     }
+#endif
     wlr_buffer_unlock( buf );
     wlserver_unlock();
 }

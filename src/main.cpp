@@ -516,7 +516,7 @@ static EStreamColorspace parse_colorspace_string( const char *pszStr )
 
 
 
-
+#if 0
 static bool g_bSupportsWaylandPresentationTime = false;
 static constexpr wl_registry_listener s_registryListener = {
     .global = [](void* data, wl_registry* registry, uint32_t name, const char* interface, uint32_t version) {
@@ -527,7 +527,7 @@ static constexpr wl_registry_listener s_registryListener = {
     .global_remove = [](void* data, wl_registry* registry, uint32_t name) {
     },
 };
-
+#endif
 
 #if 0
 static bool IsInDebugSession()
@@ -660,7 +660,7 @@ static void UpdateCompatEnvVars()
 
 int g_nPreferredOutputWidth = 0;
 int g_nPreferredOutputHeight = 0;
-bool g_bExposeWayland = false;
+// bool g_bExposeWayland = false;
 const char *g_sOutputName = nullptr;
 bool g_bRt = false;
 
@@ -771,8 +771,10 @@ int main(int argc, char **argv)
 					g_nNestedDisplayIndex = parse_integer( optarg, opt_name );
 				} else if (strcmp(opt_name, "adaptive-sync") == 0) {
 					cv_adaptive_sync = true;
+#if 0
 				} else if (strcmp(opt_name, "expose-wayland") == 0) {
 					g_bExposeWayland = true;
+#endif
 				} else if (strcmp(opt_name, "backend") == 0) {
 					eCurrentBackend = parse_backend_name( optarg );
 				} else if (strcmp(opt_name, "cursor-scale-height") == 0) {
@@ -928,9 +930,11 @@ int main(int argc, char **argv)
 	gamescope_xwayland_server_t *base_server = wlserver_get_xwayland_server(0);
 
 	setenv("DISPLAY", base_server->get_nested_display_name(), 1);
+#if 0
 	if ( g_bExposeWayland )
 		setenv("XDG_SESSION_TYPE", "wayland", 1);
 	else
+#endif
 		setenv("XDG_SESSION_TYPE", "x11", 1);
 	setenv("XDG_CURRENT_DESKTOP", "gamescope", 1);
 	if (g_nXWaylandCount > 1)
@@ -948,9 +952,10 @@ int main(int argc, char **argv)
 		setenv("STEAM_GAME_DISPLAY_0", base_server->get_nested_display_name(), 1);
 	}
 	setenv("GAMESCOPE_WAYLAND_DISPLAY", wlserver_get_wl_display_name(), 1);
+#if 0
 	if ( g_bExposeWayland )
 		setenv("WAYLAND_DISPLAY", wlserver_get_wl_display_name(), 1);
-
+#endif
 #if HAVE_PIPEWIRE
 	if ( !init_pipewire() )
 	{

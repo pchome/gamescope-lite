@@ -84,7 +84,7 @@ extern GamescopeBicubicParams g_bicubicParams;
 
 extern bool g_bBorderlessOutputWindow;
 
-extern bool g_bExposeWayland;
+// extern bool g_bExposeWayland;
 
 extern bool g_bRt;
 

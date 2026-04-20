@@ -13,7 +13,7 @@ wl_protocol_dir = wayland_protos.get_variable('pkgdatadir')
 protocols = [
 	# Upstream protocols
 	wl_protocol_dir / 'stable/xdg-shell/xdg-shell.xml',
-	wl_protocol_dir / 'stable/presentation-time/presentation-time.xml',
+# 	wl_protocol_dir / 'stable/presentation-time/presentation-time.xml',
 	wl_protocol_dir / 'unstable/pointer-constraints/pointer-constraints-unstable-v1.xml',
 	wl_protocol_dir / 'staging/linux-drm-syncobj/linux-drm-syncobj-v1.xml',
 

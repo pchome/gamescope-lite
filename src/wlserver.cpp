@@ -51,7 +51,7 @@
 #include "gamescope-control-protocol.h"
 #include "gamescope-private-protocol.h"
 #include "gamescope-swapchain-protocol.h"
-#include "presentation-time-protocol.h"
+// #include "presentation-time-protocol.h"
 
 #include "wlserver.hpp"
 #include "hdmi.h"
@@ -154,7 +154,7 @@ std::optional<ResListEntry_t> PrepareCommit( struct wlr_surface *surf, struct wl
 		wlserver_surface_is_async(surf),
 		wlserver_surface_is_fifo(surf),
 		pFeedback,
-		std::move(wl_surf->pending_presentation_feedbacks),
+		// std::move(wl_surf->pending_presentation_feedbacks),
 		wl_surf->present_id,
 		wl_surf->desired_present_time,
 		std::move( pAcquirePoint ),
@@ -162,7 +162,7 @@ std::optional<ResListEntry_t> PrepareCommit( struct wlr_surface *surf, struct wl
 	};
 	wl_surf->present_id = std::nullopt;
 	wl_surf->desired_present_time = 0;
-	wl_surf->pending_presentation_feedbacks.clear();
+	// wl_surf->pending_presentation_feedbacks.clear();
 	wl_surf->oCurrentPresentMode = std::nullopt;
 
 	struct wlr_surface *pConstraintSurface = wlserver_surface_to_main_surface( surf );
@@ -531,14 +531,14 @@ static void handle_wl_surface_destroy( struct wl_listener *l, void *data )
 			it++;
 		}
 	}
-
+#if 0
 	for (auto& feedback : surf->pending_presentation_feedbacks)
 	{
 		wp_presentation_feedback_send_discarded(feedback);
 		wl_resource_destroy(feedback);
 	}
 	surf->pending_presentation_feedbacks.clear();
-
+#endif
 	if ( surf->pSyncobjSurface )
 	{
 		surf->pSyncobjSurface->Detach();
@@ -1339,7 +1339,7 @@ static void create_reshade()
 ////////////////////////
 // presentation-time
 ////////////////////////
-
+#if 0
 static void presentation_time_destroy( struct wl_client *client, struct wl_resource *resource )
 {
 	wl_resource_destroy( resource );
@@ -1441,7 +1441,7 @@ void wlserver_presentation_feedback_discard( struct wlr_surface *surface, std::v
 }
 
 ///////////////////////
-
+#endif
 
 void wlserver_past_present_timing( struct wlr_surface *surface, uint32_t present_id, uint64_t desired_present_time, uint64_t actual_present_time, uint64_t earliest_present_time, uint64_t present_margin )
 {
@@ -1850,7 +1850,7 @@ bool wlserver_init( void ) {
 
 	create_gamescope_private();
 
-	create_presentation_time();
+	// create_presentation_time();
 
 	// Have to make this old ancient thing for compat with older XWayland.
 	// Someday, he will be purged.
