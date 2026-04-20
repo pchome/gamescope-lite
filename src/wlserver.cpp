@@ -1816,7 +1816,7 @@ bool wlserver_init( void ) {
 	rules.layout = getenv("XKB_DEFAULT_LAYOUT");
 	rules.variant = getenv("XKB_DEFAULT_VARIANT");
 	rules.options = getenv("XKB_DEFAULT_OPTIONS");
-	struct xkb_keymap *keymap = xkb_keymap_new_from_names(context, &rules, XKB_KEYMAP_COMPILE_NO_FLAGS);
+	struct xkb_keymap *keymap = xkb_keymap_new_from_names2(context, &rules, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
 	wlserver.keyboard_group = wlr_keyboard_group_create();
 	struct wlr_keyboard *keyboard = &wlserver.keyboard_group->keyboard;
 	wlr_keyboard_set_repeat_info(keyboard, 25, 600);
