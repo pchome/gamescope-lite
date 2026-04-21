@@ -8,6 +8,7 @@ project(
     'c_std=c23,c11',
     'warning_level=2',
     'force_fallback_for=wlroots',
+    'wrap_mode=nodownload',
   ],
 )
 

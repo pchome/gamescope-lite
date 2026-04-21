@@ -27,6 +27,10 @@
     - reenable unused `--disable-color-management` (I'd remove color management but output is too dark. Need more info.)
     - added `--force-preemptive-upscaling` (Ok with lower fps but higher load w/o vsync. Need more info.)
 
+#### Build notes
+* If missing `glm` or `stb` deps use `meson configure --wrap-mode=default build/`
+
+
 #### TODO:
 * [ ] Port to SDL3
 * [ ] Upgrade to wlroots 0.19 or 0.20 (if it worth it)
