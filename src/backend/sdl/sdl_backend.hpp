@@ -2,7 +2,9 @@
 
 #include <thread>
 
+#include <SDL2/SDL_events.h>
 #include <SDL2/SDL_mouse.h>
+#include <SDL2/SDL_surface.h>
 
 #include "backend.h"
 #include "sdl_connector.hpp"
@@ -50,6 +52,26 @@ class CSDLBackend final : public CBaseBackend {
 
   auto GetUserEventIndex(SDLCustomEvents eEvent) const -> uint32_t;
   void PushUserEvent(SDLCustomEvents eEvent);
+
+  /** SDL event handlers */
+
+  void HandleEvent(SDL_Event eEvent);
+
+  /** Input event handlers */
+
+  void HandleInputEvent(SDL_Event eEvent, uint32_t fake_timestamp);
+
+  /** Window event handlers */
+
+  void HandleWindowEvent(SDL_Event eEvent);
+
+  /** Custom event handlers */
+
+  void SwitchKeyboardGrabIndicator();
+  void SwitchMainWindowVisibility();
+  void UseApplicationIcon();
+  void UseApplicationCursor();
+  void HandleUserEvent(SDL_Event eEvent);
 
 protected:
   void OnBackendBlobDestroyed(BackendBlob *pBlob) override;

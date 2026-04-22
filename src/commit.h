@@ -1,3 +1,4 @@
+#include "WaylandServer/WaylandServerLegacy.h"
 #include "steamcompmgr_shared.hpp"
 #include "Utils/NonCopyable.h"
 

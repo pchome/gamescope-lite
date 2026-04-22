@@ -127,6 +127,7 @@ extern float focusedWindowScaleY;
 extern float focusedWindowOffsetX;
 extern float focusedWindowOffsetY;
 
+extern bool g_bFirstFrame;
 extern bool g_bFSRActive;
 extern bool g_bBicubicActive;
 

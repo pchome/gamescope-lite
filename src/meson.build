@@ -98,6 +98,11 @@ required_wlroots_features = ['xwayland']
 src = [
   'backend/sdl/sdl_connector.cpp',
   'backend/sdl/sdl_backend.cpp',
+  'backend/sdl/sdl_thread.cpp',
+  
+  'backend/sdl/event/input.cpp',
+  'backend/sdl/event/window.cpp',
+  'backend/sdl/event/custom.cpp',
 
   'Utils/TempFiles.cpp',
   'Utils/Version.cpp',
