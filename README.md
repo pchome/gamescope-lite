@@ -11,6 +11,7 @@
 * [x] Droped executables other than `gamescope-lite` and `gamescopereaper-lite` (use upstream one if needed/applicable)
 * [x] Optional (disabled by default) scripts, reshade, pipewire, screenshots, headless backend, anime4k UL upscaling filter
 
+* [x] Ported to SDL3
 * [x] Updated wlroots version to 0.18.3
     - + patch to run gamescope in containers (unshare, flatpack, ...)
     - + patch to silence error about X0 socket already in use
@@ -32,7 +33,6 @@
 
 
 #### TODO:
-* [ ] Port to SDL3
 * [ ] Upgrade to wlroots 0.19 or 0.20 (if it worth it)
 * [ ] Drop VRR (seems not used by sdl backend)
 * [ ] Drop HDR (I don't have hw to test this. Low priority.)

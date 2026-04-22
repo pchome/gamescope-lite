@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <linux/input-event-codes.h>
 
-#include <SDL2/SDL_mouse.h>
+#include <SDL3/SDL_mouse.h>
 
 static const uint32_t s_ScancodeTable[] =
 {

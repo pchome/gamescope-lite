@@ -1,6 +1,7 @@
 // For the nested case, reads input from the SDL window and send to wayland
 
-#include <SDL2/SDL_clipboard.h>
+#include <SDL3/SDL_clipboard.h>
+#include <cstdint>
 
 #include "sdl_backend.hpp"
 #include "sdl_connector.hpp"
@@ -26,6 +27,12 @@ auto CSDLBackend::PostInit() -> bool { return true; }
 auto CSDLBackend::GetInstanceExtensions() const -> std::span<const char *const> {
   return std::span<const char *const>{m_pszInstanceExtensions.begin(), m_pszInstanceExtensions.end()};
 }
+auto CSDLBackend::GetInstanceExtensionsNames() const -> const char *const * {
+  return m_ppEnabledExtensionNames;
+};
+auto CSDLBackend::GetInstanceExtensionsCount() const -> const uint32_t {
+  return m_enabledExtensionCount;
+};
 
 auto CSDLBackend::GetDeviceExtensions(VkPhysicalDevice  /*pVkPhysicalDevice*/) const -> std::span<const char *const> {
   return std::span<const char *const>{};

@@ -96,6 +96,11 @@ namespace gamescope
             };
 			return std::span<const char *const>{ requiredInstanceExts };
 		}
+        virtual const char *const * GetInstanceExtensionsNames() const override {
+            return GetInstanceExtensions().data();
+        }
+        virtual const uint32_t GetInstanceExtensionsCount() const override {return 8;}
+        
         virtual std::span<const char *const> GetDeviceExtensions( VkPhysicalDevice pVkPhysicalDevice ) const override
 		{
             // Basically what's needed to support OpenVR.

@@ -6,6 +6,7 @@
 #include "Timeline.h"
 #include "convar.h"
 #include "rc.h"
+#include <cstdint>
 #include <drm_fourcc.h>
 #include "Utils/Algorithm.h"
 
@@ -313,6 +314,8 @@ namespace gamescope
         virtual bool Init() = 0;
         virtual bool PostInit() = 0;
         virtual std::span<const char *const> GetInstanceExtensions() const = 0;
+        virtual const char *const * GetInstanceExtensionsNames() const = 0;
+        virtual const uint32_t GetInstanceExtensionsCount() const = 0;
         virtual std::span<const char *const> GetDeviceExtensions( VkPhysicalDevice pVkPhysicalDevice ) const = 0;
         virtual VkImageLayout GetPresentLayout() const = 0;
         virtual void GetPreferredOutputFormat( uint32_t *pPrimaryPlaneFormat, uint32_t *pOverlayPlaneFormat ) const = 0;

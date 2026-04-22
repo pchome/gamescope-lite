@@ -1,6 +1,6 @@
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_version.h>
-#include <SDL2/SDL_video.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_version.h>
+#include <SDL3/SDL_video.h>
 
 #include <csignal>
 
@@ -14,13 +14,13 @@
 namespace gamescope {
 
 void CSDLBackend::HandleWindowEvent(SDL_Event event) {
-  switch (event.window.event) {
-  case SDL_WINDOWEVENT_CLOSE:
+  switch (event.window.type) {
+  case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
     raise(SIGTERM);
     break;
   default:
     break;
-  case SDL_WINDOWEVENT_SIZE_CHANGED:
+  case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
     int width, height;
     SDL_GetWindowSize(m_Connector.GetSDLWindow(), &width, &height);
     g_nOutputWidthPts = width;
@@ -33,25 +33,25 @@ void CSDLBackend::HandleWindowEvent(SDL_Event event) {
     g_nOutputHeight = height;
 
     [[fallthrough]];
-  case SDL_WINDOWEVENT_MOVED:
-  case SDL_WINDOWEVENT_SHOWN: {
-    int display_index = 0;
-    SDL_DisplayMode mode = {SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, nullptr};
-
-    display_index = SDL_GetWindowDisplayIndex(m_Connector.GetSDLWindow());
-    if (SDL_GetDesktopDisplayMode(display_index, &mode) == 0) {
-      g_nOutputRefresh = ConvertHztomHz(mode.refresh_rate);
+  case SDL_EVENT_WINDOW_MOVED:
+  case SDL_EVENT_WINDOW_SHOWN: {
+    SDL_DisplayID display_index = 0;
+    const SDL_DisplayMode * mode = nullptr;
+    display_index = SDL_GetDisplayForWindow(m_Connector.GetSDLWindow());
+    mode = SDL_GetDesktopDisplayMode(display_index);
+    if (mode != nullptr) {
+      g_nOutputRefresh = ConvertHztomHz(mode->refresh_rate);
     }
   } break;
-  case SDL_WINDOWEVENT_FOCUS_LOST:
+  case SDL_EVENT_WINDOW_FOCUS_LOST:
     g_nNestedRefresh = g_nNestedUnfocusedRefresh;
     g_bWindowFocused = false;
     break;
-  case SDL_WINDOWEVENT_FOCUS_GAINED:
+  case SDL_EVENT_WINDOW_FOCUS_GAINED:
     g_nNestedRefresh = g_nOldNestedRefresh;
     g_bWindowFocused = true;
     break;
-  case SDL_WINDOWEVENT_EXPOSED:
+  case SDL_EVENT_WINDOW_EXPOSED:
     force_repaint();
     break;
   }

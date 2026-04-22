@@ -1,5 +1,6 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_surface.h>
 
 #include "../sdl_backend.hpp"
 #include "./custom.hpp"
@@ -49,16 +50,17 @@ void CSDLBackend::UseApplicationIcon() {
   std::shared_ptr<std::vector<uint32_t>> pIcon = m_pApplicationIcon;
 
   if (m_pIconSurface != nullptr) {
-    SDL_FreeSurface(m_pIconSurface);
+    SDL_DestroySurface(m_pIconSurface);
     m_pIconSurface = nullptr;
   }
 
   if (pIcon && pIcon->size() >= 3) {
-    const uint32_t uWidth = (*pIcon)[0];
-    const uint32_t uHeight = (*pIcon)[1];
-    const uint32_t uPitch = uWidth * sizeof(uint32_t);
+    const auto uWidth = static_cast<int>((*pIcon)[0]);
+    const auto uHeight = static_cast<int>((*pIcon)[1]);
+    const auto uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
     using namespace sdl::surface;
-    m_pIconSurface = SDL_CreateRGBSurfaceFrom(&(*pIcon)[2], uWidth, uHeight, depth, uPitch, Rmask, Gmask, Bmask, Amask);
+    auto uFormat = SDL_PixelFormat::SDL_PIXELFORMAT_RGBA8888;
+    m_pCursorSurface = SDL_CreateSurfaceFrom(uWidth, uHeight, uFormat, &(*pIcon)[2], uPitch);
   }
 
   SDL_SetWindowIcon(m_Connector.GetSDLWindow(), m_pIconSurface);
@@ -68,24 +70,27 @@ void CSDLBackend::UseApplicationCursor() {
   std::shared_ptr<INestedHints::CursorInfo> pCursorInfo = m_pApplicationCursor;
 
   if (m_pCursorSurface != nullptr) {
-    SDL_FreeSurface(m_pCursorSurface);
+    SDL_DestroySurface(m_pCursorSurface);
     m_pCursorSurface = nullptr;
   }
 
   if (m_pCursor != nullptr) {
-    SDL_FreeCursor(m_pCursor);
+    SDL_DestroyCursor(m_pCursor);
     m_pCursor = nullptr;
   }
 
   if (pCursorInfo) {
     auto *const uPixels = pCursorInfo->pPixels.data();
-    const uint32_t uWidth = pCursorInfo->uWidth;
-    const uint32_t uHeight = pCursorInfo->uHeight;
-    const uint32_t uPitch = uWidth * sizeof(uint32_t);
-    using namespace sdl::surface;
-    m_pCursorSurface = SDL_CreateRGBSurfaceFrom(uPixels, uWidth, uHeight, depth, uPitch, Rmask, Gmask, Bmask, Amask);
-
-    m_pCursor = SDL_CreateColorCursor(m_pCursorSurface, pCursorInfo->uXHotspot, pCursorInfo->uYHotspot);
+    const auto uWidth = static_cast<int>(pCursorInfo->uWidth);
+    const auto uHeight = static_cast<int>(pCursorInfo->uHeight);
+    const auto uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
+    // using namespace sdl::surface;
+    // auto uFormat = SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask);
+    auto uFormat = SDL_PixelFormat::SDL_PIXELFORMAT_RGBA8888;
+    m_pCursorSurface = SDL_CreateSurfaceFrom(uWidth, uHeight, uFormat, uPixels, uPitch);
+    auto uHot_X = static_cast<int>(pCursorInfo->uXHotspot);
+    auto uHot_Y = static_cast<int>(pCursorInfo->uYHotspot);
+    m_pCursor = SDL_CreateColorCursor(m_pCursorSurface, uHot_X, uHot_Y);
   }
 
   SDL_SetCursor(m_pCursor);
@@ -105,7 +110,7 @@ void CSDLBackend::HandleUserEvent(SDL_Event event) {
     return;
   }
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_GRAB)) {
-    SDL_SetRelativeMouseMode(m_bApplicationGrabbed ? SDL_TRUE : SDL_FALSE);
+    SDL_SetWindowRelativeMouseMode(m_Connector.GetSDLWindow(), m_bApplicationGrabbed);
     return;
   }
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_CURSOR)) {

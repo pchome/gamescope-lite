@@ -1,10 +1,12 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_hints.h>
-#include <SDL2/SDL_vulkan.h>
+#include <SDL3/SDL_init.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_vulkan.h>
 
 #include "sdl_backend.hpp"
 #include "sdl_thread.hpp"
+
+#include "GamescopeVersion.h"
 
 #include "log.hpp"
 #include "main.hpp"
@@ -27,10 +29,11 @@ void CSDLBackend::SDLThreadFunc() {
 
   m_uUserEventIdBase = SDL_RegisterEvents(GAMESCOPE_SDL_EVENT_COUNT);
 
-  SDL_SetHint(SDL_HINT_APP_NAME, "Gamescope");
+  SDL_SetHint(SDL_HINT_APP_NAME, gamescopeName);
   SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
+  SDL_SetAppMetadata(gamescopeName, k_szGamescopeVersion, nullptr);
 
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
+  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
     m_eSDLInit = SDLInitState::SDLInit_Failure;
     m_eSDLInit.notify_all();
     return;
@@ -38,7 +41,7 @@ void CSDLBackend::SDLThreadFunc() {
 
   sdl_log.infof("Using SDL backend");
 
-  if (SDL_Vulkan_LoadLibrary(nullptr) != 0) {
+  if (!SDL_Vulkan_LoadLibrary(nullptr)) {
     fprintf(stderr, "SDL_Vulkan_LoadLibrary failed: %s\n", SDL_GetError());
     m_eSDLInit = SDLInitState::SDLInit_Failure;
     m_eSDLInit.notify_all();
@@ -46,9 +49,17 @@ void CSDLBackend::SDLThreadFunc() {
   }
 
   unsigned int uExtCount = 0;
-  SDL_Vulkan_GetInstanceExtensions(nullptr, &uExtCount, nullptr);
+/*
+  const auto *instanceExtensions = SDL_Vulkan_GetInstanceExtensions(&uExtCount);
+
+  // SDL_Vulkan_GetInstanceExtensions(nullptr, &uExtCount, nullptr);
   m_pszInstanceExtensions.resize(uExtCount);
-  SDL_Vulkan_GetInstanceExtensions(nullptr, &uExtCount, m_pszInstanceExtensions.data());
+  // SDL_Vulkan_GetInstanceExtensions(nullptr, &uExtCount, m_pszInstanceExtensions.data());
+  m_pszInstanceExtensions.assign(uExtCount, *instanceExtensions);
+*/
+  m_ppEnabledExtensionNames = SDL_Vulkan_GetInstanceExtensions(&uExtCount);
+  m_enabledExtensionCount = uExtCount;
+
 
   if (!m_Connector.Init()) {
     m_eSDLInit = SDLInitState::SDLInit_Failure;
@@ -76,9 +87,9 @@ void CSDLBackend::SDLThreadFunc() {
     g_nOutputWidthPts = width;
     g_nOutputHeightPts = height;
 
-#if SDL_VERSION_ATLEAST(2, 26, 0)
+//#if SDL_VERSION_ATLEAST(2, 26, 0)
     SDL_GetWindowSizeInPixels(m_Connector.GetSDLWindow(), &width, &height);
-#endif
+// #endif
     g_nOutputWidth = width;
     g_nOutputHeight = height;
 
@@ -86,7 +97,7 @@ void CSDLBackend::SDLThreadFunc() {
   }
 
   if (g_bForceRelativeMouse) {
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+     SDL_SetWindowRelativeMouseMode(m_Connector.GetSDLWindow(), true);
     m_bApplicationGrabbed = true;
   }
 
@@ -102,11 +113,21 @@ void CSDLBackend::SDLThreadFunc() {
   wlserver.bWaylandServerRunning.wait(false);
 
   SDL_Event event;
-  while (SDL_WaitEvent(&event) != 0) {
+  while (SDL_WaitEvent(&event)) {
     fake_timestamp++;
 
     HandleInputEvent(event, fake_timestamp);
 
+    if (event.type >= SDL_EVENT_WINDOW_FIRST && event.type <= SDL_EVENT_WINDOW_LAST) {
+      HandleWindowEvent(event);
+    }
+
+    if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_REQ_EXIT)) {
+      return;
+    }
+
+    HandleUserEvent(event);
+#if 0
     switch (event.type) {
     case SDL_WINDOWEVENT:
       HandleWindowEvent(event);
@@ -119,6 +140,7 @@ void CSDLBackend::SDLThreadFunc() {
       HandleUserEvent(event);
       break;
     }
+#endif
   }
 }
 

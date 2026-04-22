@@ -1,6 +1,6 @@
 
-#include <SDL2/SDL_clipboard.h>
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL_clipboard.h>
+#include <SDL3/SDL_events.h>
 
 #include "sdlscancodetable.hpp"
 
@@ -17,7 +17,7 @@ namespace gamescope {
 
 void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
   switch (event.type) {
-  case SDL_CLIPBOARDUPDATE: {
+  case SDL_EVENT_CLIPBOARD_UPDATE: {
     char *pClipBoard = SDL_GetClipboardText();
     char *pPrimarySelection = SDL_GetPrimarySelectionText();
 
@@ -28,7 +28,7 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
     SDL_free(pPrimarySelection);
   } break;
 
-  case SDL_MOUSEMOTION: {
+  case SDL_EVENT_MOUSE_MOTION: {
     if (m_bApplicationGrabbed) {
       if (g_bWindowFocused) {
         wlserver_lock();
@@ -43,43 +43,42 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
     }
   } break;
 
-  case SDL_MOUSEBUTTONDOWN:
-  case SDL_MOUSEBUTTONUP: {
+  case SDL_EVENT_MOUSE_BUTTON_DOWN:
+  case SDL_EVENT_MOUSE_BUTTON_UP: {
     wlserver_lock();
-    wlserver_mousebutton(SDLButtonToLinuxButton(event.button.button), event.button.state == SDL_PRESSED,
-                         fake_timestamp);
+    wlserver_mousebutton(SDLButtonToLinuxButton(event.button.button), event.button.down, fake_timestamp);
     wlserver_unlock();
   } break;
 
-  case SDL_MOUSEWHEEL: {
+  case SDL_EVENT_MOUSE_WHEEL: {
     wlserver_lock();
     wlserver_mousewheel(-event.wheel.x, -event.wheel.y, fake_timestamp);
     wlserver_unlock();
   } break;
 
-  case SDL_FINGERMOTION: {
+  case SDL_EVENT_FINGER_MOTION: {
     wlserver_lock();
-    wlserver_touchmotion(event.tfinger.x, event.tfinger.y, event.tfinger.fingerId, fake_timestamp);
+    wlserver_touchmotion(event.tfinger.x, event.tfinger.y, event.tfinger.fingerID, fake_timestamp);
     wlserver_unlock();
   } break;
 
-  case SDL_FINGERDOWN: {
+  case SDL_EVENT_FINGER_DOWN: {
     wlserver_lock();
-    wlserver_touchdown(event.tfinger.x, event.tfinger.y, event.tfinger.fingerId, fake_timestamp);
+    wlserver_touchdown(event.tfinger.x, event.tfinger.y, event.tfinger.fingerID, fake_timestamp);
     wlserver_unlock();
   } break;
 
-  case SDL_FINGERUP: {
+  case SDL_EVENT_FINGER_UP: {
     wlserver_lock();
-    wlserver_touchup(event.tfinger.fingerId, fake_timestamp);
+    wlserver_touchup(event.tfinger.fingerID, fake_timestamp);
     wlserver_unlock();
   } break;
 
-  case SDL_KEYDOWN: {
+  case SDL_EVENT_KEY_DOWN: {
     // If this keydown event is super + one of the shortcut keys, consume the keydown event, since the corresponding
     // keyup event will be consumed by the next case statement when the user releases the key
-    if ((event.key.keysym.mod & KMOD_LGUI) != 0) {
-      uint32_t key = SDLScancodeToLinuxKey(event.key.keysym.scancode);
+    if ((event.key.mod & SDL_KMOD_LGUI) != 0) {
+      uint32_t key = SDLScancodeToLinuxKey(event.key.scancode);
       const std::array<uint32_t, 10> shortcutKeys = {KEY_F, KEY_N, KEY_B, KEY_K, KEY_U,
                                                      KEY_Y, KEY_I, KEY_O, KEY_S, KEY_G};
       if (std::ranges::find(shortcutKeys, key) != std::end(shortcutKeys)) {
@@ -88,15 +87,15 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
     }
   }
     [[fallthrough]];
-  case SDL_KEYUP: {
-    uint32_t key = SDLScancodeToLinuxKey(event.key.keysym.scancode);
+  case SDL_EVENT_KEY_UP: {
+    uint32_t key = SDLScancodeToLinuxKey(event.key.scancode);
 
-    if (event.type == SDL_KEYUP && ((event.key.keysym.mod & KMOD_LGUI) != 0)) {
+    if (event.type == SDL_EVENT_KEY_UP && ((event.key.mod & SDL_KMOD_LGUI) != 0)) {
       bool handled = true;
       switch (key) {
       case KEY_F:
         g_bFullscreen = !g_bFullscreen;
-        SDL_SetWindowFullscreen(m_Connector.GetSDLWindow(), g_bFullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        SDL_SetWindowFullscreen(m_Connector.GetSDLWindow(), g_bFullscreen);
         break;
       case KEY_N:
         g_wantedUpscaleFilter = GamescopeUpscaleFilter::PIXEL;
@@ -128,7 +127,7 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
         break;
       case KEY_G:
         g_bGrabbed = !g_bGrabbed;
-        SDL_SetWindowKeyboardGrab(m_Connector.GetSDLWindow(), g_bGrabbed ? SDL_TRUE : SDL_FALSE);
+        SDL_SetWindowKeyboardGrab(m_Connector.GetSDLWindow(), g_bGrabbed);
 
         SDL_Event event;
         event.type = GetUserEventIndex(GAMESCOPE_SDL_EVENT_TITLE);
@@ -143,12 +142,12 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
     }
 
     // On Wayland, clients handle key repetition
-    if (event.key.repeat != 0u) {
+    if (event.key.repeat) {
       break;
     }
 
     wlserver_lock();
-    wlserver_key(key, event.type == SDL_KEYDOWN, fake_timestamp);
+    wlserver_key(key, event.type == SDL_EVENT_KEY_DOWN, fake_timestamp);
     wlserver_unlock();
   } break;
 

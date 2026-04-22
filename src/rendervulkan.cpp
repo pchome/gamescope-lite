@@ -3652,7 +3652,7 @@ VkInstance vulkan_get_instance( void )
 			return nullptr;
 		}
 
-		auto instanceExtensions = GetBackend()->GetInstanceExtensions();
+		// auto instanceExtensions = GetBackend()->GetInstanceExtensions();
 
 		const VkApplicationInfo appInfo = {
 			.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -3666,8 +3666,8 @@ VkInstance vulkan_get_instance( void )
 		const VkInstanceCreateInfo createInfo = {
 			.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 			.pApplicationInfo        = &appInfo,
-			.enabledExtensionCount   = (uint32_t)instanceExtensions.size(),
-			.ppEnabledExtensionNames = instanceExtensions.data(),
+			.enabledExtensionCount   = GetBackend()->GetInstanceExtensionsCount(),//(uint32_t)instanceExtensions.size(),
+			.ppEnabledExtensionNames = GetBackend()->GetInstanceExtensionsNames(),//instanceExtensions.data(),
 		};
 
 		VkInstance instance = nullptr;

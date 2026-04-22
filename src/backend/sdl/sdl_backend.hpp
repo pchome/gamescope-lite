@@ -2,9 +2,9 @@
 
 #include <thread>
 
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_mouse.h>
-#include <SDL2/SDL_surface.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_surface.h>
 
 #include "backend.h"
 #include "sdl_connector.hpp"
@@ -35,6 +35,8 @@ class CSDLBackend final : public CBaseBackend {
   CSDLConnector m_Connector; // Window.
   uint32_t m_uUserEventIdBase = 0u;
   std::vector<const char *> m_pszInstanceExtensions;
+  const char *const *m_ppEnabledExtensionNames;
+  uint32_t m_enabledExtensionCount = 0u;
 
   std::thread m_SDLThread;
   std::atomic<SDLInitState> m_eSDLInit = {SDLInitState::SDLInit_Waiting};
@@ -96,6 +98,8 @@ public:
   auto GetCurrentConnector() -> IBackendConnector * override;
   auto GetDeviceExtensions(VkPhysicalDevice pVkPhysicalDevice) const -> std::span<const char *const> override;
   auto GetInstanceExtensions() const -> std::span<const char *const> override;
+  auto GetInstanceExtensionsNames() const -> const char *const *  override;
+  auto GetInstanceExtensionsCount() const -> const uint32_t override;
   void GetPreferredOutputFormat(uint32_t *pPrimaryPlaneFormat, uint32_t *pOverlayPlaneFormat) const override;
   auto GetPresentLayout() const -> VkImageLayout override;
   auto GetSupportedModifiers(uint32_t uDrmFormat) const -> std::span<const uint64_t> override;

@@ -15,7 +15,7 @@ xkbcommon = dependency('xkbcommon')
 thread_dep = dependency('threads')
 cap_dep = dependency('libcap', required: get_option('rt_cap'))
 epoll_dep = dependency('epoll-shim', required: false)
-sdl2_dep = dependency('SDL2')
+sdl3_dep = dependency('SDL3')
 avif_dep = dependency('libavif', version: '>=1.0.0', required: get_option('avif_screenshots'))
 pixman_dep = dependency('pixman-1')
 
@@ -209,7 +209,7 @@ gamescope_version = configure_file(
     dependencies: [
       dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
       dep_xxf86vm, dep_xres, glm_dep, wayland_server,
-      xkbcommon, thread_dep, sdl2_dep, wlroots_dep,
+      xkbcommon, thread_dep, sdl3_dep, wlroots_dep,
       vulkan_dep, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
       stb_dep, dep_xcursor, avif_dep, dep_xi,
       luajit_dep, pixman_dep,

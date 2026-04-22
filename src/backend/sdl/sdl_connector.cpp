@@ -2,11 +2,12 @@
 #include <format>
 #include <print>
 
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_vulkan.h>
-#include <SDL2/SDL_clipboard.h>
+#include <SDL3/SDL_vulkan.h>
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_clipboard.h>
 
 #include "sdl_connector.hpp"
+
 #include "sdl_backend.hpp"
 
 #include "constants_include.hpp"
@@ -65,22 +66,25 @@ auto CSDLConnector::Init() -> bool {
 
   uSDLWindowFlags |= SDL_WINDOW_RESIZABLE;
   uSDLWindowFlags |= SDL_WINDOW_HIDDEN;
-  uSDLWindowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
+  uSDLWindowFlags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
   (g_bBorderlessOutputWindow ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_BORDERLESS;
-  (g_bFullscreen ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+  // (g_bFullscreen ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_FULLSCREEN_DESKTOP;
   (g_bGrabbed ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_KEYBOARD_GRABBED;
 
-  auto pos_x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(g_nNestedDisplayIndex);
-  auto pos_y = SDL_WINDOWPOS_UNDEFINED_DISPLAY(g_nNestedDisplayIndex);
+  // auto pos_x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(g_nNestedDisplayIndex);
+  // auto pos_y = SDL_WINDOWPOS_UNDEFINED_DISPLAY(g_nNestedDisplayIndex);
 
-  m_pWindow = SDL_CreateWindow(GetName(), pos_x, pos_y, g_nOutputWidth, g_nOutputHeight, uSDLWindowFlags);
-
+  m_pWindow = SDL_CreateWindow(GetName(), g_nOutputWidth, g_nOutputHeight, uSDLWindowFlags);
+  // SDL_CreateWindowWithProperties()
   if (m_pWindow == nullptr) {
     return false;
   }
 
-  if (SDL_Vulkan_CreateSurface(m_pWindow, vulkan_get_instance(), &m_pVkSurface) == SDL_FALSE) {
+  // fullscreen mode borderless
+  SDL_SetWindowFullscreenMode(m_pWindow, nullptr);
+
+  if (!SDL_Vulkan_CreateSurface(m_pWindow, vulkan_get_instance(), nullptr, &m_pVkSurface)) {
     std::println(stderr, "SDL_Vulkan_CreateSurface failed: {0}", SDL_GetError());
     return false;
   }
