@@ -59,7 +59,7 @@ void CSDLBackend::UseApplicationIcon() {
     const auto uHeight = static_cast<int>((*pIcon)[1]);
     const auto uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
     using namespace sdl::surface;
-    auto uFormat = SDL_PixelFormat::SDL_PIXELFORMAT_RGBA8888;
+    auto uFormat = SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask);
     m_pCursorSurface = SDL_CreateSurfaceFrom(uWidth, uHeight, uFormat, &(*pIcon)[2], uPitch);
   }
 
@@ -84,9 +84,8 @@ void CSDLBackend::UseApplicationCursor() {
     const auto uWidth = static_cast<int>(pCursorInfo->uWidth);
     const auto uHeight = static_cast<int>(pCursorInfo->uHeight);
     const auto uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
-    // using namespace sdl::surface;
-    // auto uFormat = SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask);
-    auto uFormat = SDL_PixelFormat::SDL_PIXELFORMAT_RGBA8888;
+    using namespace sdl::surface;
+    auto uFormat = SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask);
     m_pCursorSurface = SDL_CreateSurfaceFrom(uWidth, uHeight, uFormat, uPixels, uPitch);
     auto uHot_X = static_cast<int>(pCursorInfo->uXHotspot);
     auto uHot_Y = static_cast<int>(pCursorInfo->uYHotspot);
