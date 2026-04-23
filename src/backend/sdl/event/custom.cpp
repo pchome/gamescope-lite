@@ -61,7 +61,7 @@ void CSDLBackend::UseApplicationIcon() {
     const auto uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
     using namespace sdl::surface;
     auto uFormat = SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask);
-    m_pCursorSurface = SDL_CreateSurfaceFrom(uWidth, uHeight, uFormat, &(*pIcon)[2], uPitch);
+    m_pIconSurface = SDL_CreateSurfaceFrom(uWidth, uHeight, uFormat, &(*pIcon)[2], uPitch);
   }
 
   SDL_SetWindowIcon(m_Connector.GetSDLWindow(), m_pIconSurface);
