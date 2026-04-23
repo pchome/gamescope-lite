@@ -719,6 +719,12 @@ int main(int argc, char **argv)
 				break;
 			case 'F':
 				parse_filter(optarg);
+                g_wantedUpscaleScaler
+                  =((g_wantedUpscaleFilter == GamescopeUpscaleFilter::FSR
+                  || g_wantedUpscaleFilter == GamescopeUpscaleFilter::NIS)
+                  && g_wantedUpscaleScaler == GamescopeUpscaleScaler::AUTO)
+                  ?  GamescopeUpscaleScaler::FIT
+                  :  g_wantedUpscaleScaler;
 				break;
 			case 'b':
 				g_bBorderlessOutputWindow = true;
