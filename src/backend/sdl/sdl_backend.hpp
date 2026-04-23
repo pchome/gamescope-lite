@@ -61,11 +61,13 @@ class CSDLBackend final : public CBaseBackend {
 
   /** Input event handlers */
 
-  void HandleInputEvent(SDL_Event eEvent, uint32_t fake_timestamp);
+  /** Return `true` if handled, otherwise `false` */
+  auto HandleInputEvent(SDL_Event eEvent, uint32_t fake_timestamp) -> bool;
 
   /** Window event handlers */
 
-  void HandleWindowEvent(SDL_Event eEvent);
+  /** Return `true` if handled, otherwise `false` */
+  auto HandleWindowEvent(SDL_Event eEvent) -> bool;
 
   /** Custom event handlers */
 
@@ -73,7 +75,8 @@ class CSDLBackend final : public CBaseBackend {
   void SwitchMainWindowVisibility();
   void UseApplicationIcon();
   void UseApplicationCursor();
-  void HandleUserEvent(SDL_Event eEvent);
+  /** Return `true` if handled, otherwise `false` */
+  auto HandleUserEvent(SDL_Event eEvent) -> bool;
 
 protected:
   void OnBackendBlobDestroyed(BackendBlob *pBlob) override;

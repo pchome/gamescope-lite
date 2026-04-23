@@ -152,6 +152,10 @@ void CSDLBackend::PushUserEvent(SDLCustomEvents eEvent) {
               .type = GetUserEventIndex(eEvent),
           },
   };
+  // SDL3:
+  // > You should set the event.common.timestamp field before passing an event to SDL_PushEvent().
+  // > If the timestamp is 0 it will be filled in with SDL_GetTicksNS().
+  event.common.timestamp = 0;
   SDL_PushEvent(&event);
 }
 

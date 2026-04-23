@@ -2,9 +2,10 @@
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_surface.h>
 
-#include "../sdl_backend.hpp"
+#include "backend/sdl/sdl_backend.hpp"
 #include "./custom.hpp"
 
+#include "GamescopeVersion.h"
 #include "main.hpp"
 #include "steamcompmgr.hpp"
 
@@ -35,7 +36,7 @@ void CSDLBackend::SwitchMainWindowVisibility() {
 void CSDLBackend::SwitchKeyboardGrabIndicator() {
   std::shared_ptr<std::string> pAppTitle = m_pApplicationTitle;
 
-  std::string szTitle = pAppTitle ? *pAppTitle : "Gamescope Lite";
+  std::string szTitle = pAppTitle ? *pAppTitle : gamescopeName;
   if (g_bGrabbed) {
     szTitle += " (grabbed)";
   }
@@ -95,29 +96,30 @@ void CSDLBackend::UseApplicationCursor() {
   SDL_SetCursor(m_pCursor);
 }
 
-void CSDLBackend::HandleUserEvent(SDL_Event event) {
+auto CSDLBackend::HandleUserEvent(SDL_Event event) -> bool {
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_VISIBLE)) {
     SwitchMainWindowVisibility();
-    return;
+    return true;
   }
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_TITLE)) {
     SwitchKeyboardGrabIndicator();
-    return;
+    return true;
   }
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_ICON)) {
     UseApplicationIcon();
-    return;
+    return true;
   }
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_GRAB)) {
     SDL_SetWindowRelativeMouseMode(m_Connector.GetSDLWindow(), m_bApplicationGrabbed);
-    return;
+    return true;
   }
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_CURSOR)) {
     UseApplicationCursor();
-    return;
+    return true;
   }
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_REQ_EXIT)) {
-    return;
+    return true;
   }
+  return false;
 }
 } // namespace gamescope

@@ -116,17 +116,25 @@ void CSDLBackend::SDLThreadFunc() {
   while (SDL_WaitEvent(&event)) {
     fake_timestamp++;
 
-    HandleInputEvent(event, fake_timestamp);
+    if (HandleInputEvent(event, fake_timestamp)) {
+      continue;
+    }
 
     if (event.type >= SDL_EVENT_WINDOW_FIRST && event.type <= SDL_EVENT_WINDOW_LAST) {
-      HandleWindowEvent(event);
+      if (HandleWindowEvent(event)) {
+        continue;
+      }
     }
 
     if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_REQ_EXIT)) {
+      // Quit
       return;
     }
 
-    HandleUserEvent(event);
+    if (HandleUserEvent(event)) {
+      continue;
+    }
+
 #if 0
     switch (event.type) {
     case SDL_WINDOWEVENT:

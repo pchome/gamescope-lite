@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "../sdl_backend.hpp"
+#include "backend/sdl/sdl_backend.hpp"
 #include "./input.hpp"
 
 #include "main.hpp"
@@ -15,9 +15,12 @@
 
 namespace gamescope {
 
-void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
+auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> bool {
+  auto handled = false;
+
   switch (event.type) {
   case SDL_EVENT_CLIPBOARD_UPDATE: {
+    handled = true;
     char *pClipBoard = SDL_GetClipboardText();
     char *pPrimarySelection = SDL_GetPrimarySelectionText();
 
@@ -29,48 +32,54 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
   } break;
 
   case SDL_EVENT_MOUSE_MOTION: {
+    handled = true;
     if (m_bApplicationGrabbed) {
       if (g_bWindowFocused) {
         wlserver_lock();
-        wlserver_mousemotion(event.motion.xrel, event.motion.yrel, fake_timestamp);
+        wlserver_mousemotion(event.motion.xrel, event.motion.yrel, event.motion.timestamp);
         wlserver_unlock();
       }
     } else {
       wlserver_lock();
       wlserver_touchmotion(event.motion.x / double(g_nOutputWidthPts), event.motion.y / double(g_nOutputHeightPts), 0,
-                           fake_timestamp);
+                           event.motion.timestamp);
       wlserver_unlock();
     }
   } break;
 
   case SDL_EVENT_MOUSE_BUTTON_DOWN:
   case SDL_EVENT_MOUSE_BUTTON_UP: {
+    handled = true;
     wlserver_lock();
-    wlserver_mousebutton(SDLButtonToLinuxButton(event.button.button), event.button.down, fake_timestamp);
+    wlserver_mousebutton(SDLButtonToLinuxButton(event.button.button), event.button.down, event.button.timestamp);
     wlserver_unlock();
   } break;
 
   case SDL_EVENT_MOUSE_WHEEL: {
+    handled = true;
     wlserver_lock();
-    wlserver_mousewheel(-event.wheel.x, -event.wheel.y, fake_timestamp);
+    wlserver_mousewheel(-event.wheel.x, -event.wheel.y, event.wheel.timestamp);
     wlserver_unlock();
   } break;
 
   case SDL_EVENT_FINGER_MOTION: {
+    handled = true;
     wlserver_lock();
-    wlserver_touchmotion(event.tfinger.x, event.tfinger.y, event.tfinger.fingerID, fake_timestamp);
+    wlserver_touchmotion(event.tfinger.x, event.tfinger.y, event.tfinger.fingerID, event.tfinger.timestamp);
     wlserver_unlock();
   } break;
 
   case SDL_EVENT_FINGER_DOWN: {
+    handled = true;
     wlserver_lock();
-    wlserver_touchdown(event.tfinger.x, event.tfinger.y, event.tfinger.fingerID, fake_timestamp);
+    wlserver_touchdown(event.tfinger.x, event.tfinger.y, event.tfinger.fingerID, event.tfinger.timestamp);
     wlserver_unlock();
   } break;
 
   case SDL_EVENT_FINGER_UP: {
+    handled = true;
     wlserver_lock();
-    wlserver_touchup(event.tfinger.fingerID, fake_timestamp);
+    wlserver_touchup(event.tfinger.fingerID, event.tfinger.timestamp);
     wlserver_unlock();
   } break;
 
@@ -84,6 +93,7 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
       if (std::ranges::find(shortcutKeys, key) != std::end(shortcutKeys)) {
         break;
       }
+      handled = true;
     }
   }
     [[fallthrough]];
@@ -91,7 +101,7 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
     uint32_t key = SDLScancodeToLinuxKey(event.key.scancode);
 
     if (event.type == SDL_EVENT_KEY_UP && ((event.key.mod & SDL_KMOD_LGUI) != 0)) {
-      bool handled = true;
+      bool key_handled = true;
       switch (key) {
       case KEY_F:
         g_bFullscreen = !g_bFullscreen;
@@ -131,29 +141,38 @@ void CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) {
 
         SDL_Event event;
         event.type = GetUserEventIndex(GAMESCOPE_SDL_EVENT_TITLE);
+        // SDL3:
+        // > You should set the event.common.timestamp field before passing an event to SDL_PushEvent().
+        // > If the timestamp is 0 it will be filled in with SDL_GetTicksNS().
+        event.common.timestamp = 0;
         SDL_PushEvent(&event);
         break;
       default:
-        handled = false;
+        key_handled = false;
       }
-      if (handled) {
+      if (key_handled) {
+          handled = true;
         break;
       }
     }
 
     // On Wayland, clients handle key repetition
     if (event.key.repeat) {
+        handled = true;
       break;
     }
 
     wlserver_lock();
-    wlserver_key(key, event.type == SDL_EVENT_KEY_DOWN, fake_timestamp);
+    wlserver_key(key, event.type == SDL_EVENT_KEY_DOWN, event.key.timestamp);
     wlserver_unlock();
+    handled = true;
   } break;
 
   default:
     break;
   }
+
+  return handled;
 }
 
 } // namespace gamescope

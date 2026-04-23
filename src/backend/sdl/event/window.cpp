@@ -4,7 +4,7 @@
 
 #include <csignal>
 
-#include "../sdl_backend.hpp"
+#include "backend/sdl/sdl_backend.hpp"
 #include "./window.hpp"
 
 #include "main.hpp"
@@ -13,15 +13,20 @@
 
 namespace gamescope {
 
-void CSDLBackend::HandleWindowEvent(SDL_Event event) {
+auto CSDLBackend::HandleWindowEvent(SDL_Event event) -> bool {
+  auto handled = false;
+
   switch (event.window.type) {
   case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+    handled = true;
     raise(SIGTERM);
     break;
   default:
     break;
   case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-    int width, height;
+    handled = true;
+    int width;
+    int height;
     SDL_GetWindowSize(m_Connector.GetSDLWindow(), &width, &height);
     g_nOutputWidthPts = width;
     g_nOutputHeightPts = height;
@@ -35,6 +40,7 @@ void CSDLBackend::HandleWindowEvent(SDL_Event event) {
     [[fallthrough]];
   case SDL_EVENT_WINDOW_MOVED:
   case SDL_EVENT_WINDOW_SHOWN: {
+    handled = true;
     SDL_DisplayID display_index = 0;
     const SDL_DisplayMode * mode = nullptr;
     display_index = SDL_GetDisplayForWindow(m_Connector.GetSDLWindow());
@@ -44,17 +50,22 @@ void CSDLBackend::HandleWindowEvent(SDL_Event event) {
     }
   } break;
   case SDL_EVENT_WINDOW_FOCUS_LOST:
+    handled = true;
     g_nNestedRefresh = g_nNestedUnfocusedRefresh;
     g_bWindowFocused = false;
     break;
   case SDL_EVENT_WINDOW_FOCUS_GAINED:
+    handled = true;
     g_nNestedRefresh = g_nOldNestedRefresh;
     g_bWindowFocused = true;
     break;
   case SDL_EVENT_WINDOW_EXPOSED:
+    handled = true;
     force_repaint();
     break;
   }
+
+  return handled;
 }
 
 } // namespace gamescope
