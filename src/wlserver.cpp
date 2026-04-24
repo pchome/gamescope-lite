@@ -1020,7 +1020,7 @@ static void gamescope_control_set_app_target_refresh_cycle( struct wl_client *cl
 		!!( flags & GAMESCOPE_CONTROL_TARGET_REFRESH_CYCLE_FLAG_ALLOW_REFRESH_SWITCHING ),
 		!( flags & GAMESCOPE_CONTROL_TARGET_REFRESH_CYCLE_FLAG_ONLY_CHANGE_REFRESH_RATE ) );
 }
-
+#if HAVE_SCREENSHOT
 static void gamescope_control_take_screenshot( struct wl_client *client, struct wl_resource *resource, const char *path, uint32_t type, uint32_t flags )
 {
 	gamescope::CScreenshotManager::Get().TakeScreenshot( gamescope::GamescopeScreenshotInfo
@@ -1031,7 +1031,7 @@ static void gamescope_control_take_screenshot( struct wl_client *client, struct 
 		.bWaylandRequested = true,
 	} );
 }
-
+#endif
 void drm_sleep_screen( gamescope::GamescopeScreenType eType, bool bSleep );
 
 static void gamescope_control_display_sleep( struct wl_client *client, struct wl_resource *resource, uint32_t display_type_flags, uint32_t flags )
@@ -1187,7 +1187,9 @@ void wlserver_app_presented( uint32_t app_id, uint64_t frametime_ns )
 static const struct gamescope_control_interface gamescope_control_impl = {
 	.destroy = gamescope_control_handle_destroy,
 	.set_app_target_refresh_cycle = gamescope_control_set_app_target_refresh_cycle,
+#if HAVE_SCREENSHOT
 	.take_screenshot = gamescope_control_take_screenshot,
+#endif
 	.display_sleep = gamescope_control_display_sleep,
 	.set_look = gamescope_control_set_look,
 	.unset_look = gamescope_control_unset_look,

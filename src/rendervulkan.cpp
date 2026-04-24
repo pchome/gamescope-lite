@@ -3756,7 +3756,7 @@ void vulkan_garbage_collect( void )
 {
 	g_device.garbageCollect();
 }
-
+#if HAVE_SCREENSHOT
 gamescope::Rc<CVulkanTexture> vulkan_acquire_screenshot_texture(uint32_t width, uint32_t height, bool exportable, uint32_t drmFormat, EStreamColorspace colorspace)
 {
 	for (auto& pScreenshotImage : g_output.pScreenshotImages)
@@ -3792,7 +3792,7 @@ gamescope::Rc<CVulkanTexture> vulkan_acquire_screenshot_texture(uint32_t width, 
 	vk_log.errorf("Unable to acquire screenshot texture. Out of textures.");
 	return nullptr;
 }
-
+#endif
 // Internal display's native brightness.
 float g_flInternalDisplayBrightnessNits = 500.0f;
 

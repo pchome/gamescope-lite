@@ -512,14 +512,14 @@ update_color_mgmt()
 	g_ColorMgmt.serial = ++s_NextColorMgmtSerial;
 	g_ColorMgmt.current = g_ColorMgmt.pending;
 }
-
+#if HAVE_SCREENSHOT
 static void
 update_screenshot_color_mgmt()
 {
 	create_color_mgmt_luts(k_ScreenshotColorMgmt, g_ScreenshotColorMgmtLuts);
 	create_color_mgmt_luts(k_ScreenshotColorMgmtHDR, g_ScreenshotColorMgmtLutsHDR);
 }
-
+#endif
 bool set_color_sdr_gamut_wideness( float flVal )
 {
 	if ( g_ColorMgmt.pending.sdrGamutWideness == flVal )
@@ -1015,7 +1015,7 @@ extern bool		steamMode;
 
 gamescope::ConVar<bool> cv_composite_force{ "composite_force", false, "Force composition always, never use scanout" };
 static bool		useXRes = true;
-
+#if HAVE_SCREENSHOT
 namespace gamescope
 {
 	CScreenshotManager &CScreenshotManager::Get()
@@ -1048,7 +1048,7 @@ namespace gamescope
 		} );
 	});
 }
-
+#endif
 
 static std::atomic<bool> g_bForceRepaint{false};
 
@@ -5552,6 +5552,7 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 		ctx->focusControlWindow = get_prop( ctx, ctx->root, ctx->atoms.gamescopeCtrlWindowAtom, None );
 		MakeFocusDirty();
 	}
+#if HAVE_SCREENSHOT
 	if ( ev->atom == ctx->atoms.gamescopeScreenShotAtom )
 	{
 		if ( ev->state == PropertyNewValue )
@@ -5578,6 +5579,7 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 			} );
 		}
 	}
+#endif
 	if (ev->atom == ctx->atoms.gameAtom)
 	{
 		steamcompmgr_win_t * w = find_win(ctx, ev->window);
@@ -7963,9 +7965,9 @@ steamcompmgr_main(int argc, char **argv)
 
 	if ( !GetBackend()->PostInit() )
 		return;
-
+#if HAVE_SCREENSHOT
 	update_screenshot_color_mgmt();
-
+#endif
 	LaunchNestedChildren( subCommandArg >= 0 ? &argv[ subCommandArg ] : nullptr );
 
 	// Transpose to get this 3x3 matrix into the right state for applying as a 3x4

@@ -480,9 +480,11 @@ static gamescope::ConCommand cc_shutdown( "shutdown", "Cleanly shutdown gamescop
 static void handle_signal( int sig )
 {
 	switch ( sig ) {
+#if HAVE_SCREENSHOT
 	case SIGUSR2:
 		gamescope::CScreenshotManager::Get().TakeScreenshot( true );
 		break;
+#endif
 	case SIGHUP:
 	case SIGQUIT:
 	case SIGTERM:

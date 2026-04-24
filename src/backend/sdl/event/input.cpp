@@ -132,9 +132,11 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
       case KEY_O:
         g_upscaleFilterSharpness = std::max(0, g_upscaleFilterSharpness - 1);
         break;
+#if HAVE_SCREENSHOT
       case KEY_S:
         gamescope::CScreenshotManager::Get().TakeScreenshot(true);
         break;
+#endif
       case KEY_G:
         g_bGrabbed = !g_bGrabbed;
         SDL_SetWindowKeyboardGrab(m_Connector.GetSDLWindow(), g_bGrabbed);

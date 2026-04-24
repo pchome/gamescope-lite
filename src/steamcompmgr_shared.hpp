@@ -259,7 +259,7 @@ struct steamcompmgr_win_t {
 };
 
 extern std::atomic<bool> hasRepaint;
-
+#if HAVE_SCREENSHOT
 namespace gamescope
 {
 	struct GamescopeScreenshotInfo
@@ -308,3 +308,4 @@ namespace gamescope
 
 	extern CScreenshotManager g_ScreenshotMgr;
 }
+#endif
