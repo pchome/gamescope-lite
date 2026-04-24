@@ -2,8 +2,8 @@
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_surface.h>
 
-#include "backend/sdl/sdl_backend.hpp"
 #include "./custom.hpp"
+#include "backend/sdl/sdl_backend.hpp"
 
 #include "GamescopeVersion.h"
 #include "main.hpp"
@@ -56,9 +56,9 @@ void CSDLBackend::UseApplicationIcon() {
   }
 
   if (pIcon && pIcon->size() >= 3) {
-    const auto uWidth = static_cast<int>((*pIcon)[0]);
-    const auto uHeight = static_cast<int>((*pIcon)[1]);
-    const auto uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
+    auto const uWidth = static_cast<int>((*pIcon)[0]);
+    auto const uHeight = static_cast<int>((*pIcon)[1]);
+    auto const uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
     using namespace sdl::surface;
     auto uFormat = SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask);
     m_pIconSurface = SDL_CreateSurfaceFrom(uWidth, uHeight, uFormat, &(*pIcon)[2], uPitch);
@@ -81,10 +81,10 @@ void CSDLBackend::UseApplicationCursor() {
   }
 
   if (pCursorInfo) {
-    auto *const uPixels = pCursorInfo->pPixels.data();
-    const auto uWidth = static_cast<int>(pCursorInfo->uWidth);
-    const auto uHeight = static_cast<int>(pCursorInfo->uHeight);
-    const auto uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
+    auto* const uPixels = pCursorInfo->pPixels.data();
+    auto const uWidth = static_cast<int>(pCursorInfo->uWidth);
+    auto const uHeight = static_cast<int>(pCursorInfo->uHeight);
+    auto const uPitch = static_cast<int>(uWidth * sizeof(uint32_t));
     using namespace sdl::surface;
     auto uFormat = SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask);
     m_pCursorSurface = SDL_CreateSurfaceFrom(uWidth, uHeight, uFormat, uPixels, uPitch);

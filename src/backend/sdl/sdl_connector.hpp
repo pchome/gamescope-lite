@@ -4,63 +4,70 @@
 
 #include "backend.h"
 
-namespace gamescope
-{
-  class CSDLBackend;
-  class CSDLConnector final : public CBaseBackendConnector, public INestedHints
-  {
-    CSDLBackend *m_pBackend = nullptr;
-    SDL_Window *m_pWindow = nullptr;
-    VkSurfaceKHR m_pVkSurface = VK_NULL_HANDLE;
-    BackendConnectorHDRInfo m_HDRInfo{};
+namespace gamescope {
 
-  public:
-    CSDLConnector( CSDLBackend *pBackend );
-    ~CSDLConnector() override;
+class CSDLBackend;
+class CSDLConnector final
+    : public CBaseBackendConnector
+    , public INestedHints {
+  CSDLBackend* m_pBackend = nullptr;
+  SDL_Window* m_pWindow = nullptr;
+  SDL_Window* m_pPopup = nullptr;
+  VkSurfaceKHR m_pVkSurface = VK_NULL_HANDLE;
+  BackendConnectorHDRInfo m_HDRInfo{};
 
-    auto Init() -> bool;
+public:
+  CSDLConnector(CSDLBackend* pBackend);
+  ~CSDLConnector() override;
 
-    /////////////////////
-    // IBackendConnector
-    /////////////////////
+  auto Init() -> bool;
 
-    [[nodiscard]] auto GetCurrentOrientation() const -> GamescopePanelOrientation override;
-    [[nodiscard]] auto GetHDRInfo() const -> const BackendConnectorHDRInfo & override;
-    [[nodiscard]] auto GetMake() const -> const char * override;
-    [[nodiscard]] auto GetModel() const -> const char * override;
-    [[nodiscard]] auto GetModes() const -> std::span<const BackendMode> override;
-    [[nodiscard]] auto GetName() const -> const char * override;
-    [[nodiscard]] auto GetRawEDID() const -> std::span<const uint8_t> override;
-    [[nodiscard]] auto GetScreenType() const -> GamescopeScreenType override;
-    [[nodiscard]] auto GetValidDynamicRefreshRates() const -> std::span<const uint32_t> override;
+  /////////////////////
+  // IBackendConnector
+  /////////////////////
 
-    [[nodiscard]] auto SupportsHDR() const -> bool override;
-    [[nodiscard]] auto SupportsVRR() const -> bool override;
+  [[nodiscard]] auto GetCurrentOrientation() const -> GamescopePanelOrientation override;
+  [[nodiscard]] auto GetHDRInfo() const -> BackendConnectorHDRInfo const& override;
+  [[nodiscard]] auto GetMake() const -> char const* override;
+  [[nodiscard]] auto GetModel() const -> char const* override;
+  [[nodiscard]] auto GetModes() const -> std::span<BackendMode const> override;
+  [[nodiscard]] auto GetName() const -> char const* override;
+  [[nodiscard]] auto GetRawEDID() const -> std::span<uint8_t const> override;
+  [[nodiscard]] auto GetScreenType() const -> GamescopeScreenType override;
+  [[nodiscard]] auto GetValidDynamicRefreshRates() const -> std::span<uint32_t const> override;
 
-    [[nodiscard]] auto IsHDRActive() const -> bool override;
-    [[nodiscard]] auto IsVRRActive() const -> bool override;
+  [[nodiscard]] auto SupportsHDR() const -> bool override;
+  [[nodiscard]] auto SupportsVRR() const -> bool override;
 
-    using dc_t = displaycolorimetry_t;
-    void GetNativeColorimetry(bool bHDR10, dc_t *displayColorimetry, EOTF *displayEOTF,  dc_t *outputEncodingColorimetry, EOTF *outputEncodingEOTF ) const override;
+  [[nodiscard]] auto IsHDRActive() const -> bool override;
+  [[nodiscard]] auto IsVRRActive() const -> bool override;
 
-    auto GetNestedHints() -> INestedHints * override { return this; }
+  using dc_t = displaycolorimetry_t;
+  void GetNativeColorimetry(bool bHDR10,
+                            dc_t* displayColorimetry,
+                            EOTF* displayEOTF,
+                            dc_t* outputEncodingColorimetry,
+                            EOTF* outputEncodingEOTF) const override;
 
-    auto Present( const FrameInfo_t *pFrameInfo, bool bAsync ) -> int override;
+  auto GetNestedHints() -> INestedHints* override { return this; }
 
-    ///////////////////
-    // INestedHints
-    ///////////////////
+  auto Present(FrameInfo_t const* pFrameInfo, bool bAsync) -> int override;
 
-    void SetCursorImage( std::shared_ptr<INestedHints::CursorInfo> info ) override;
-    void SetIcon( std::shared_ptr<std::vector<uint32_t>> uIconPixels ) override;
-    void SetRelativeMouseMode( bool bRelative ) override;
-    void SetSelection(std::shared_ptr<std::string> szContents, GamescopeSelection eSelection) override;
-    void SetTitle( std::shared_ptr<std::string> szTitle ) override;
-    void SetVisible( bool bVisible ) override;
+  ///////////////////
+  // INestedHints
+  ///////////////////
 
-    //--
+  void SetCursorImage(std::shared_ptr<INestedHints::CursorInfo> info) override;
+  void SetIcon(std::shared_ptr<std::vector<uint32_t>> uIconPixels) override;
+  void SetRelativeMouseMode(bool bRelative) override;
+  void SetSelection(std::shared_ptr<std::string> szContents, GamescopeSelection eSelection) override;
+  void SetTitle(std::shared_ptr<std::string> szTitle) override;
+  void SetVisible(bool bVisible) override;
 
-    [[nodiscard]] auto GetSDLWindow() const -> SDL_Window * { return m_pWindow; }
-    [[nodiscard]] auto GetVulkanSurface() const -> VkSurfaceKHR { return m_pVkSurface; }
-  };
-} //namespace
+  //--
+
+  [[nodiscard]] auto GetSDLWindow() const -> SDL_Window* { return m_pWindow; }
+  [[nodiscard]] auto GetPopupWindow() const -> SDL_Window* { return m_pPopup; }
+  [[nodiscard]] auto GetVulkanSurface() const -> VkSurfaceKHR { return m_pVkSurface; }
+};
+} // namespace gamescope

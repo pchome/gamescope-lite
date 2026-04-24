@@ -4,8 +4,8 @@
 
 #include <csignal>
 
-#include "backend/sdl/sdl_backend.hpp"
 #include "./window.hpp"
+#include "backend/sdl/sdl_backend.hpp"
 
 #include "main.hpp"
 #include "refresh_rate.h"
@@ -42,7 +42,7 @@ auto CSDLBackend::HandleWindowEvent(SDL_Event event) -> bool {
   case SDL_EVENT_WINDOW_SHOWN: {
     handled = true;
     SDL_DisplayID display_index = 0;
-    const SDL_DisplayMode * mode = nullptr;
+    SDL_DisplayMode const* mode = nullptr;
     display_index = SDL_GetDisplayForWindow(m_Connector.GetSDLWindow());
     mode = SDL_GetDesktopDisplayMode(display_index);
     if (mode != nullptr) {
