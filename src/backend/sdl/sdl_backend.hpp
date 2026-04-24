@@ -9,7 +9,6 @@
 #include "backend.h"
 #include "sdl_connector.hpp"
 
-
 namespace gamescope {
 
 enum class SDLInitState : std::uint8_t {
@@ -34,8 +33,8 @@ class CSDLBackend final : public CBaseBackend {
   bool m_bShown = false;
   CSDLConnector m_Connector; // Window.
   uint32_t m_uUserEventIdBase = 0u;
-  std::vector<const char *> m_pszInstanceExtensions;
-  const char *const *m_ppEnabledExtensionNames;
+  std::vector<char const*> m_pszInstanceExtensions;
+  char const* const* m_ppEnabledExtensionNames;
   uint32_t m_enabledExtensionCount = 0u;
 
   std::thread m_SDLThread;
@@ -46,9 +45,9 @@ class CSDLBackend final : public CBaseBackend {
   std::atomic<std::shared_ptr<INestedHints::CursorInfo>> m_pApplicationCursor;
   std::atomic<std::shared_ptr<std::string>> m_pApplicationTitle;
   std::atomic<std::shared_ptr<std::vector<uint32_t>>> m_pApplicationIcon;
-  SDL_Surface *m_pIconSurface = nullptr;
-  SDL_Surface *m_pCursorSurface = nullptr;
-  SDL_Cursor *m_pCursor = nullptr;
+  SDL_Surface* m_pIconSurface = nullptr;
+  SDL_Surface* m_pCursorSurface = nullptr;
+  SDL_Cursor* m_pCursor = nullptr;
 
   void SDLThreadFunc();
 
@@ -79,7 +78,7 @@ class CSDLBackend final : public CBaseBackend {
   auto HandleUserEvent(SDL_Event eEvent) -> bool;
 
 protected:
-  void OnBackendBlobDestroyed(BackendBlob *pBlob) override;
+  void OnBackendBlobDestroyed(BackendBlob* pBlob) override;
 
 public:
   CSDLBackend();
@@ -94,20 +93,21 @@ public:
   void DirtyState(bool bForce = false, bool bForceModeset = false) override;
   auto PollState() -> bool override;
 
-  auto CreateBackendBlob(const std::type_info &type, std::span<const uint8_t> data) -> std::shared_ptr<BackendBlob> override;
+  auto CreateBackendBlob(std::type_info const& type, std::span<uint8_t const> data)
+      -> std::shared_ptr<BackendBlob> override;
   auto CursorSurfaceSize(glm::uvec2 uvecSize) const -> glm::uvec2 override;
 
-  auto GetConnector(GamescopeScreenType eScreenType) -> IBackendConnector * override;
-  auto GetCurrentConnector() -> IBackendConnector * override;
-  auto GetDeviceExtensions(VkPhysicalDevice pVkPhysicalDevice) const -> std::span<const char *const> override;
-  auto GetInstanceExtensions() const -> std::span<const char *const> override;
-  auto GetInstanceExtensionsNames() const -> const char *const *  override;
-  auto GetInstanceExtensionsCount() const -> const uint32_t override;
-  void GetPreferredOutputFormat(uint32_t *pPrimaryPlaneFormat, uint32_t *pOverlayPlaneFormat) const override;
+  auto GetConnector(GamescopeScreenType eScreenType) -> IBackendConnector* override;
+  auto GetCurrentConnector() -> IBackendConnector* override;
+  auto GetDeviceExtensions(VkPhysicalDevice pVkPhysicalDevice) const -> std::span<char const* const> override;
+  auto GetInstanceExtensions() const -> std::span<char const* const> override;
+  auto GetInstanceExtensionsNames() const -> char const* const* override;
+  auto GetInstanceExtensionsCount() const -> uint32_t const override;
+  void GetPreferredOutputFormat(uint32_t* pPrimaryPlaneFormat, uint32_t* pOverlayPlaneFormat) const override;
   auto GetPresentLayout() const -> VkImageLayout override;
-  auto GetSupportedModifiers(uint32_t uDrmFormat) const -> std::span<const uint64_t> override;
+  auto GetSupportedModifiers(uint32_t uDrmFormat) const -> std::span<uint64_t const> override;
 
-  auto ImportDmabufToBackend(wlr_dmabuf_attributes *pDmaBuf) -> OwningRc<IBackendFb> override;
+  auto ImportDmabufToBackend(wlr_dmabuf_attributes* pDmaBuf) -> OwningRc<IBackendFb> override;
 
   auto IsPaused() const -> bool override;
   auto IsSessionBased() const -> bool override;
@@ -129,9 +129,10 @@ public:
   void SetCursorImage(std::shared_ptr<INestedHints::CursorInfo> info);
   void SetIcon(std::shared_ptr<std::vector<uint32_t>> uIconPixels);
   void SetRelativeMouseMode(bool bRelative);
-  static void SetSelection(const std::shared_ptr<std::string> &szContents, GamescopeSelection eSelection);
+  static void SetSelection(std::shared_ptr<std::string> const& szContents, GamescopeSelection eSelection);
   void SetTitle(std::shared_ptr<std::string> szTitle);
   void SetVisible(bool bVisible);
+  void ShowPopup(bool bShow);
 };
 
 } // namespace gamescope

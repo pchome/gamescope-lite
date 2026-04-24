@@ -1,10 +1,10 @@
-#include <optional>
 #include <format>
+#include <optional>
 #include <print>
 
-#include <SDL3/SDL_vulkan.h>
-#include <SDL3/SDL_video.h>
 #include <SDL3/SDL_clipboard.h>
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_vulkan.h>
 
 #include "sdl_connector.hpp"
 
@@ -28,7 +28,7 @@ namespace gamescope {
 // CSDLConnector
 //////////////////
 
-CSDLConnector::CSDLConnector(CSDLBackend *pBackend) : m_pBackend{pBackend} {}
+CSDLConnector::CSDLConnector(CSDLBackend* pBackend) : m_pBackend{pBackend} {}
 
 CSDLConnector::~CSDLConnector() {
   if (m_pWindow != nullptr) {
@@ -36,9 +36,9 @@ CSDLConnector::~CSDLConnector() {
   }
 }
 
-auto CSDLConnector::GetName() const -> const char * { return "SDLWindow"; }
-auto CSDLConnector::GetMake() const -> const char * { return "Gamescope Lite"; }
-auto CSDLConnector::GetModel() const -> const char * { return "Virtual Display"; }
+auto CSDLConnector::GetName() const -> char const* { return "SDLWindow"; }
+auto CSDLConnector::GetMake() const -> char const* { return "Gamescope Lite"; }
+auto CSDLConnector::GetModel() const -> char const* { return "Virtual Display"; }
 
 auto CSDLConnector::Init() -> bool {
   g_nOutputWidth = g_nPreferredOutputWidth;
@@ -89,26 +89,40 @@ auto CSDLConnector::Init() -> bool {
     return false;
   }
 
+  {
+    constexpr auto offset_x = 10;
+    constexpr auto offset_y = 10;
+    auto popup_w = static_cast<int>(g_nOutputWidth / 2);
+    auto popup_h = static_cast<int>(g_nOutputHeight / 2);
+    constexpr auto popup_flags = SDL_WINDOW_POPUP_MENU | SDL_WINDOW_VULKAN | SDL_WINDOW_HIDDEN;
+
+    m_pPopup = SDL_CreatePopupWindow(m_pWindow, offset_x, offset_y, popup_w, popup_h, popup_flags);
+    if (m_pPopup == nullptr) {
+      std::println(stderr, "SDL_CreatePopupWindow failed: {0}", SDL_GetError());
+    }
+  }
+
   return true;
 }
 
 auto CSDLConnector::GetCurrentOrientation() const -> GamescopePanelOrientation { return GAMESCOPE_PANEL_ORIENTATION_0; }
-auto CSDLConnector::GetHDRInfo() const -> const BackendConnectorHDRInfo & { return m_HDRInfo; }
-auto CSDLConnector::GetModes() const -> std::span<const BackendMode> { return std::span<const BackendMode>{}; }
-auto CSDLConnector::GetRawEDID() const -> std::span<const uint8_t> { return std::span<const uint8_t>{}; }
+auto CSDLConnector::GetHDRInfo() const -> BackendConnectorHDRInfo const& { return m_HDRInfo; }
+auto CSDLConnector::GetModes() const -> std::span<BackendMode const> { return std::span<BackendMode const>{}; }
+auto CSDLConnector::GetRawEDID() const -> std::span<uint8_t const> { return std::span<uint8_t const>{}; }
 auto CSDLConnector::GetScreenType() const -> GamescopeScreenType { return gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL; }
-auto CSDLConnector::GetValidDynamicRefreshRates() const -> std::span<const uint32_t> {
-  return std::span<const uint32_t>{};
+auto CSDLConnector::GetValidDynamicRefreshRates() const -> std::span<uint32_t const> {
+  return std::span<uint32_t const>{};
 }
 auto CSDLConnector::IsHDRActive() const -> bool { return false; }
 auto CSDLConnector::IsVRRActive() const -> bool { return false; }
 auto CSDLConnector::SupportsHDR() const -> bool { return GetHDRInfo().IsHDR10(); }
 auto CSDLConnector::SupportsVRR() const -> bool { return false; }
 
-
-void CSDLConnector::GetNativeColorimetry(bool /*bHDR10*/, displaycolorimetry_t *displayColorimetry, EOTF *displayEOTF,
-                                         displaycolorimetry_t *outputEncodingColorimetry,
-                                         EOTF *outputEncodingEOTF) const {
+void CSDLConnector::GetNativeColorimetry(bool /*bHDR10*/,
+                                         displaycolorimetry_t* displayColorimetry,
+                                         EOTF* displayEOTF,
+                                         displaycolorimetry_t* outputEncodingColorimetry,
+                                         EOTF* outputEncodingEOTF) const {
   if (g_bForceHDR10OutputDebug) {
     *displayColorimetry = displaycolorimetry_2020;
     *displayEOTF = EOTF_PQ;
@@ -122,9 +136,9 @@ void CSDLConnector::GetNativeColorimetry(bool /*bHDR10*/, displaycolorimetry_t *
   }
 }
 
-auto CSDLConnector::Present(const FrameInfo_t *pFrameInfo, bool /*bAsync*/) -> int {
+auto CSDLConnector::Present(FrameInfo_t const* pFrameInfo, bool /*bAsync*/) -> int {
   // TODO: Resolve const crap
-  std::optional oCompositeResult = vulkan_composite((FrameInfo_t *)pFrameInfo, nullptr, false);
+  std::optional oCompositeResult = vulkan_composite((FrameInfo_t*)pFrameInfo, nullptr, false);
   if (!oCompositeResult) {
     return -EINVAL;
   }
@@ -156,15 +170,15 @@ void CSDLConnector::SetIcon(std::shared_ptr<std::vector<uint32_t>> uIconPixels) 
 
 void CSDLConnector::SetSelection(std::shared_ptr<std::string> szContents, GamescopeSelection eSelection) {
   switch (eSelection) {
-    case GAMESCOPE_SELECTION_CLIPBOARD:
-      SDL_SetClipboardText(szContents->c_str());
-      break;
-    case GAMESCOPE_SELECTION_PRIMARY:
-      SDL_SetPrimarySelectionText(szContents->c_str());
-      break;
-    case GAMESCOPE_SELECTION_COUNT:
-    default:
-      break;
+  case GAMESCOPE_SELECTION_CLIPBOARD:
+    SDL_SetClipboardText(szContents->c_str());
+    break;
+  case GAMESCOPE_SELECTION_PRIMARY:
+    SDL_SetPrimarySelectionText(szContents->c_str());
+    break;
+  case GAMESCOPE_SELECTION_COUNT:
+  default:
+    break;
   }
 }
 } // namespace gamescope

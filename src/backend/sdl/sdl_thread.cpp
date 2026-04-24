@@ -1,6 +1,6 @@
-#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_vulkan.h>
 
 #include "sdl_backend.hpp"
@@ -49,17 +49,8 @@ void CSDLBackend::SDLThreadFunc() {
   }
 
   unsigned int uExtCount = 0;
-/*
-  const auto *instanceExtensions = SDL_Vulkan_GetInstanceExtensions(&uExtCount);
-
-  // SDL_Vulkan_GetInstanceExtensions(nullptr, &uExtCount, nullptr);
-  m_pszInstanceExtensions.resize(uExtCount);
-  // SDL_Vulkan_GetInstanceExtensions(nullptr, &uExtCount, m_pszInstanceExtensions.data());
-  m_pszInstanceExtensions.assign(uExtCount, *instanceExtensions);
-*/
   m_ppEnabledExtensionNames = SDL_Vulkan_GetInstanceExtensions(&uExtCount);
   m_enabledExtensionCount = uExtCount;
-
 
   if (!m_Connector.Init()) {
     m_eSDLInit = SDLInitState::SDLInit_Failure;
@@ -87,9 +78,7 @@ void CSDLBackend::SDLThreadFunc() {
     g_nOutputWidthPts = width;
     g_nOutputHeightPts = height;
 
-//#if SDL_VERSION_ATLEAST(2, 26, 0)
     SDL_GetWindowSizeInPixels(m_Connector.GetSDLWindow(), &width, &height);
-// #endif
     g_nOutputWidth = width;
     g_nOutputHeight = height;
 
@@ -97,7 +86,7 @@ void CSDLBackend::SDLThreadFunc() {
   }
 
   if (g_bForceRelativeMouse) {
-     SDL_SetWindowRelativeMouseMode(m_Connector.GetSDLWindow(), true);
+    SDL_SetWindowRelativeMouseMode(m_Connector.GetSDLWindow(), true);
     m_bApplicationGrabbed = true;
   }
 

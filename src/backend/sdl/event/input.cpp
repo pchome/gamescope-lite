@@ -6,10 +6,12 @@
 
 #include <algorithm>
 
-#include "backend/sdl/sdl_backend.hpp"
 #include "./input.hpp"
+#include "backend/sdl/sdl_backend.hpp"
 
+#include "constants_include.hpp"
 #include "main.hpp"
+
 #include "steamcompmgr.hpp"
 #include "wlserver.hpp"
 
@@ -21,8 +23,8 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
   switch (event.type) {
   case SDL_EVENT_CLIPBOARD_UPDATE: {
     handled = true;
-    char *pClipBoard = SDL_GetClipboardText();
-    char *pPrimarySelection = SDL_GetPrimarySelectionText();
+    char* pClipBoard = SDL_GetClipboardText();
+    char* pPrimarySelection = SDL_GetPrimarySelectionText();
 
     gamescope_set_selection(pClipBoard, GAMESCOPE_SELECTION_CLIPBOARD);
     gamescope_set_selection(pPrimarySelection, GAMESCOPE_SELECTION_PRIMARY);
@@ -41,7 +43,9 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
       }
     } else {
       wlserver_lock();
-      wlserver_touchmotion(event.motion.x / double(g_nOutputWidthPts), event.motion.y / double(g_nOutputHeightPts), 0,
+      wlserver_touchmotion(event.motion.x / double(g_nOutputWidthPts),
+                           event.motion.y / double(g_nOutputHeightPts),
+                           0,
                            event.motion.timestamp);
       wlserver_unlock();
     }
@@ -88,8 +92,8 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
     // keyup event will be consumed by the next case statement when the user releases the key
     if ((event.key.mod & SDL_KMOD_LGUI) != 0) {
       uint32_t key = SDLScancodeToLinuxKey(event.key.scancode);
-      const std::array<uint32_t, 10> shortcutKeys = {KEY_F, KEY_N, KEY_B, KEY_K, KEY_U,
-                                                     KEY_Y, KEY_I, KEY_O, KEY_S, KEY_G};
+      std::array<uint32_t, 11> const shortcutKeys = {
+          KEY_F, KEY_N, KEY_B, KEY_K, KEY_U, KEY_Y, KEY_I, KEY_O, KEY_S, KEY_G, KEY_GRAVE};
       if (std::ranges::find(shortcutKeys, key) != std::end(shortcutKeys)) {
         break;
       }
@@ -103,6 +107,10 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
     if (event.type == SDL_EVENT_KEY_UP && ((event.key.mod & SDL_KMOD_LGUI) != 0)) {
       bool key_handled = true;
       switch (key) {
+      case KEY_GRAVE: {
+        auto flags = SDL_GetWindowFlags(m_Connector.GetPopupWindow());
+        ShowPopup((flags & SDL_WINDOW_HIDDEN) != 0u);
+      } break;
       case KEY_F:
         g_bFullscreen = !g_bFullscreen;
         SDL_SetWindowFullscreen(m_Connector.GetSDLWindow(), g_bFullscreen);
@@ -127,10 +135,10 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
                                                                                        : GamescopeUpscaleFilter::NIS;
         break;
       case KEY_I:
-        g_upscaleFilterSharpness = std::min(20, g_upscaleFilterSharpness + 1);
+        g_upscaleFilterSharpness = std::min(defaults::maxFSRSharpness, g_upscaleFilterSharpness + 1);
         break;
       case KEY_O:
-        g_upscaleFilterSharpness = std::max(0, g_upscaleFilterSharpness - 1);
+        g_upscaleFilterSharpness = std::max(defaults::minFSRSharpness, g_upscaleFilterSharpness - 1);
         break;
 #if HAVE_SCREENSHOT
       case KEY_S:
@@ -153,14 +161,14 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
         key_handled = false;
       }
       if (key_handled) {
-          handled = true;
+        handled = true;
         break;
       }
     }
 
     // On Wayland, clients handle key repetition
     if (event.key.repeat) {
-        handled = true;
+      handled = true;
       break;
     }
 
