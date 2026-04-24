@@ -1687,7 +1687,7 @@ static void waylandy_surface_destroy(struct wl_listener *listener, void *data) {
 
 	{
 		std::unique_lock lock(g_wlserver_xdg_shell_windows_lock);
-		std::erase_if(wlserver.xdg_wins, [=](auto win) { return win.get() == info->win; });
+		std::erase_if(wlserver.xdg_wins, [=](auto const& win) { return win.get() == info->win; });
 	}
 	info->main_surface = nullptr;
 	info->win = nullptr;

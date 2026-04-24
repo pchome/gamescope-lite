@@ -1260,7 +1260,7 @@ import_commit (
 	struct wlr_surface *surf,
 	struct wlr_buffer *buf,
 	bool async,
-	std::shared_ptr<wlserver_vk_swapchain_feedback> swapchain_feedback,
+	std::shared_ptr<wlserver_vk_swapchain_feedback> const& swapchain_feedback,
 	// std::vector<struct wl_resource*> presentation_feedbacks,
 	std::optional<uint32_t> present_id,
 	uint64_t desired_present_time,
@@ -1295,7 +1295,7 @@ import_commit (
 		pBackendFb = GetBackend()->ImportDmabufToBackend( &dmabuf );
 	}
 
-	gamescope::OwningRc<CVulkanTexture> pOwnedTexture = vulkan_create_texture_from_wlr_buffer( buf, std::move( pBackendFb ) );
+	gamescope::OwningRc<CVulkanTexture> pOwnedTexture = vulkan_create_texture_from_wlr_buffer( buf, pBackendFb );
 	commit->vulkanTex = pOwnedTexture;
 
 	s_BufferMemos.MemoizeBuffer( buf, std::move( pOwnedTexture ) );
@@ -5160,7 +5160,7 @@ handle_client_message(xwayland_ctx_t *ctx, XClientMessageEvent *ev)
 	}
 }
 
-static void x11_set_selection_owner(xwayland_ctx_t *ctx, std::string contents, GamescopeSelection eSelectionTarget)
+static void x11_set_selection_owner(xwayland_ctx_t *ctx, std::string const& contents, GamescopeSelection eSelectionTarget)
 {
 	Atom target;
 	if (eSelectionTarget == GAMESCOPE_SELECTION_CLIPBOARD)
@@ -5179,7 +5179,7 @@ static void x11_set_selection_owner(xwayland_ctx_t *ctx, std::string contents, G
 	XSetSelectionOwner(ctx->dpy, target, ctx->ourWindow, CurrentTime);
 }
 
-void gamescope_set_selection(std::string contents, GamescopeSelection eSelection)
+void gamescope_set_selection(std::string const& contents, GamescopeSelection eSelection)
 {
 	if (eSelection == GAMESCOPE_SELECTION_CLIPBOARD)
 	{
@@ -6826,7 +6826,7 @@ void update_wayland_res(CommitDoneList_t *doneCommits, steamcompmgr_win_t *w, Re
 		reslistentry.surf,
 		buf,
 		reslistentry.async,
-		std::move(reslistentry.feedback),
+		reslistentry.feedback,
 		// std::move(reslistentry.presentation_feedbacks),
 		reslistentry.present_id,
 		reslistentry.desired_present_time,

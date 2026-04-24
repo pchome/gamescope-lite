@@ -15,6 +15,7 @@ namespace gamescope {
 
 CSDLBackend::CSDLBackend()
 : m_Connector{this}
+, m_ppEnabledExtensionNames{nullptr}
 , m_SDLThread{[this]() -> void { this->SDLThreadFunc(); }} {}
 
 auto CSDLBackend::Init() -> bool {
