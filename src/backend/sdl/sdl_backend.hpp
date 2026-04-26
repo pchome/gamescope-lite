@@ -77,6 +77,11 @@ class CSDLBackend final : public CBaseBackend {
   /** Return `true` if handled, otherwise `false` */
   auto HandleUserEvent(SDL_Event eEvent) -> bool;
 
+  /** UI event handlers */
+
+  /** Return `true` if handled, otherwise `false` */
+  auto HandleUiEvent(SDL_Event eEvent) -> bool;
+
 protected:
   void OnBackendBlobDestroyed(BackendBlob* pBlob) override;
 
@@ -132,7 +137,6 @@ public:
   static void SetSelection(std::shared_ptr<std::string> const& szContents, GamescopeSelection eSelection);
   void SetTitle(std::shared_ptr<std::string> szTitle);
   void SetVisible(bool bVisible);
-  void ShowPopup(bool bShow);
 };
 
 } // namespace gamescope

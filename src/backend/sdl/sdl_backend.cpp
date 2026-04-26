@@ -132,10 +132,6 @@ void CSDLBackend::SetSelection(std::shared_ptr<std::string> const& szContents, G
   }
 }
 
-void CSDLBackend::ShowPopup(bool bShow) {
-  bShow ? SDL_ShowWindow(m_Connector.GetPopupWindow()) : SDL_HideWindow(m_Connector.GetPopupWindow());
-}
-
 void CSDLBackend::OnBackendBlobDestroyed(BackendBlob* pBlob) { /* Do nothing. */ }
 
 CSDLBackend::~CSDLBackend() {

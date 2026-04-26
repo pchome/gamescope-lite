@@ -5,9 +5,9 @@
 #include <SDL3/SDL_clipboard.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_vulkan.h>
+#include <SDL3/SDL_render.h>
 
 #include "sdl_connector.hpp"
-
 #include "sdl_backend.hpp"
 
 #include "constants_include.hpp"
@@ -31,6 +31,10 @@ namespace gamescope {
 CSDLConnector::CSDLConnector(CSDLBackend* pBackend) : m_pBackend{pBackend} {}
 
 CSDLConnector::~CSDLConnector() {
+  UiShutdown();
+  if (m_pUiRenderer != nullptr) {
+    SDL_DestroyRenderer(m_pUiRenderer);
+  }
   if (m_pWindow != nullptr) {
     SDL_DestroyWindow(m_pWindow);
   }
@@ -69,7 +73,7 @@ auto CSDLConnector::Init() -> bool {
   uSDLWindowFlags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
   (g_bBorderlessOutputWindow ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_BORDERLESS;
-  // (g_bFullscreen ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+  (g_bFullscreen ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_FULLSCREEN;
   (g_bGrabbed ? uSDLWindowFlags : unusedFlags) |= SDL_WINDOW_KEYBOARD_GRABBED;
 
   // auto pos_x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(g_nNestedDisplayIndex);
@@ -94,12 +98,23 @@ auto CSDLConnector::Init() -> bool {
     constexpr auto offset_y = 10;
     auto popup_w = static_cast<int>(g_nOutputWidth / 2);
     auto popup_h = static_cast<int>(g_nOutputHeight / 2);
-    constexpr auto popup_flags = SDL_WINDOW_POPUP_MENU | SDL_WINDOW_VULKAN | SDL_WINDOW_HIDDEN;
+    auto popup_flags = SDL_WINDOW_POPUP_MENU;
+    popup_flags |= SDL_WINDOW_VULKAN;
+    popup_flags |= SDL_WINDOW_HIDDEN;
 
     m_pPopup = SDL_CreatePopupWindow(m_pWindow, offset_x, offset_y, popup_w, popup_h, popup_flags);
     if (m_pPopup == nullptr) {
       std::println(stderr, "SDL_CreatePopupWindow failed: {0}", SDL_GetError());
+      return false;
     }
+
+    m_pUiRenderer = SDL_CreateRenderer(m_pPopup, "vulkan");
+    if (m_pUiRenderer == nullptr) {
+      std::println(stderr, "SDL_CreateRenderer failed: {0}", SDL_GetError());
+      return false;
+    }
+
+    UiInit();
   }
 
   return true;
@@ -141,6 +156,14 @@ auto CSDLConnector::Present(FrameInfo_t const* pFrameInfo, bool /*bAsync*/) -> i
   std::optional oCompositeResult = vulkan_composite((FrameInfo_t*)pFrameInfo, nullptr, false);
   if (!oCompositeResult) {
     return -EINVAL;
+  }
+
+  // Only render if popup visible
+  if ((SDL_GetWindowFlags(m_pPopup) & SDL_WINDOW_HIDDEN) == 0u) {
+    UiStartFrame();
+    UiLayout();
+    UiRender();
+    UiPresent();
   }
 
   vulkan_present_to_window();

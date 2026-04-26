@@ -109,7 +109,7 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
       switch (key) {
       case KEY_GRAVE: {
         auto flags = SDL_GetWindowFlags(m_Connector.GetPopupWindow());
-        ShowPopup((flags & SDL_WINDOW_HIDDEN) != 0u);
+        m_Connector.UiShow((flags & SDL_WINDOW_HIDDEN) != 0u);
       } break;
       case KEY_F:
         g_bFullscreen = !g_bFullscreen;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL_video.h>
+#include <SDL3/SDL_render.h>
 
 #include "backend.h"
 
@@ -14,6 +15,7 @@ class CSDLConnector final
   SDL_Window* m_pWindow = nullptr;
   SDL_Window* m_pPopup = nullptr;
   VkSurfaceKHR m_pVkSurface = VK_NULL_HANDLE;
+  SDL_Renderer* m_pUiRenderer = nullptr;
   BackendConnectorHDRInfo m_HDRInfo{};
 
 public:
@@ -69,5 +71,27 @@ public:
   [[nodiscard]] auto GetSDLWindow() const -> SDL_Window* { return m_pWindow; }
   [[nodiscard]] auto GetPopupWindow() const -> SDL_Window* { return m_pPopup; }
   [[nodiscard]] auto GetVulkanSurface() const -> VkSurfaceKHR { return m_pVkSurface; }
+  [[nodiscard]] auto GetUiRenderer() const -> SDL_Renderer* { return m_pUiRenderer; }
+
+  ////////////////////////
+  // Custom UI
+  ///////////////////////
+
+  // Initialization
+  void UiInit();
+
+  void UiStartFrame();
+  void UiLayout();
+  void UiRender();
+  void UiPresent();
+
+  void UiShow(bool bShow);
+  auto IsUiHidden() -> bool;
+
+  void UiShutdown();
+
+  /** Print available SDLRenderer drivers */
+  void ListRendererDrivers();
+
 };
 } // namespace gamescope
