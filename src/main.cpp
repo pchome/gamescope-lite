@@ -661,7 +661,7 @@ static void UpdateCompatEnvVars()
 int g_nPreferredOutputWidth = 0;
 int g_nPreferredOutputHeight = 0;
 // bool g_bExposeWayland = false;
-const char *g_sOutputName = nullptr;
+// const char *g_sOutputName = nullptr;
 bool g_bRt = false;
 
 // This will go away when we remove the getopt stuff from vr session.
