@@ -5,6 +5,7 @@
 
 #include "sdl_backend.hpp"
 #include "sdl_thread.hpp"
+#include "sdl_gui.hpp"
 
 #include "GamescopeVersion.h"
 
@@ -105,6 +106,14 @@ void CSDLBackend::SDLThreadFunc() {
   while (SDL_WaitEvent(&event)) {
     fake_timestamp++;
 
+    if (!m_Connector.IsUiHidden() && (event.key.mod & SDL_KMOD_LGUI) == 0) {
+      if (HandleUiEvent(event)) {
+        // Grab all events while popup visible
+        // TODO: grab only input events (io.WantCaptureMouse/io.WantCaptureKeyboard)
+        continue;
+      }
+    }
+
     if (HandleInputEvent(event, fake_timestamp)) {
       continue;
     }
@@ -123,21 +132,6 @@ void CSDLBackend::SDLThreadFunc() {
     if (HandleUserEvent(event)) {
       continue;
     }
-
-#if 0
-    switch (event.type) {
-    case SDL_WINDOWEVENT:
-      HandleWindowEvent(event);
-      break;
-
-    default:
-      if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_REQ_EXIT)) {
-        return;
-      }
-      HandleUserEvent(event);
-      break;
-    }
-#endif
   }
 }
 
