@@ -91,6 +91,19 @@ reshade_include = include_directories([
 ])
 endif
 
+imgui_src = [
+  '../thirdparty/imgui/imgui.cpp',
+#   '../thirdparty/imgui/imgui_demo.cpp',
+  '../thirdparty/imgui/imgui_draw.cpp',
+  '../thirdparty/imgui/imgui_tables.cpp',
+  '../thirdparty/imgui/imgui_widgets.cpp',
+  
+  '../thirdparty/imgui/backends/imgui_impl_sdl3.cpp',
+  '../thirdparty/imgui/backends/imgui_impl_sdlrenderer3.cpp',
+]
+
+imgui_include = include_directories(['../thirdparty/imgui','../thirdparty/imgui/backends' ])
+
 required_wlroots_features = ['xwayland']
 
 src = [
@@ -184,8 +197,8 @@ gamescope_version = configure_file(
 
   executable(
     'gamescope-lite',
-    src, stb_src, reshade_src, gamescope_version,
-    include_directories : [reshade_include],
+    src, imgui_src, stb_src, reshade_src, gamescope_version,
+    include_directories : [imgui_include, reshade_include],
     dependencies: [
       dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
       dep_xxf86vm, dep_xres, glm_dep, wayland_server,
