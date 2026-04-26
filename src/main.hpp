@@ -29,7 +29,7 @@ extern bool g_bGrabbed;
 extern float g_aspectRatio;
 
 extern float g_mouseSensitivity;
-extern const char *g_sOutputName;
+// extern const char *g_sOutputName;
 
 enum class GamescopeUpscaleFilter : uint32_t
 {

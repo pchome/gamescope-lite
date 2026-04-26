@@ -6962,7 +6962,7 @@ void update_wayland_res(CommitDoneList_t *doneCommits, steamcompmgr_win_t *w, Re
 					vulkan_wait( *s_ulLastPreemptiveUpscaleSeqNo, true );
 				}
 
-				std::optional<uint64_t> seqNo = vulkan_composite( &upscaledFrameInfo, nullptr, false, pTempImage->pTexture, false, std::move( pCommandBuffer ) );
+				std::optional<uint64_t> seqNo = vulkan_composite( upscaledFrameInfo, nullptr, false, pTempImage->pTexture, false, std::move( pCommandBuffer ) );
 
 				if ( cv_upscale_preemptive_debug_force_sync )
 				{
