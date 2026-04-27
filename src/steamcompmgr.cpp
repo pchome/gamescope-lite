@@ -119,6 +119,7 @@ static const int g_nBaseCursorScale = 36;
 #include <stb/deprecated/stb_image_resize.h>
 
 LogScope xwm_log("xwm");
+LogScope focus_log("focus");
 LogScope g_WaitableLog("waitable");
 
 gamescope::ConVar<bool> cv_overlay_unmultiplied_alpha{ "overlay_unmultiplied_alpha", false };
@@ -721,7 +722,7 @@ Window x11_win(steamcompmgr_win_t *w) {
 	return w->xwayland().id;
 }
 
-static uint64_t s_ulFocusSerial = 0ul;
+static std::atomic<uint64_t> s_ulFocusSerial = 0ul;
 void MakeFocusDirty()
 {
 	s_ulFocusSerial++;
@@ -764,17 +765,11 @@ struct global_focus_t : public focus_t
 std::unordered_map<gamescope::VirtualConnectorKey_t, global_focus_t> g_VirtualConnectorFocuses;
 global_focus_t *GetCurrentFocus()
 {
-	if ( GetBackend()->GetCurrentConnector() )
-	{
-		uint64_t ulKey = GetBackend()->GetCurrentConnector()->GetVirtualConnectorKey();
+	uint64_t ulKey = GetBackend()->GetCurrentConnector() ? GetBackend()->GetCurrentConnector()->GetVirtualConnectorKey() : 0;
 
-		auto iter = g_VirtualConnectorFocuses.find( ulKey );
-		if ( iter != g_VirtualConnectorFocuses.end() )
-			return &iter->second;
-	}
-
-	if ( g_VirtualConnectorFocuses.size() > 0 )
-		return &g_VirtualConnectorFocuses.begin()->second;
+	auto iter = g_VirtualConnectorFocuses.find( ulKey );
+	if ( iter != g_VirtualConnectorFocuses.end() )
+		return &iter->second;
 
 	return nullptr;
 }
@@ -3534,25 +3529,23 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 		inputFocus = ctx->focus.focusWindow;
 	}
 
-	if ( !ctx->focus.focusWindow )
+	if ( ctx->focus.focusWindow )
 	{
-		return;
-	}
-
-	if ( prevFocusWindow != ctx->focus.focusWindow )
-	{
-		/* Some games (e.g. DOOM Eternal) don't react well to being put back as
-		* iconic, so never do that. Only take them out of iconic. */
-		set_wm_state( ctx, ctx->focus.focusWindow->xwayland().id, ICCCM_NORMAL_STATE );
-
-		// determine_and_apply_focus focus %lu
-
-		if ( debugFocus == true )
+		if ( prevFocusWindow != ctx->focus.focusWindow )
 		{
-			xwm_log.debugf( "determine_and_apply_focus focus %lu", ctx->focus.focusWindow->xwayland().id );
-			char buf[512];
-			sprintf( buf,  "xwininfo -id 0x%lx; xprop -id 0x%lx; xwininfo -root -tree", ctx->focus.focusWindow->xwayland().id, ctx->focus.focusWindow->xwayland().id );
-			system( buf );
+			/* Some games (e.g. DOOM Eternal) don't react well to being put back as
+			* iconic, so never do that. Only take them out of iconic. */
+			set_wm_state( ctx, ctx->focus.focusWindow->xwayland().id, ICCCM_NORMAL_STATE );
+
+			// determine_and_apply_focus focus %lu
+
+			if ( debugFocus == true )
+			{
+				xwm_log.debugf( "determine_and_apply_focus focus %lu", ctx->focus.focusWindow->xwayland().id );
+				char buf[512];
+				sprintf( buf,  "xwininfo -id 0x%lx; xprop -id 0x%lx; xwininfo -root -tree", ctx->focus.focusWindow->xwayland().id, ctx->focus.focusWindow->xwayland().id );
+				system( buf );
+			}
 		}
 	}
 
@@ -3562,6 +3555,16 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 	{
 		if ( inputFocus && inputFocus->inputFocusMode == 2 )
 			keyboardFocusWin = ctx->focus.focusWindow;
+	}
+
+	if ( !ctx->focus.focusWindow )
+	{
+		return;
+	}
+
+	if ( !inputFocus )
+	{
+		inputFocus = ctx->focus.focusWindow;
 	}
 
 	Window keyboardFocusWindow = keyboardFocusWin ? keyboardFocusWin->xwayland().id : None;
@@ -3779,6 +3782,8 @@ determine_and_apply_focus( global_focus_t *pFocus )
 	pFocus->pVirtualConnector = previousLocalFocus.pVirtualConnector;
 	gameFocused = false;
 
+	focus_log.debugf( "Rerolling global focus..." );
+
 	std::vector< unsigned long > focusable_appids;
 	std::vector< unsigned long > focusable_windows;
 
@@ -3939,7 +3944,7 @@ determine_and_apply_focus( global_focus_t *pFocus )
 
 				if ( gamescope::VirtualConnectorInSteamPerAppState() && pFocus->inputFocusWindow )
 				{
-					if ( pFocus->focusWindow->type == steamcompmgr_win_type_t::XWAYLAND )
+					if ( pFocus->inputFocusWindow->type == steamcompmgr_win_type_t::XWAYLAND )
 					{
 						xwayland_ctx_t *ctx = pFocus->inputFocusWindow->xwayland().ctx;
 						bool bTouchPointerEmulation = gamescope::VirtualConnectorKeyIsNonSteamWindow( pFocus->ulVirtualFocusKey );
@@ -3957,10 +3962,16 @@ determine_and_apply_focus( global_focus_t *pFocus )
 				}
 
 				if ( win_surface(pFocus->inputFocusWindow) != nullptr && pFocus->cursor )
+				{
 					wlserver_mousefocus( pFocus->inputFocusWindow->main_surface(), pFocus->cursor->x(), pFocus->cursor->y() );
+					focus_log.debugf( "Setting mouse focus to: %s (%x)", pFocus->inputFocusWindow->debug_name(), pFocus->inputFocusWindow->id() );
+				}
 
 				if ( win_surface(pFocus->keyboardFocusWindow) != nullptr )
+				{
 					wlserver_keyboardfocus( pFocus->keyboardFocusWindow->main_surface() );
+					focus_log.debugf( "Setting keyboard focus to: %s (%x)", pFocus->keyboardFocusWindow->debug_name(), pFocus->keyboardFocusWindow->id() );
+				}
 				wlserver_unlock();
 			}
 
@@ -7916,18 +7927,12 @@ steamcompmgr_main(int argc, char **argv)
 
 	globalScaleRatio = overscanScaleRatio * zoomScaleRatio;
 
-	if ( gamescope::VirtualConnectorIsSingleOutput() )
+	static constexpr uint64_t k_unSingleOutputVirtualConnectorKey = 0;
+	g_VirtualConnectorFocuses[ k_unSingleOutputVirtualConnectorKey ] = global_focus_t
 	{
-		// misyl: Make the virtual connector up-front if we are in a single-output mode.
-		// So we don't delay in getting display/output info to the game
-		static constexpr uint64_t k_unSingleOutputVirtualConnectorKey = 0;
-
-		g_VirtualConnectorFocuses[ k_unSingleOutputVirtualConnectorKey ] = global_focus_t
-		{
-			.ulVirtualFocusKey = k_unSingleOutputVirtualConnectorKey,
-			.pVirtualConnector = GetBackend()->UsesVirtualConnectors() ? GetBackend()->CreateVirtualConnector( k_unSingleOutputVirtualConnectorKey ) : nullptr,
-		};
-	}
+		.ulVirtualFocusKey = k_unSingleOutputVirtualConnectorKey,
+		.pVirtualConnector = GetBackend()->UsesVirtualConnectors() ? GetBackend()->CreateVirtualConnector( k_unSingleOutputVirtualConnectorKey ) : nullptr,
+	};
 
 	for ( auto &iter : g_VirtualConnectorFocuses )
 	{
@@ -8071,18 +8076,15 @@ steamcompmgr_main(int argc, char **argv)
 
 			xwm_log.infof( "Late init of virtual connector stuff." );
 
-			if ( gamescope::VirtualConnectorIsSingleOutput() )
-			{
-				// misyl: Make the virtual connector up-front if we are in a single-output mode.
-				// So we don't delay in getting display/output info to the game
-				static constexpr uint64_t k_unSingleOutputVirtualConnectorKey = 0;
+			// misyl: Make the virtual connector up-front if we are in a single-output mode.
+			// So we don't delay in getting display/output info to the game
+			static constexpr uint64_t k_unSingleOutputVirtualConnectorKey = 0;
 
-				g_VirtualConnectorFocuses[ k_unSingleOutputVirtualConnectorKey ] = global_focus_t
-				{
-					.ulVirtualFocusKey = k_unSingleOutputVirtualConnectorKey,
-					.pVirtualConnector = GetBackend()->UsesVirtualConnectors() ? GetBackend()->CreateVirtualConnector( k_unSingleOutputVirtualConnectorKey ) : nullptr,
-				};
-			}
+			g_VirtualConnectorFocuses[ k_unSingleOutputVirtualConnectorKey ] = global_focus_t
+			{
+				.ulVirtualFocusKey = k_unSingleOutputVirtualConnectorKey,
+				.pVirtualConnector = GetBackend()->UsesVirtualConnectors() ? GetBackend()->CreateVirtualConnector( k_unSingleOutputVirtualConnectorKey ) : nullptr,
+			};
 
 			hasRepaint = true;
 		}
@@ -8171,6 +8173,7 @@ steamcompmgr_main(int argc, char **argv)
 				for ( gamescope::VirtualConnectorKey_t ulKey : diffKeys )	
 				{
 					bool bIsSteam = gamescope::VirtualConnectorKeyIsSteam( ulKey );
+					bool bIsBaseKey = ulKey == 0;
 
 					if ( gamescope::Algorithm::Contains( newKeys, ulKey ) )
 					{
@@ -8180,7 +8183,7 @@ steamcompmgr_main(int argc, char **argv)
 							.pVirtualConnector = GetBackend()->UsesVirtualConnectors() ? GetBackend()->CreateVirtualConnector( ulKey ) : nullptr,
 						};
 					}
-					else if ( !bIsSteam ) // Never remove Steam's virtual conn	ector.
+					else if ( !bIsSteam && !bIsBaseKey ) // Never remove Steam's virtual connector or the 0th connector.
 					{
 						g_VirtualConnectorFocuses.erase( ulKey );
 					}

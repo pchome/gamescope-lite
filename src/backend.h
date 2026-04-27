@@ -352,6 +352,10 @@ namespace gamescope
 		}
 
         virtual IBackendConnector *GetCurrentConnector() = 0;
+        virtual IBackendConnector *GetCurrentMouseConnector()
+        {
+            return this->GetCurrentConnector();
+        }
         virtual IBackendConnector *GetConnector( GamescopeScreenType eScreenType ) = 0;
 
         virtual bool SupportsPlaneHardwareCursor() const = 0;

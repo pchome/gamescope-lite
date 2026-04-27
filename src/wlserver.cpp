@@ -2662,7 +2662,10 @@ void wlserver_touchmotion( double x, double y, int touch_id, uint32_t time, bool
 		double tx = x;
 		double ty = y;
 
-		apply_touchscreen_orientation((connector ? connector : GetBackend()->GetCurrentConnector())->GetCurrentOrientation(), &tx, &ty);
+		if ( connector )
+		{
+			apply_touchscreen_orientation(connector->GetCurrentOrientation(), &tx, &ty);
+		}
 
 		tx *= g_nOutputWidth;
 		ty *= g_nOutputHeight;
@@ -2717,7 +2720,10 @@ void wlserver_touchdown( double x, double y, int touch_id, uint32_t time, gamesc
 		double tx = x;
 		double ty = y;
 
-		apply_touchscreen_orientation((connector ? connector : GetBackend()->GetCurrentConnector())->GetCurrentOrientation(), &tx, &ty);
+		if ( connector )
+		{
+			apply_touchscreen_orientation(connector->GetCurrentOrientation(), &tx, &ty);
+		}
 
 		tx *= g_nOutputWidth;
 		ty *= g_nOutputHeight;
