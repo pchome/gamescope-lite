@@ -68,13 +68,13 @@ void CSDLAction::SetDownscaleFilter(GamescopeDownscaleFilter filter) { g_wantedD
 void CSDLAction::SetUpscaleScaler(GamescopeUpscaleScaler scaler) { g_wantedUpscaleScaler = scaler; }
 
 void CSDLAction::SetUpscaleFilterSharpness(int sharpness) {
-  g_upscaleFilterSharpness = std::ranges::clamp(defaults::minFSRSharpness, defaults::maxFSRSharpness, sharpness);
+  g_upscaleFilterSharpness = std::clamp(sharpness, defaults::minFSRSharpness, defaults::maxFSRSharpness);
 }
 void CSDLAction::IncUpscaleFilterSharpness() {
-  g_upscaleFilterSharpness = std::ranges::min(defaults::maxFSRSharpness, g_upscaleFilterSharpness + 1);
+  g_upscaleFilterSharpness = std::min(defaults::maxFSRSharpness, g_upscaleFilterSharpness + 1);
 }
 void CSDLAction::DecUpscaleFilterSharpness() {
-  g_upscaleFilterSharpness = std::ranges::max(defaults::minFSRSharpness, g_upscaleFilterSharpness - 1);
+  g_upscaleFilterSharpness = std::max(defaults::minFSRSharpness, g_upscaleFilterSharpness - 1);
 }
 void CSDLAction::ToggleUpscaleFilter() {
   g_wantedUpscaleFilter = (g_wantedUpscaleFilter == GamescopeUpscaleFilter::FSR)   ? GamescopeUpscaleFilter::NIS
