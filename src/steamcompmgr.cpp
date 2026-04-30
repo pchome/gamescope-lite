@@ -774,6 +774,17 @@ global_focus_t *GetCurrentFocus()
 	return nullptr;
 }
 
+global_focus_t *GetCurrentMouseFocus()
+{
+	uint64_t ulKey = GetBackend()->GetCurrentMouseConnector() ? GetBackend()->GetCurrentMouseConnector()->GetVirtualConnectorKey() : 0;
+
+	auto iter = g_VirtualConnectorFocuses.find( ulKey );
+	if ( iter != g_VirtualConnectorFocuses.end() )
+		return &iter->second;
+
+	return GetCurrentFocus();
+}
+
 uint32_t		currentOutputWidth, currentOutputHeight;
 int 			currentOutputRefresh;
 bool			currentHDROutput = false;
@@ -3931,13 +3942,59 @@ determine_and_apply_focus( global_focus_t *pFocus )
 		static gamescope::VirtualConnectorKey_t s_ulPreviousGlobalFocusKey;
 
 		// Tell wlserver about our keyboard/mouse focus.
-		if ( pFocus->inputFocusWindow   != previousLocalFocus.inputFocusWindow ||
-			pFocus->keyboardFocusWindow != previousLocalFocus.keyboardFocusWindow ||
-			pFocus->overrideWindow      != previousLocalFocus.overrideWindow ||
+		if (pFocus->keyboardFocusWindow != previousLocalFocus.keyboardFocusWindow ||
 			pFocus->ulVirtualFocusKey   != s_ulPreviousGlobalFocusKey )
 		{
 			if ( win_surface(pFocus->inputFocusWindow)    != nullptr ||
 				 win_surface(pFocus->keyboardFocusWindow) != nullptr )
+			{
+				wlserver_lock();
+
+				if ( win_surface(pFocus->keyboardFocusWindow) != nullptr )
+				{
+					wlserver_keyboardfocus( pFocus->keyboardFocusWindow->main_surface() );
+					focus_log.debugf( "Setting keyboard focus to: %s (%x)", pFocus->keyboardFocusWindow->debug_name(), pFocus->keyboardFocusWindow->id() );
+				}
+
+				wlserver_unlock();
+			}
+		}
+
+		if ( pFocus->inputFocusWindow )
+		{
+			// Cannot simply XWarpPointer here as we immediately go on to
+			// do wlserver_mousefocus and need to update m_x and m_y of the cursor.
+			if ( pFocus->inputFocusWindow->GetFocus()->bResetToCorner )
+			{
+				wlserver_lock();
+				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2, pFocus->inputFocusWindow->GetGeometry().nHeight / 2, 0, true );
+				wlserver_fake_mouse_pos( pFocus->inputFocusWindow->GetGeometry().nWidth - 1, pFocus->inputFocusWindow->GetGeometry().nHeight - 1 );
+				wlserver_unlock();
+			}
+			else if ( pFocus->inputFocusWindow->GetFocus()->bResetToCenter )
+			{
+				wlserver_lock();
+				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2, pFocus->inputFocusWindow->GetGeometry().nHeight / 2, 0, true );
+				wlserver_unlock();
+			}
+
+			pFocus->inputFocusWindow->GetFocus()->bResetToCorner = false;
+			pFocus->inputFocusWindow->GetFocus()->bResetToCenter = false;
+		}
+
+		s_ulPreviousGlobalFocusKey = pFocus->ulVirtualFocusKey;
+	}
+
+	if ( pFocus == GetCurrentMouseFocus() )
+	{
+		static gamescope::VirtualConnectorKey_t s_ulPreviousGlobalFocusKey;
+
+		// Tell wlserver about our keyboard/mouse focus.
+		if ( pFocus->inputFocusWindow   != previousLocalFocus.inputFocusWindow ||
+			pFocus->overrideWindow      != previousLocalFocus.overrideWindow ||
+			pFocus->ulVirtualFocusKey   != s_ulPreviousGlobalFocusKey )
+		{
+			if ( win_surface(pFocus->inputFocusWindow) != nullptr )
 			{
 				wlserver_lock();
 
@@ -3970,11 +4027,6 @@ determine_and_apply_focus( global_focus_t *pFocus )
 					focus_log.debugf( "Setting mouse focus to: %s (%x)", pFocus->inputFocusWindow->debug_name(), pFocus->inputFocusWindow->id() );
 				}
 
-				if ( win_surface(pFocus->keyboardFocusWindow) != nullptr )
-				{
-					wlserver_keyboardfocus( pFocus->keyboardFocusWindow->main_surface() );
-					focus_log.debugf( "Setting keyboard focus to: %s (%x)", pFocus->keyboardFocusWindow->debug_name(), pFocus->keyboardFocusWindow->id() );
-				}
 				wlserver_unlock();
 			}
 
