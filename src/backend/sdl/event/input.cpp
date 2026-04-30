@@ -107,38 +107,32 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
     if (event.type == SDL_EVENT_KEY_UP && ((event.key.mod & SDL_KMOD_LGUI) != 0)) {
       bool key_handled = true;
       switch (key) {
-      case KEY_GRAVE: {
-        auto flags = SDL_GetWindowFlags(m_Connector.GetPopupWindow());
-        m_Connector.UiShow((flags & SDL_WINDOW_HIDDEN) != 0u);
-      } break;
+      case KEY_GRAVE:
+        m_Connector.Action()->TogglePopup();
+        break;
       case KEY_F:
-        g_bFullscreen = !g_bFullscreen;
-        SDL_SetWindowFullscreen(m_Connector.GetSDLWindow(), g_bFullscreen);
+        m_Connector.Action()->ToggleFullscreen();
         break;
       case KEY_N:
-        g_wantedUpscaleFilter = GamescopeUpscaleFilter::PIXEL;
+        CSDLAction::SetUpscaleFilter(GamescopeUpscaleFilter::PIXEL);
         break;
       case KEY_B:
-        g_wantedUpscaleFilter = GamescopeUpscaleFilter::LINEAR;
+        CSDLAction::SetUpscaleFilter(GamescopeUpscaleFilter::LINEAR);
         break;
       case KEY_K:
-        g_wantedDownscaleFilter = (g_wantedDownscaleFilter == GamescopeDownscaleFilter::BICUBIC)
-                                      ? GamescopeDownscaleFilter::LINEAR
-                                      : GamescopeDownscaleFilter::BICUBIC;
+        CSDLAction::ToggleDownscaleFilter();
         break;
       case KEY_U:
-        g_wantedUpscaleFilter = (g_wantedUpscaleFilter == GamescopeUpscaleFilter::FSR) ? GamescopeUpscaleFilter::LINEAR
-                                                                                       : GamescopeUpscaleFilter::FSR;
+        CSDLAction::ToggleUpscaleFilterFSR();
         break;
       case KEY_Y:
-        g_wantedUpscaleFilter = (g_wantedUpscaleFilter == GamescopeUpscaleFilter::NIS) ? GamescopeUpscaleFilter::LINEAR
-                                                                                       : GamescopeUpscaleFilter::NIS;
+        CSDLAction::ToggleUpscaleFilterNIS();
         break;
       case KEY_I:
-        g_upscaleFilterSharpness = std::min(defaults::maxFSRSharpness, g_upscaleFilterSharpness + 1);
+        CSDLAction::IncUpscaleFilterSharpness();
         break;
       case KEY_O:
-        g_upscaleFilterSharpness = std::max(defaults::minFSRSharpness, g_upscaleFilterSharpness - 1);
+        CSDLAction::DecUpscaleFilterSharpness();
         break;
 #if HAVE_SCREENSHOT
       case KEY_S:
@@ -146,16 +140,7 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
         break;
 #endif
       case KEY_G:
-        g_bGrabbed = !g_bGrabbed;
-        SDL_SetWindowKeyboardGrab(m_Connector.GetSDLWindow(), g_bGrabbed);
-
-        SDL_Event event;
-        event.type = GetUserEventIndex(GAMESCOPE_SDL_EVENT_TITLE);
-        // SDL3:
-        // > You should set the event.common.timestamp field before passing an event to SDL_PushEvent().
-        // > If the timestamp is 0 it will be filled in with SDL_GetTicksNS().
-        event.common.timestamp = 0;
-        SDL_PushEvent(&event);
+        m_Connector.Action()->ToggleKeyboardGrab();
         break;
       default:
         key_handled = false;
