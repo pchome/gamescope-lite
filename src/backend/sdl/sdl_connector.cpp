@@ -1,14 +1,13 @@
-#include <format>
-#include <optional>
-#include <print>
-
 #include <SDL3/SDL_clipboard.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_vulkan.h>
-#include <SDL3/SDL_render.h>
 
-#include "sdl_connector.hpp"
 #include "sdl_backend.hpp"
+#include "sdl_connector.hpp"
+
+#include "backend/sdl/sdl_action.hpp"
 
 #include "constants_include.hpp"
 #include "gamescope_shared.h"
@@ -17,6 +16,10 @@
 #include "rendervulkan.hpp"
 #include "steamcompmgr.hpp"
 #include "vblankmanager.hpp"
+
+#include <format>
+#include <optional>
+#include <print>
 
 extern bool g_bForceHDR10OutputDebug;
 // extern bool g_bFirstFrame;
@@ -28,7 +31,8 @@ namespace gamescope {
 // CSDLConnector
 //////////////////
 
-CSDLConnector::CSDLConnector(CSDLBackend* pBackend) : m_pBackend{pBackend} {}
+CSDLConnector::CSDLConnector(CSDLBackend* pBackend)
+    : m_pBackend{pBackend} {}
 
 CSDLConnector::~CSDLConnector() {
   UiShutdown();
@@ -37,6 +41,10 @@ CSDLConnector::~CSDLConnector() {
   }
   if (m_pWindow != nullptr) {
     SDL_DestroyWindow(m_pWindow);
+  }
+  if (m_pAction != nullptr) {
+    delete m_pAction;
+    m_pAction = nullptr;
   }
 }
 
@@ -116,6 +124,9 @@ auto CSDLConnector::Init() -> bool {
 
     UiInit();
   }
+
+  m_pAction = new CSDLAction(this);
+  m_pAction->Init();
 
   return true;
 }
@@ -203,4 +214,7 @@ void CSDLConnector::SetSelection(std::shared_ptr<std::string> szContents, Gamesc
     break;
   }
 }
+
+auto CSDLConnector::GetTitle() const -> std::shared_ptr<std::string> { return m_pBackend->GetTitle(); }
+
 } // namespace gamescope

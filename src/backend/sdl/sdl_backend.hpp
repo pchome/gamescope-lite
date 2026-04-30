@@ -137,6 +137,14 @@ public:
   static void SetSelection(std::shared_ptr<std::string> const& szContents, GamescopeSelection eSelection);
   void SetTitle(std::shared_ptr<std::string> szTitle);
   void SetVisible(bool bVisible);
+
+  ////////////////////////
+  // Custom helpers
+  ///////////////////////
+  auto GetTitle() const -> std::shared_ptr<std::string> {
+    std::shared_ptr<std::string> pAppTitle = m_pApplicationTitle;
+    return pAppTitle;
+  }
 };
 
 } // namespace gamescope

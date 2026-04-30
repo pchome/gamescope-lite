@@ -4,6 +4,7 @@
 #include <SDL3/SDL_render.h>
 
 #include "backend.h"
+#include "backend/sdl/sdl_action.hpp"
 
 namespace gamescope {
 
@@ -12,6 +13,7 @@ class CSDLConnector final
     : public CBaseBackendConnector
     , public INestedHints {
   CSDLBackend* m_pBackend = nullptr;
+  CSDLAction* m_pAction = nullptr;
   SDL_Window* m_pWindow = nullptr;
   SDL_Window* m_pPopup = nullptr;
   VkSurfaceKHR m_pVkSurface = VK_NULL_HANDLE;
@@ -72,6 +74,9 @@ public:
   [[nodiscard]] auto GetPopupWindow() const -> SDL_Window* { return m_pPopup; }
   [[nodiscard]] auto GetVulkanSurface() const -> VkSurfaceKHR { return m_pVkSurface; }
   [[nodiscard]] auto GetUiRenderer() const -> SDL_Renderer* { return m_pUiRenderer; }
+  [[nodiscard]] auto Action() const -> CSDLAction* { return m_pAction; }
+
+  [[nodiscard]] auto GetTitle() const -> std::shared_ptr<std::string>;
 
   ////////////////////////
   // Custom UI
