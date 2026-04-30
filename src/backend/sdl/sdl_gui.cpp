@@ -4,6 +4,8 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 
+#include "backend/sdl/sdl_action.hpp"
+
 #include "sdl_connector.hpp"
 #include "sdl_gui.hpp"
 
@@ -83,34 +85,74 @@ void UiLayoutDebugTab() {
   ImGui::EndDisabled();
   ImFmt::Text("Mouse Sensitivity: {}", g_mouseSensitivity);
 }
-void UiLayoutSettingsTab(SDL_Window* main_window) {
-  ImGui::SeparatorText("Settings");
+void UiLayoutSettingsTab(CSDLAction* pAction) {
+  ImGui::BeginGroup();
+  ImFmt::Text("Settings");
   ImGui::Checkbox("HDR Enabled", &g_bOutputHDREnabled);
   ImGui::Checkbox("Force Internal", &g_bForceInternal);
+  ImFmt::Text("{}x{}", g_nNestedWidth, g_nNestedHeight);
+  ImGui::SameLine();
+  ImFmt::Text("->");
+  ImGui::SameLine();
+  ImFmt::Text("{}x{}", g_nOutputWidth, g_nOutputHeight);
+
   static bool fullscreen = g_bFullscreen;
   ImGui::Checkbox("Fullscreen", &fullscreen);
   if (fullscreen != g_bFullscreen) {
-    g_bFullscreen = !g_bFullscreen;
-    SDL_SetWindowFullscreen(main_window, g_bFullscreen);
+    pAction->ToggleFullscreen();
   }
+  ImGui::EndGroup();
+
+  ImGui::SameLine();
+  ImGui::Dummy({50, 50});
+  ImGui::SameLine();
+
+  ImGui::BeginGroup();
+  ImFmt::Text("Filters");
+  std::array<char const*, 4> filters = {"LINEAR", "PIXEL", "FSR", "NIS"};
+  static int filter_current = static_cast<int>(g_wantedUpscaleFilter);
+  ImGui::SetNextItemWidth(100);
+  ImGui::Combo("Upscale Filter", &filter_current, filters.data(), filters.size());
+  if (filter_current != static_cast<int>(g_wantedUpscaleFilter)) {
+    gamescope::CSDLAction::SetUpscaleFilter(static_cast<GamescopeUpscaleFilter>(filter_current));
+  }
+  std::array<char const*, 6> scalers = {"AUTO", "INTEGER", "FIT", "FILL", "STRETCH", "NATIVE"};
+  static int scler_current = static_cast<int>(g_wantedUpscaleFilter);
+  ImGui::SetNextItemWidth(100);
+  ImGui::Combo("Upscale Scaler", &scler_current, scalers.data(), scalers.size());
+  if (scler_current != static_cast<int>(g_wantedUpscaleFilter)) {
+    gamescope::CSDLAction::SetUpscaleScaler(static_cast<GamescopeUpscaleScaler>(scler_current));
+  }
+  ImGui::EndGroup();
+
+  ImGui::BeginGroup();
+  ImGui::SeparatorText("Input");
   static bool relative = g_bForceRelativeMouse;
   ImGui::Checkbox("Force Relative Mouse", &relative);
   if (relative != g_bForceRelativeMouse) {
-    g_bForceRelativeMouse = !g_bForceRelativeMouse;
-    SDL_SetWindowRelativeMouseMode(main_window, g_bForceRelativeMouse);
-    // m_bApplicationGrabbed = g_bForceRelativeMouse;
+    pAction->ToggleMouseGrab();
   }
 
   static bool grabbed = g_bGrabbed;
   ImGui::Checkbox("Keyboard Grabbed", &grabbed);
+  if (relative != g_bGrabbed) {
+    pAction->ToggleKeyboardGrab();
+  }
 
-  ImGui::SliderFloat("Mouse Sensitivity", &g_mouseSensitivity, 0.0f, 2.0f, "%.3f");
+  static float sensitivity = g_mouseSensitivity;
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderFloat("Mouse Sensitivity", &sensitivity, -1.0f, 1.0f, "%.3f");
+  if (sensitivity != g_mouseSensitivity) {
+    g_mouseSensitivity = sensitivity;
+  }
+  ImGui::EndGroup();
 }
-void UiLayoutMainTabs(SDL_Window* main_window) {
+
+void UiLayoutMainTabs(CSDLAction* p_Action) {
   ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
   if (ImGui::BeginTabBar("MainTabBar", tab_bar_flags)) {
     if (ImGui::BeginTabItem("Settings")) {
-      UiLayoutSettingsTab(main_window);
+      UiLayoutSettingsTab(p_Action);
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Debug")) {
@@ -136,19 +178,21 @@ void CSDLConnector::UiLayout() {
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoSavedSettings;
   flags |= ImGuiWindowFlags_NoDecoration;
+  flags |= ImGuiWindowFlags_HorizontalScrollbar;
+  flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
 
   // No close button
   bool* close = nullptr;
 
   if (ImGui::Begin("Settings", close, flags)) {
     // TODO:
-    ImGui::SetWindowSize({640, 360});
+    ImGui::SetWindowSize(ImGui::GetIO().DisplaySize);
     ImGui::SetWindowPos({0, 0});
     // static ImGuiIO& io = ImGui::GetIO();
     ImFmt::Text("TODO: some useful shit.");
     ImFmt::Text("Average {:.3f} ms/frame ({:.1f} FPS)", toms / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::Separator();
-    UiLayoutMainTabs(m_pWindow);
+    UiLayoutMainTabs(Action());
   }
   ImGui::End();
 }

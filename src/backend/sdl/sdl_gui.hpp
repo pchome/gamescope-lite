@@ -4,14 +4,15 @@
 #include <format>
 
 namespace {
-  constexpr auto toHz = 1000;
-  constexpr auto toHzf = 1000.0f;
-  constexpr auto toms = 1000.0f;
-}
+constexpr auto toHz = 1000;
+constexpr auto toHzf = 1000.0f;
+constexpr auto toms = 1000.0f;
+} // namespace
 
 namespace ImFmt {
-template <typename... Args> void Text(std::format_string<Args...> const fmt, Args&&... args) {
-  auto const text = std::format(fmt, static_cast<Args&&>(args)...);
+template <typename... Args>
+void Text(std::format_string<Args...> const fmt, Args&&... args) {
+  auto const text = std::format(fmt, std::forward<Args>(args)...);
   ImGui::TextUnformatted(text.data(), text.data() + text.size());
 }
 } // namespace ImFmt
