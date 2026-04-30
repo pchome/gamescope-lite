@@ -10,6 +10,7 @@
 #include "sdl_gui.hpp"
 
 #include "GamescopeVersion.h"
+#include "constants_include.hpp"
 #include "main.hpp"
 
 #include <print>
@@ -88,14 +89,16 @@ void UiLayoutDebugTab() {
 void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImGui::BeginGroup();
   ImFmt::Text("Settings");
+  // TODO
   ImGui::Checkbox("HDR Enabled", &g_bOutputHDREnabled);
   ImGui::Checkbox("Force Internal", &g_bForceInternal);
+  // Resolutions
   ImFmt::Text("{}x{}", g_nNestedWidth, g_nNestedHeight);
   ImGui::SameLine();
   ImFmt::Text("->");
   ImGui::SameLine();
   ImFmt::Text("{}x{}", g_nOutputWidth, g_nOutputHeight);
-
+  // Set Fullscreen
   static bool fullscreen = g_bFullscreen;
   ImGui::Checkbox("Fullscreen", &fullscreen);
   if (fullscreen != g_bFullscreen) {
@@ -109,6 +112,7 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
 
   ImGui::BeginGroup();
   ImFmt::Text("Filters");
+  // Upscale Filter
   std::array<char const*, 4> filters = {"LINEAR", "PIXEL", "FSR", "NIS"};
   static int filter_current = static_cast<int>(g_wantedUpscaleFilter);
   ImGui::SetNextItemWidth(100);
@@ -116,29 +120,40 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   if (filter_current != static_cast<int>(g_wantedUpscaleFilter)) {
     gamescope::CSDLAction::SetUpscaleFilter(static_cast<GamescopeUpscaleFilter>(filter_current));
   }
+  // Upscale Filter Sharpness
+  static int sharpness = g_upscaleFilterSharpness;
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderInt("Filter Sharpness", &sharpness, defaults::minFSRSharpness, defaults::maxFSRSharpness, "%d");
+  if (sharpness != g_upscaleFilterSharpness) {
+    gamescope::CSDLAction::SetUpscaleFilterSharpness(sharpness);
+  }
+  // Upscale Scaler
   std::array<char const*, 6> scalers = {"AUTO", "INTEGER", "FIT", "FILL", "STRETCH", "NATIVE"};
-  static int scler_current = static_cast<int>(g_wantedUpscaleFilter);
+  static int scler_current = static_cast<int>(g_wantedUpscaleScaler);
   ImGui::SetNextItemWidth(100);
   ImGui::Combo("Upscale Scaler", &scler_current, scalers.data(), scalers.size());
-  if (scler_current != static_cast<int>(g_wantedUpscaleFilter)) {
+  if (scler_current != static_cast<int>(g_wantedUpscaleScaler)) {
     gamescope::CSDLAction::SetUpscaleScaler(static_cast<GamescopeUpscaleScaler>(scler_current));
   }
   ImGui::EndGroup();
 
+  ImGui::Separator();
+
   ImGui::BeginGroup();
-  ImGui::SeparatorText("Input");
+  ImFmt::Text("Input");
+  // Force Relative Mouse mode
   static bool relative = g_bForceRelativeMouse;
   ImGui::Checkbox("Force Relative Mouse", &relative);
   if (relative != g_bForceRelativeMouse) {
     pAction->ToggleMouseGrab();
   }
-
+  // Grab Keyboard
   static bool grabbed = g_bGrabbed;
   ImGui::Checkbox("Keyboard Grabbed", &grabbed);
   if (relative != g_bGrabbed) {
     pAction->ToggleKeyboardGrab();
   }
-
+  // Mouse Sensitivity
   static float sensitivity = g_mouseSensitivity;
   ImGui::SetNextItemWidth(100);
   ImGui::SliderFloat("Mouse Sensitivity", &sensitivity, -1.0f, 1.0f, "%.3f");
