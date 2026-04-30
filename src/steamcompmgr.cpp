@@ -3208,6 +3208,10 @@ static bool is_good_override_candidate( steamcompmgr_win_t *override, steamcompm
 	if ( !focus )
 		return false;
 
+	// The pids should probably match for a dropdown to be a good candidate for this window.
+	if (override->pid != focus->pid)
+		return false;
+
 	auto rect = override->GetGeometry();
 	return override != focus && (rect.nX + rect.nWidth) > 0 && (rect.nY + rect.nHeight) > 0;
 } 
@@ -3538,6 +3542,11 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 
 	pick_primary_focus_and_override( &ctx->focus, ctx->focusControlWindow, vecPossibleFocusWindows, false, vecFocuscontrolAppIDs, ulKey, eStrategy );
 
+	if ( !ctx->focus.overrideWindowMouse )
+	{
+		ctx->focus.overrideWindowMouse = ctx->focus.overrideWindow;
+	}
+
 	if ( inputFocus == NULL )
 	{
 		inputFocus = ctx->focus.focusWindow;
@@ -3628,11 +3637,11 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 	steamcompmgr_win_t *w;
 	w = ctx->focus.focusWindow;
 
-	if ( inputFocus == ctx->focus.focusWindow && ctx->focus.overrideWindow )
+	if ( inputFocus == ctx->focus.focusWindow && ctx->focus.overrideWindowMouse )
 	{
-		if ( ctx->list[0].xwayland().id != ctx->focus.overrideWindow->xwayland().id )
+		if ( ctx->list[0].xwayland().id != ctx->focus.overrideWindowMouse->xwayland().id )
 		{
-			XRaiseWindow(ctx->dpy, ctx->focus.overrideWindow->xwayland().id);
+			XRaiseWindow(ctx->dpy, ctx->focus.overrideWindowMouse->xwayland().id);
 		}
 	}
 	else
