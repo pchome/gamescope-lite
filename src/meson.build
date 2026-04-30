@@ -110,13 +110,13 @@ src = [
   'backend/sdl/sdl_connector.cpp',
   'backend/sdl/sdl_backend.cpp',
   'backend/sdl/sdl_thread.cpp',
+  'backend/sdl/sdl_gui.cpp',
+  'backend/sdl/sdl_action.cpp',
   
   'backend/sdl/event/input.cpp',
   'backend/sdl/event/window.cpp',
   'backend/sdl/event/custom.cpp',
   'backend/sdl/event/ui.cpp',
-
-  'backend/sdl/sdl_gui.cpp',
 
   'Utils/TempFiles.cpp',
   'Utils/Version.cpp',
