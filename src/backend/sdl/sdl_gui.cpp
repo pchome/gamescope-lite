@@ -139,6 +139,21 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
     gamescope::CSDLAction::SetUpscaleFilter(static_cast<GamescopeUpscaleFilter>(filter_current));
   }
   // Upscale Filter Sharpness
+  struct Funcs {
+    static auto Red(void* /*unused*/, int i) -> float { return -sinf(i * 0.1f); }
+    static auto Green(void* /*unused*/, int i) -> float { return (1.0f - (i * 0.1f)); }
+    static auto None(void* /*unused*/, int i) -> float { return i * 0.0f; }
+  };
+  static int func_type = 0;
+  static int display_offset = defaults::minFSRSharpness;
+  static int display_count = defaults::maxFSRSharpness - 3; //+ 1;
+  func_type = (filter_current == 3) ? 1 : (filter_current == 2) ? 0 : 2;
+  float (*func)(void*, int) = (func_type == 0) ? Funcs::Red : (func_type == 1) ? Funcs::Green : Funcs::None;
+  ImGui::BeginDisabled();
+  ImGui::SetNextItemWidth((ImGui::GetFontSize() * 8) - 4);
+  ImGui::PlotLines("Strenght", func, nullptr, display_count, display_offset, nullptr, -1.0f, 1.0f, ImVec2(0, 20));
+  ImGui::EndDisabled();
+  // Sharpness
   static int sharpness = g_upscaleFilterSharpness;
   ImGui::SetNextItemWidth(100);
   ImGui::SliderInt("Filter Sharpness", &sharpness, defaults::minFSRSharpness, defaults::maxFSRSharpness, "%d");
@@ -172,6 +187,7 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
     pAction->ToggleKeyboardGrab();
   }
   // Mouse Sensitivity
+  // TODO: figure out how this should work
   static float sensitivity = g_mouseSensitivity;
   ImGui::SetNextItemWidth(100);
   ImGui::SliderFloat("Mouse Sensitivity", &sensitivity, -1.0f, 1.0f, "%.3f");
