@@ -30,6 +30,11 @@ void CSDLAction::ToggleFullscreen() {
   SDL_SetWindowFullscreen(m_pConnector->GetSDLWindow(), g_bFullscreen);
 }
 
+void CSDLAction::ToggleBorderless() {
+  g_bBorderlessOutputWindow = !g_bBorderlessOutputWindow;
+  SDL_SetWindowBordered(m_pConnector->GetSDLWindow(), !g_bBorderlessOutputWindow);
+}
+
 void CSDLAction::SetWindowTitle(std::string const& title) {
   SDL_SetWindowTitle(m_pConnector->GetSDLWindow(), title.c_str());
   SDL_SetHint(SDL_HINT_SCREENSAVER_INHIBIT_ACTIVITY_NAME, ("Title: " + title).c_str());
