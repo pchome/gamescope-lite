@@ -18,6 +18,7 @@ public:
 
   void TogglePopup();
   void ToggleFullscreen();
+  void ToggleBorderless();
 
   void SetWindowTitle(std::string const& title);
 

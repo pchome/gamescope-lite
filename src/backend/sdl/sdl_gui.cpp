@@ -59,6 +59,22 @@ void UiLayoutBuildTab() {
 }
 void UiLayoutDebugTab() {
   ImGui::SeparatorText("Debug");
+  static bool openDebug = false;
+  static int debug = 0;
+  if (ImGui::Button("Open Debug Log")) {
+    debug++;
+  }
+  if ((debug & 1) != 0) {
+    ImGui::ShowDebugLogWindow(&openDebug);
+  }
+  static bool openMetrics = false;
+  static int metrics= 0;
+  if (ImGui::Button("Open Metrics")) {
+    metrics++;
+  }
+  if ((metrics & 1) != 0) {
+    ImGui::ShowMetricsWindow(&openMetrics);
+  }
   ImFmt::Text("Nested: {}x{}@{}", g_nNestedWidth, g_nNestedHeight, g_nNestedRefresh / toHz);
   ImFmt::Text("Output: {}x{}@{}", g_nOutputWidth, g_nOutputHeight, g_nOutputRefresh / toHz);
   ImFmt::Text("Aspect: {}", g_aspectRatio);
@@ -71,8 +87,7 @@ void UiLayoutDebugTab() {
   ImGui::BeginDisabled();
   auto check = !!(g_bOutputHDREnabled);
   ImGui::Checkbox("HDR Enabled", &check);
-  auto check4 = !!(g_bForceInternal);
-  ImGui::Checkbox("Force Internal", &check4);
+  ImFmt::Text("Screen Type: Internal");
   auto check5 = !!(g_bFullscreen);
   ImGui::Checkbox("Fullscreen", &check5);
   ImGui::EndDisabled();
@@ -89,9 +104,6 @@ void UiLayoutDebugTab() {
 void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImGui::BeginGroup();
   ImFmt::Text("Settings");
-  // TODO
-  ImGui::Checkbox("HDR Enabled", &g_bOutputHDREnabled);
-  ImGui::Checkbox("Force Internal", &g_bForceInternal);
   // Resolutions
   ImFmt::Text("{}x{}", g_nNestedWidth, g_nNestedHeight);
   ImGui::SameLine();
@@ -103,6 +115,12 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImGui::Checkbox("Fullscreen", &fullscreen);
   if (fullscreen != g_bFullscreen) {
     pAction->ToggleFullscreen();
+  }
+  // Set Borderless
+  static bool borderless = g_bBorderlessOutputWindow;
+  ImGui::Checkbox("Borderless", &borderless);
+  if (borderless != g_bBorderlessOutputWindow) {
+    pAction->ToggleBorderless();
   }
   ImGui::EndGroup();
 
@@ -162,12 +180,26 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   }
   ImGui::EndGroup();
 }
-
+void UiLayoutHdrTab() {
+  ImGui::BeginGroup();
+  ImFmt::Text("HDR");
+  // TODO
+  static bool hdr = g_bOutputHDREnabled;
+  ImGui::Checkbox("HDR Enabled", &hdr);
+  if (hdr != g_bOutputHDREnabled) {
+    g_bOutputHDREnabled = !g_bOutputHDREnabled;
+  }
+  ImGui::EndGroup();
+}
 void UiLayoutMainTabs(CSDLAction* p_Action) {
   ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
   if (ImGui::BeginTabBar("MainTabBar", tab_bar_flags)) {
     if (ImGui::BeginTabItem("Settings")) {
       UiLayoutSettingsTab(p_Action);
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem("Hdr")) {
+      UiLayoutHdrTab();
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Debug")) {
@@ -204,7 +236,6 @@ void CSDLConnector::UiLayout() {
     ImGui::SetWindowSize(ImGui::GetIO().DisplaySize);
     ImGui::SetWindowPos({0, 0});
     // static ImGuiIO& io = ImGui::GetIO();
-    ImFmt::Text("TODO: some useful shit.");
     ImFmt::Text("Average {:.3f} ms/frame ({:.1f} FPS)", toms / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::Separator();
     UiLayoutMainTabs(Action());
