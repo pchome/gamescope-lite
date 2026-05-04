@@ -9,6 +9,8 @@ constexpr auto toHzf = 1000.0f;
 constexpr auto toms = 1000.0f;
 } // namespace
 
+extern bool g_bForceWindowsFullscreen;
+
 namespace ImFmt {
 template <typename... Args>
 void Text(std::format_string<Args...> const fmt, Args&&... args) {

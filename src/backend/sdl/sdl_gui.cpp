@@ -116,6 +116,8 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImGui::SameLine();
 
   ImGui::BeginGroup();
+  ImTpl::Toggle("Fullscreen windows", g_bForceWindowsFullscreen, [] { CSDLAction::ToggleWindowsFullscreen(); });
+  ImGui::Separator();
   ImFmt::Text("Filters");
   // Upscale Filter
   std::array<char const*, 4> filters = {"LINEAR", "PIXEL", "FSR", "NIS"};
