@@ -85,19 +85,15 @@ void UiLayoutDebugTab() {
 
   ImGui::SeparatorText("Output");
   ImGui::BeginDisabled();
-  auto check = !!(g_bOutputHDREnabled);
-  ImGui::Checkbox("HDR Enabled", &check);
+  ImTpl::Toggle("HDR Enabled", g_bOutputHDREnabled, [] {});
   ImFmt::Text("Screen Type: Internal");
-  auto check5 = !!(g_bFullscreen);
-  ImGui::Checkbox("Fullscreen", &check5);
+  ImTpl::Toggle("Fullscreen", g_bFullscreen, [] {});
   ImGui::EndDisabled();
 
   ImGui::SeparatorText("Input");
   ImGui::BeginDisabled();
-  auto check2 = !!(g_bForceRelativeMouse);
-  ImGui::Checkbox("Force Relative Mouse", &check2);
-  auto check3 = !!(g_bGrabbed);
-  ImGui::Checkbox("Keyboard Grabbed", &check3);
+  ImTpl::Toggle("Force Relative Mouse", g_bForceRelativeMouse, [] {});
+  ImTpl::Toggle("Keyboard Grabbed", g_bGrabbed, [] {});
   ImGui::EndDisabled();
   ImFmt::Text("Mouse Sensitivity: {}", g_mouseSensitivity);
 }
@@ -110,18 +106,9 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImFmt::Text("->");
   ImGui::SameLine();
   ImFmt::Text("{}x{}", g_nOutputWidth, g_nOutputHeight);
-  // Set Fullscreen
-  static bool fullscreen = g_bFullscreen;
-  ImGui::Checkbox("Fullscreen", &fullscreen);
-  if (fullscreen != g_bFullscreen) {
-    pAction->ToggleFullscreen();
-  }
-  // Set Borderless
-  static bool borderless = g_bBorderlessOutputWindow;
-  ImGui::Checkbox("Borderless", &borderless);
-  if (borderless != g_bBorderlessOutputWindow) {
-    pAction->ToggleBorderless();
-  }
+  // Window control
+  ImTpl::Toggle("Fullscreen", g_bFullscreen, [&pAction] { pAction->ToggleFullscreen(); });
+  ImTpl::Toggle("Borderless", g_bBorderlessOutputWindow, [&pAction] { pAction->ToggleBorderless(); });
   ImGui::EndGroup();
 
   ImGui::SameLine();
@@ -174,18 +161,8 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
 
   ImGui::BeginGroup();
   ImFmt::Text("Input");
-  // Force Relative Mouse mode
-  static bool relative = g_bForceRelativeMouse;
-  ImGui::Checkbox("Force Relative Mouse", &relative);
-  if (relative != g_bForceRelativeMouse) {
-    pAction->ToggleMouseGrab();
-  }
-  // Grab Keyboard
-  static bool grabbed = g_bGrabbed;
-  ImGui::Checkbox("Keyboard Grabbed", &grabbed);
-  if (relative != g_bGrabbed) {
-    pAction->ToggleKeyboardGrab();
-  }
+  ImTpl::Toggle("Force Relative Mouse", g_bForceRelativeMouse, [&pAction] { pAction->ToggleMouseGrab(); });
+  ImTpl::Toggle("Keyboard Grabbed", g_bGrabbed, [&pAction] { pAction->ToggleKeyboardGrab(); });
   // Mouse Sensitivity
   // TODO: figure out how this should work
   static float sensitivity = g_mouseSensitivity;
@@ -200,11 +177,7 @@ void UiLayoutHdrTab() {
   ImGui::BeginGroup();
   ImFmt::Text("HDR");
   // TODO
-  static bool hdr = g_bOutputHDREnabled;
-  ImGui::Checkbox("HDR Enabled", &hdr);
-  if (hdr != g_bOutputHDREnabled) {
-    g_bOutputHDREnabled = !g_bOutputHDREnabled;
-  }
+  ImTpl::Toggle("HDR Enabled", g_bOutputHDREnabled, [] { g_bOutputHDREnabled = !g_bOutputHDREnabled; });
   ImGui::EndGroup();
 }
 void UiLayoutMainTabs(CSDLAction* p_Action) {
