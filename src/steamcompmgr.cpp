@@ -165,6 +165,7 @@ uint32_t g_reshade_technique_idx = 0;
 #endif
 bool g_bSteamIsActiveWindow = false;
 bool g_bForceInternal = false;
+bool g_bForceWindowsFullscreen = false;
 
 namespace gamescope
 {
@@ -3663,7 +3664,7 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 
 	if ( win_has_game_id( w ) )
 	{
-		if ( window_is_fullscreen( ctx->focus.focusWindow ) || ctx->force_windows_fullscreen )
+		if ( window_is_fullscreen( ctx->focus.focusWindow ) || ctx->force_windows_fullscreen || g_bForceWindowsFullscreen )
 		{
 			bool bIsSteam = window_is_steam( ctx->focus.focusWindow );
 			int fs_width  = ctx->root_width;
@@ -4402,7 +4403,7 @@ handle_desktop_window(steamcompmgr_win_t *w)
 
 	xwayland_ctx_t *ctx = w->xwayland().ctx;
 
-	if ( w->sizeHintsSpecified && !(window_is_fullscreen( w ) || ctx->force_windows_fullscreen) )
+	if ( w->sizeHintsSpecified && !(window_is_fullscreen( w ) || ctx->force_windows_fullscreen || g_bForceWindowsFullscreen ) )
 	{
 		if ((unsigned)w->GetGeometry().nWidth != w->requestedWidth || (unsigned)w->GetGeometry().nHeight != w->requestedHeight)
 		{
@@ -7874,7 +7875,6 @@ steamcompmgr_main(int argc, char **argv)
 
 	int o;
 	int opt_index = -1;
-	bool bForceWindowsFullscreen = false;
 
 	// Enable color mgmt by default.
 	g_ColorMgmt.pending.enabled = true;
@@ -7921,7 +7921,7 @@ steamcompmgr_main(int argc, char **argv)
 				} else if (strcmp(opt_name, "fade-out-duration") == 0) {
 					g_FadeOutDuration = atoi(optarg);
 				} else if (strcmp(opt_name, "force-windows-fullscreen") == 0) {
-					bForceWindowsFullscreen = true;
+					g_bForceWindowsFullscreen = true;
 				} else if (strcmp(opt_name, "hdr-enabled") == 0 || strcmp(opt_name, "hdr-enable") == 0) {
 					cv_hdr_enabled = true;
 				} else if (strcmp(opt_name, "hdr-debug-force-support") == 0) {
@@ -8022,7 +8022,7 @@ steamcompmgr_main(int argc, char **argv)
 			xwayland_ctx_t *pXWaylandCtx = pServer->ctx.get();
 			g_SteamCompMgrWaiter.AddWaitable( pXWaylandCtx );
 
-			pServer->ctx->force_windows_fullscreen = bForceWindowsFullscreen;
+			pServer->ctx->force_windows_fullscreen = g_bForceWindowsFullscreen;
 		}
 	}
 

@@ -4,6 +4,8 @@
 
 #include <string>
 
+extern bool g_bForceWindowsFullscreen;
+
 namespace gamescope {
 
 class CSDLConnector;
@@ -32,6 +34,8 @@ public:
 
   void ToggleKeyboardGrab();
   void ToggleMouseGrab();
+
+  static void ToggleWindowsFullscreen();
 
   static void ToggleUpscaleFilter();
   static void ToggleDownscaleFilter();

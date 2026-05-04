@@ -68,6 +68,9 @@ void CSDLAction::ToggleMouseGrab() {
   SetWindowTitle(title);
 }
 
+// TODO: set ctx->force_windows_fullscreen
+void CSDLAction::ToggleWindowsFullscreen() { g_bForceWindowsFullscreen = !g_bForceWindowsFullscreen; }
+
 void CSDLAction::SetUpscaleFilter(GamescopeUpscaleFilter filter) { g_wantedUpscaleFilter = filter; }
 void CSDLAction::SetDownscaleFilter(GamescopeDownscaleFilter filter) { g_wantedDownscaleFilter = filter; }
 void CSDLAction::SetUpscaleScaler(GamescopeUpscaleScaler scaler) { g_wantedUpscaleScaler = scaler; }
