@@ -71,6 +71,21 @@ void CSDLAction::ToggleMouseGrab() {
 // TODO: set ctx->force_windows_fullscreen
 void CSDLAction::ToggleWindowsFullscreen() { g_bForceWindowsFullscreen = !g_bForceWindowsFullscreen; }
 
+// NOTE: The value of g_nOutputHeight and g_nOutputWidth will be handled by window event handler;
+void CSDLAction::SetAspectRatio(double ratio) {
+  if (SDL_SetWindowAspectRatio(m_pConnector->GetSDLWindow(), ratio, ratio)) {
+    g_aspectRatio = ratio;
+  }
+}
+
+// NOTE: The value of g_nOutputHeight and g_nOutputWidth will be handled by window event handler;
+// TODO: sync/filter/limit aspect ratio
+void CSDLAction::SetWindowResolution(int width, int height) {
+  if (SDL_SetWindowSize(m_pConnector->GetSDLWindow(), width, height)) {
+    // g_aspectRatio = ratio;
+  }
+}
+
 void CSDLAction::SetUpscaleFilter(GamescopeUpscaleFilter filter) { g_wantedUpscaleFilter = filter; }
 void CSDLAction::SetDownscaleFilter(GamescopeDownscaleFilter filter) { g_wantedDownscaleFilter = filter; }
 void CSDLAction::SetUpscaleScaler(GamescopeUpscaleScaler scaler) { g_wantedUpscaleScaler = scaler; }
