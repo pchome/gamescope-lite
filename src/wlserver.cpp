@@ -1856,7 +1856,7 @@ bool wlserver_init( void ) {
 
 	// Have to make this old ancient thing for compat with older XWayland.
 	// Someday, he will be purged.
-	wlr_drm_create(wlserver.display, wlserver.wlr.renderer);
+	// wlr_drm_create(wlserver.display, wlserver.wlr.renderer);
 
 	if ( GetBackend()->SupportsExplicitSync() )
 	{
@@ -1878,7 +1878,7 @@ bool wlserver_init( void ) {
 	}
 	wlserver.new_pointer_constraint.notify = handle_pointer_constraint;
 	wl_signal_add(&wlserver.constraints->events.new_constraint, &wlserver.new_pointer_constraint);
-
+#if 0
 	wlserver.xdg_shell = wlr_xdg_shell_create(wlserver.display, 3);
 	if (!wlserver.xdg_shell)
 	{
@@ -1898,7 +1898,7 @@ bool wlserver_init( void ) {
 	}
 	wlserver.new_layer_shell_surface.notify = layer_shell_surface_new;
 	wl_signal_add(&wlserver.layer_shell_v1->events.new_surface, &wlserver.new_layer_shell_surface);
-
+#endif
 	int result = -1;
 	int display_slot = 0;
 
