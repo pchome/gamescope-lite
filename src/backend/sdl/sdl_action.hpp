@@ -24,6 +24,9 @@ public:
 
   void SetWindowTitle(std::string const& title);
 
+  void SetAspectRatio(double ratio);
+  void SetWindowResolution(int width, int height);
+
   static void SetUpscaleFilter(GamescopeUpscaleFilter filter);
   static void SetDownscaleFilter(GamescopeDownscaleFilter filter);
   static void SetUpscaleScaler(GamescopeUpscaleScaler scaler);

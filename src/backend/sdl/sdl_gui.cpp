@@ -97,6 +97,24 @@ void UiLayoutDebugTab() {
   ImGui::EndDisabled();
   ImFmt::Text("Mouse Sensitivity: {}", g_mouseSensitivity);
 }
+// TODO: real funcs
+void UiLayoutUpscaleFilterSharpnessStrenght() {
+  struct Funcs {
+    static auto Red(void* /*unused*/, int i) -> float { return -sinf(i * 0.1f); }
+    static auto Green(void* /*unused*/, int i) -> float { return (1.0f - (i * 0.1f)); }
+    static auto None(void* /*unused*/, int i) -> float { return i * 0.0f; }
+  };
+  static int func_type = 0;
+  static int display_offset = defaults::minFSRSharpness;
+  static int display_count = defaults::maxFSRSharpness - 3; //+ 1;
+  auto filter_current = static_cast<int>(g_wantedUpscaleFilter);
+  func_type = (filter_current == 3) ? 1 : (filter_current == 2) ? 0 : 2;
+  float (*func)(void*, int) = (func_type == 0) ? Funcs::Red : (func_type == 1) ? Funcs::Green : Funcs::None;
+  ImGui::BeginDisabled();
+  ImGui::SetNextItemWidth((ImGui::GetFontSize() * 8) - 4);
+  ImGui::PlotLines("Strenght", func, nullptr, display_count, display_offset, nullptr, -1.0f, 1.0f, ImVec2(0, 20));
+  ImGui::EndDisabled();
+}
 void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImGui::BeginGroup();
   ImFmt::Text("Settings");
@@ -106,6 +124,11 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImFmt::Text("->");
   ImGui::SameLine();
   ImFmt::Text("{}x{}", g_nOutputWidth, g_nOutputHeight);
+  // Aspect ratio
+  ImTpl::Select<GamescopeAspectRatio>(
+      "Aspect Ratio", g_aspectRatio, GamescopeAspectRatioName, GamescopeAspectRatioValue, [&pAction](auto value) {
+        pAction->SetAspectRatio(value);
+      });
   // Window control
   ImTpl::Toggle("Fullscreen", g_bFullscreen, [&pAction] { pAction->ToggleFullscreen(); });
   ImTpl::Toggle("Borderless", g_bBorderlessOutputWindow, [&pAction] { pAction->ToggleBorderless(); });
@@ -120,43 +143,22 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImGui::Separator();
   ImFmt::Text("Filters");
   // Upscale Filter
-  std::array<char const*, 4> filters = {"LINEAR", "PIXEL", "FSR", "NIS"};
-  static int filter_current = static_cast<int>(g_wantedUpscaleFilter);
-  ImGui::SetNextItemWidth(100);
-  ImGui::Combo("Upscale Filter", &filter_current, filters.data(), filters.size());
-  if (filter_current != static_cast<int>(g_wantedUpscaleFilter)) {
-    gamescope::CSDLAction::SetUpscaleFilter(static_cast<GamescopeUpscaleFilter>(filter_current));
-  }
+  ImTpl::Select("Upscale Filter", g_wantedUpscaleFilter, GamescopeUpscaleFilterName, [](auto value) {
+    CSDLAction::SetUpscaleFilter(static_cast<GamescopeUpscaleFilter>(value));
+  });
   // Upscale Filter Sharpness
-  struct Funcs {
-    static auto Red(void* /*unused*/, int i) -> float { return -sinf(i * 0.1f); }
-    static auto Green(void* /*unused*/, int i) -> float { return (1.0f - (i * 0.1f)); }
-    static auto None(void* /*unused*/, int i) -> float { return i * 0.0f; }
-  };
-  static int func_type = 0;
-  static int display_offset = defaults::minFSRSharpness;
-  static int display_count = defaults::maxFSRSharpness - 3; //+ 1;
-  func_type = (filter_current == 3) ? 1 : (filter_current == 2) ? 0 : 2;
-  float (*func)(void*, int) = (func_type == 0) ? Funcs::Red : (func_type == 1) ? Funcs::Green : Funcs::None;
-  ImGui::BeginDisabled();
-  ImGui::SetNextItemWidth((ImGui::GetFontSize() * 8) - 4);
-  ImGui::PlotLines("Strenght", func, nullptr, display_count, display_offset, nullptr, -1.0f, 1.0f, ImVec2(0, 20));
-  ImGui::EndDisabled();
+  UiLayoutUpscaleFilterSharpnessStrenght();
   // Sharpness
   static int sharpness = g_upscaleFilterSharpness;
   ImGui::SetNextItemWidth(100);
   ImGui::SliderInt("Filter Sharpness", &sharpness, defaults::minFSRSharpness, defaults::maxFSRSharpness, "%d");
   if (sharpness != g_upscaleFilterSharpness) {
-    gamescope::CSDLAction::SetUpscaleFilterSharpness(sharpness);
+    CSDLAction::SetUpscaleFilterSharpness(sharpness);
   }
   // Upscale Scaler
-  std::array<char const*, 6> scalers = {"AUTO", "INTEGER", "FIT", "FILL", "STRETCH", "NATIVE"};
-  static int scler_current = static_cast<int>(g_wantedUpscaleScaler);
-  ImGui::SetNextItemWidth(100);
-  ImGui::Combo("Upscale Scaler", &scler_current, scalers.data(), scalers.size());
-  if (scler_current != static_cast<int>(g_wantedUpscaleScaler)) {
-    gamescope::CSDLAction::SetUpscaleScaler(static_cast<GamescopeUpscaleScaler>(scler_current));
-  }
+  ImTpl::Select("Upscale Scaler", g_wantedUpscaleScaler, GamescopeUpscaleScalerName, [](auto value) {
+    CSDLAction::SetUpscaleScaler(static_cast<GamescopeUpscaleScaler>(value));
+  });
   ImGui::EndGroup();
 
   ImGui::Separator();
