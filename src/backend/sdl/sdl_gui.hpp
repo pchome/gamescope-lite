@@ -1,8 +1,8 @@
 #pragma once
 #include "imgui.h"
+#include "imgui_internal.h"
 
 #include <format>
-#include <map>
 #include <array>
 #include <utility>
 
@@ -10,28 +10,6 @@ namespace {
 constexpr auto toHz = 1000;
 constexpr auto toHzf = 1000.0f;
 constexpr auto toms = 1000.0f;
-
-enum class GamescopeAspectRatio : std::uint8_t {
-  W16H9,  // 16:9
-  W16H10, // 16:10
-  W4H3,   // 4:3
-  W24H10, // 24:10
-  W64H27, // 64:27
-  W43H18, // 43:18
-  ASPECT_RATIO_COUNT,
-};
-
-constexpr std::array<char const*, std::to_underlying(GamescopeAspectRatio::ASPECT_RATIO_COUNT)>
-GamescopeAspectRatioName{"16:9", "16:10", "4:3", "24:10", "64:27", "43:18"};
-
-std::map<GamescopeAspectRatio, double> const GamescopeAspectRatioValue{
-    {GamescopeAspectRatio::W16H9, 16 / 9.0},
-    {GamescopeAspectRatio::W16H10, 16 / 10.0},
-    {GamescopeAspectRatio::W4H3, 4 / 3.0},
-    {GamescopeAspectRatio::W24H10, 24 / 10.0},
-    {GamescopeAspectRatio::W64H27, 64 / 27.0},
-    {GamescopeAspectRatio::W43H18, 43 / 18.0},
-};
 
 constexpr std::array<char const*, 4> GamescopeUpscaleFilterName{"LINEAR", "PIXEL", "FSR", "NIS"};
 constexpr std::array<char const*, 6> GamescopeUpscaleScalerName{"AUTO", "INTEGER", "FIT", "FILL", "STRETCH", "NATIVE"};
@@ -44,6 +22,14 @@ template <typename... Args>
 void Text(std::format_string<Args...> const fmt, Args&&... args) {
   auto const text = std::format(fmt, std::forward<Args>(args)...);
   ImGui::TextUnformatted(text.data(), text.data() + text.size());
+}
+template <typename... Args>
+void TextDisabled(std::format_string<Args...> const fmt, Args&&... args) {
+  auto const text = std::format(fmt, std::forward<Args>(args)...);
+  // ImGuiContext* g = ImGui::GetCurrentContext();
+  ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetCurrentContext()->Style.Colors[ImGuiCol_TextDisabled]);
+  ImGui::TextUnformatted(text.data(), text.data() + text.size());
+  ImGui::PopStyleColor();
 }
 } // namespace ImFmt
 
@@ -77,5 +63,19 @@ void Select(auto name, cT control, auto names, auto values, auto cb) {
   }
 }
 } // namespace ImTpl
+
+namespace ImHlp {
+// Helper to display a little (?) mark which shows a tooltip when hovered.
+// In your own code you may want to display an actual icon if you are using a merged icon fonts (see docs/FONTS.md)
+template <typename T> void Hint(T desc) {
+  ImFmt::TextDisabled("(?)");
+  if (ImGui::BeginItemTooltip()) {
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(desc.data(), desc.data() + desc.size());
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
+}
+} // namespace ImHlp
 
 namespace gamescope {} // namespace gamescope
