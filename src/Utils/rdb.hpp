@@ -130,6 +130,49 @@ constexpr std::array<double, std::to_underlying(AspectRatio::AspectRatio_COUNT)>
 
 namespace rdb {
 /**
+ * Spatial upscaling presets (targetH/sourceH)
+ *
+ * NO = 1.0;            // 1.0;           // Original (not preset)
+ * OK = 1080.0 / 864.0; // 1.25;          // OK (not preset)
+ * UQ = 1080.0 / 810.0; // 1.33333333333; // Ultra Quality
+ *  Q = 1080.0 / 720.0; // 1.5;           // Quality
+ *  B = 1080.0 / 648.0; // 1.66666666667; // Balanced
+ * KO = 1008.0 / 576.0; // 1.75;          // KO (not preset)
+ *  P = 1080.0 / 540.0; // 2.0;           // Performance
+ */
+enum UpscalingPreset : std::uint8_t {
+  Preset_Original,    // 1.0;           // Original (not preset)
+  Preset_1_2,         // 1.2;           // (not preset)
+  Preset_1_25,        // 1.25;          // OK (not preset)
+  Preset_Ultra,       // 1.33333333333; // Ultra Quality
+  Preset_Quality,     // 1.5;           // Quality
+  Preset_Balansed,    // 1.66666666667; // Balanced
+  Preset_1_75,        // 1.75;          // KO (not preset)
+  Preset_Performance, // 2.0;           // Performance
+  UpscalingPreset_COUNT,
+};
+constexpr std::array<char const*, std::to_underlying(UpscalingPreset::UpscalingPreset_COUNT)> UpscalingPresetName{
+    "Original", "1.2", "1.25", "Ultra Quality", "Quality", "Balanced", "1.75", "Performance"};
+constexpr std::array<double, std::to_underlying(UpscalingPreset::UpscalingPreset_COUNT)> UpscalingPresetValue{
+    1.0, 1.2, 1.25, 1080.0 / 810.0, 1.5, 1080.0 / 648.0, 1.75, 2.0};
+
+/**
+ * MIP LOD bias corrections (-log2(DisplayResolution/SourceResolution))
+ *
+ * NOmip = 0;                 // mip - 0
+ * OKmip = -log(OK) / log(2); // mip - 0.321928094887
+ * UQmip = -log(UQ) / log(2); // mip - 0.415037499276
+ *  Qmip = -log(Q)  / log(2); // mip - 0.584962500721
+ *  Bmip = -log(B)  / log(2); // mip - 0.736965594169
+ * KOmip = -log(KO) / log(2); // mip - 0.807354922058
+ *  Pmip = -log(P)  / log(2); // mip - 1.0
+ */
+constexpr std::array<double, std::to_underlying(UpscalingPreset::UpscalingPreset_COUNT)> MipCorrectionValue{
+    -0, -0.263034405833, -0.321928094887, -0.415037499276, -0.584962500721, -0.736965594169, -0.807354922058, -1.0};
+} // namespace rdb
+
+namespace rdb {
+/**
  * Resolution DataBase
  *
  * Intended to avoid runtime calculations when creating resolution lists,

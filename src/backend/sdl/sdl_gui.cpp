@@ -118,6 +118,34 @@ void UiLayoutUpscaleFilterSharpnessStrenght() {
   ImGui::PlotLines("Strenght", func, nullptr, display_count, display_offset, nullptr, -1.0f, 1.0f, ImVec2(0, 20));
   ImGui::EndDisabled();
 }
+void UiLayoutUpscaleFilterPreset() {
+  using namespace rdb;
+  using namespace std::literals;
+
+  static int plimit = rdb::Preset_Original;
+  static int prev_p = plimit;
+  static auto to_W = g_nNestedWidth * UpscalingPresetValue.at(plimit);
+  static auto to_H = g_nNestedHeight * UpscalingPresetValue.at(plimit);
+
+  ImFmt::Text("{}x{} -> {}x{}", g_nNestedWidth, g_nNestedHeight, to_W, to_H);
+  ImFmt::Text("MipBias += {:.4f}", rdb::MipCorrectionValue.at(plimit));
+
+  static auto const mhint = "You shoud hijack application's MipBias,\n"sv
+  "e.g. `d3d11.samplerLodBias = -1`\n"sv
+  "The given number will be added to the LOD bias provided by the application.\n"sv
+  "Or force it via vulkan layer in `CreateSampler` by adding to `pCreateInfo->mipLodBias` value."sv;
+  ImGui::SameLine();
+  ImHlp::Hint(mhint);
+
+  ImGui::SetNextItemWidth(100);
+  ImGui::Combo("Preset", &plimit, rdb::UpscalingPresetName.data(), rdb::UpscalingPresetName.size());
+
+  if (prev_p != plimit) {
+    to_W = g_nNestedWidth * UpscalingPresetValue.at(plimit);
+    to_H = g_nNestedHeight * UpscalingPresetValue.at(plimit);
+    prev_p = plimit;
+  }
+}
 void UiLayoutOutputResolution(CSDLAction* pAction) {
   using namespace rdb;
   using namespace std::literals;
@@ -224,6 +252,7 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImTpl::Select("Upscale Filter", g_wantedUpscaleFilter, GamescopeUpscaleFilterName, [](auto value) {
     CSDLAction::SetUpscaleFilter(static_cast<GamescopeUpscaleFilter>(value));
   });
+  UiLayoutUpscaleFilterPreset();
   // Upscale Filter Sharpness
   UiLayoutUpscaleFilterSharpnessStrenght();
   // Sharpness
