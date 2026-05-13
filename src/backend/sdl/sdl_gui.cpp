@@ -13,7 +13,10 @@
 #include "constants_include.hpp"
 #include "main.hpp"
 
+#include "Utils/rdb.hpp"
+
 #include <print>
+#include <ranges>
 
 namespace gamescope {
 
@@ -115,20 +118,95 @@ void UiLayoutUpscaleFilterSharpnessStrenght() {
   ImGui::PlotLines("Strenght", func, nullptr, display_count, display_offset, nullptr, -1.0f, 1.0f, ImVec2(0, 20));
   ImGui::EndDisabled();
 }
+void UiLayoutOutputResolution(CSDLAction* pAction) {
+  using namespace rdb;
+  using namespace std::literals;
+
+  static int hlimit = rdb::Height_FullD;
+  static int dlimit = rdb::Divisor_16;
+  static int alimit = rdb::W16_H9;
+
+  auto max_h = rdb::HeightValue.at(hlimit);
+  auto min_d = rdb::DivisorValue.at(dlimit);
+  auto use_a = rdb::AspectRatioValue.at(alimit);
+
+  static int prev_h = hlimit;
+  static int prev_d = dlimit;
+  static int prev_a = alimit;
+
+  // Resolution list
+  static auto filter = rdb::data | where::aspect_ratio(use_a) | min::divisor(min_d) | max::height(max_h);
+  static auto list = filter | get::resolution | as::vector;
+
+  // Find current resolution
+  static auto res_current = [] {
+    auto out_res = std::vformat("{} x {}", std::make_format_args(g_nOutputWidth, g_nOutputHeight));
+    auto it = std::ranges::find(list, out_res);
+    if (it != list.end()) {
+      return static_cast<int>(std::ranges::distance(list.begin(), it));
+    }
+    return 0;
+  };
+
+  // TODO: find current / change on filter change / find fit
+  static int rcheck = res_current();
+  static int rcontrol = rcheck;
+
+  // Update list on filter change
+  if (prev_h != hlimit || prev_d != dlimit || prev_a != alimit) {
+    filter = rdb::data | where::aspect_ratio(use_a) | min::divisor(min_d) | max::height(max_h);
+    list = filter | get::resolution | as::vector;
+    prev_h = hlimit;
+    prev_d = dlimit;
+    prev_a = alimit;
+    // Track current resolution
+    rcheck = res_current();
+    // Prevent resolution change on list change
+    rcontrol = rcheck;
+  }
+
+  // Output resolution
+  ImGui::SetNextItemWidth(100);
+  ImGui::Combo("Output", &rcheck, list.data(), static_cast<int>(list.capacity()));
+  if (rcheck != rcontrol) {
+    auto resolution_data = rdb::data | where::aspect_ratio(use_a) | min::divisor(min_d) | max::height(max_h) | as::vector;
+    if (resolution_data.capacity() > 0) {
+      auto selected = resolution_data.at(rcheck);
+      pAction->SetWindowResolution(selected.width, selected.height);
+    }
+    rcontrol = rcheck;
+  }
+  // Aspect ratio
+  ImGui::SetNextItemWidth(100);
+  ImGui::Combo("Aspect Ratio", &alimit, rdb::AspectRatioName.data(), rdb::AspectRatioName.size());
+
+  auto sliderFlags = ImGuiSliderFlags_NoInput; // disable Ctrl+Click
+
+  static auto const hhint = "Hide resolutions higher than [height]"sv;
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderInt("Max Height", &hlimit, 0, rdb::Height_COUNT - 1, rdb::HeightName.at(hlimit), sliderFlags);
+  ImGui::SameLine();
+  ImHlp::Hint(hhint);
+
+  static auto const dhint = "Both Width and Height are divisible by [divisor]"sv;
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderInt("Min Divisor", &dlimit, 0, rdb::Divisor_COUNT - 1, rdb::DivisorName.at(dlimit), sliderFlags);
+  ImGui::SameLine();
+  ImHlp::Hint(dhint);
+}
+
 void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImGui::BeginGroup();
   ImFmt::Text("Settings");
   // Resolutions
-  ImFmt::Text("{}x{}", g_nNestedWidth, g_nNestedHeight);
+  ImFmt::Text("Nested {}x{}", g_nNestedWidth, g_nNestedHeight);
   ImGui::SameLine();
   ImFmt::Text("->");
   ImGui::SameLine();
-  ImFmt::Text("{}x{}", g_nOutputWidth, g_nOutputHeight);
-  // Aspect ratio
-  ImTpl::Select<GamescopeAspectRatio>(
-      "Aspect Ratio", g_aspectRatio, GamescopeAspectRatioName, GamescopeAspectRatioValue, [&pAction](auto value) {
-        pAction->SetAspectRatio(value);
-      });
+  ImFmt::Text("{}x{} Output", g_nOutputWidth, g_nOutputHeight);
+
+  UiLayoutOutputResolution(pAction);
+
   // Window control
   ImTpl::Toggle("Fullscreen", g_bFullscreen, [&pAction] { pAction->ToggleFullscreen(); });
   ImTpl::Toggle("Borderless", g_bBorderlessOutputWindow, [&pAction] { pAction->ToggleBorderless(); });
