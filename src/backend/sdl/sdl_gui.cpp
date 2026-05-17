@@ -30,6 +30,9 @@ void CSDLConnector::UiInit() {
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
   // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+  // Disable imgui.ini
+  io.IniFilename = nullptr;
+
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
 
@@ -60,6 +63,8 @@ void UiLayoutBuildTab() {
   ImGui::LabelText("libdir", "%s", build::libdir);
   ImGui::LabelText("bindir", "%s", build::bindir);
 }
+
+#if !defined(NDEBUG)
 void UiLayoutDebugTab() {
   ImGui::SeparatorText("Debug");
   static bool openDebug = false;
@@ -100,6 +105,8 @@ void UiLayoutDebugTab() {
   ImGui::EndDisabled();
   ImFmt::Text("Mouse Sensitivity: {}", g_mouseSensitivity);
 }
+#endif
+
 // TODO: real funcs
 void UiLayoutUpscaleFilterSharpnessStrenght() {
   struct Funcs {
@@ -302,10 +309,12 @@ void UiLayoutMainTabs(CSDLAction* p_Action) {
       UiLayoutHdrTab();
       ImGui::EndTabItem();
     }
+#if !defined(NDEBUG)
     if (ImGui::BeginTabItem("Debug")) {
       UiLayoutDebugTab();
       ImGui::EndTabItem();
     }
+#endif
     if (ImGui::BeginTabItem("Build")) {
       UiLayoutBuildTab();
       ImGui::EndTabItem();
