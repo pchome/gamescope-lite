@@ -7,6 +7,7 @@ project(
     'cpp_std=c++23',
     'c_std=c23,c11',
     'warning_level=2',
+    'b_ndebug=if-release',
     'force_fallback_for=wlroots',
     'wrap_mode=nodownload',
   ],
