@@ -19,6 +19,9 @@ sdl3_dep = dependency('SDL3')
 avif_dep = dependency('libavif', version: '>=1.0.0', required: get_option('avif_screenshots'))
 pixman_dep = dependency('pixman-1')
 
+
+wlr_use_lto = get_option('b_lto') == true ? 'b_lto=true' : 'b_lto=false'
+
 wlroots_dep = dependency(
   'wlroots-0.18',
   version: ['>= 0.18.0', '< 0.19.0'],
@@ -30,6 +33,7 @@ wlroots_dep = dependency(
     'xwayland=enabled', 'backends=[]', 'renderers=[]', 'allocators=[]',
     'session=disabled', 'libliftoff=disabled', 'color-management=disabled',
     'werror=false',
+    wlr_use_lto,
   ],
 )
 
