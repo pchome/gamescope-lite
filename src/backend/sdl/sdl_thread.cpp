@@ -5,7 +5,10 @@
 
 #include "sdl_backend.hpp"
 #include "sdl_thread.hpp"
+
+#if HAVE_IMGUI
 #include "sdl_gui.hpp"
+#endif
 
 #include "GamescopeVersion.h"
 
@@ -106,6 +109,7 @@ void CSDLBackend::SDLThreadFunc() {
   while (SDL_WaitEvent(&event)) {
     fake_timestamp++;
 
+#if HAVE_IMGUI
     if (!m_Connector.IsUiHidden() && (event.key.mod & SDL_KMOD_LGUI) == 0) {
       if (HandleUiEvent(event)) {
         // Grab all events while popup visible
@@ -113,6 +117,7 @@ void CSDLBackend::SDLThreadFunc() {
         continue;
       }
     }
+#endif
 
     if (HandleInputEvent(event, fake_timestamp)) {
       continue;

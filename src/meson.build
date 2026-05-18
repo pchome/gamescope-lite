@@ -91,6 +91,10 @@ reshade_include = include_directories([
 ])
 endif
 
+imgui_src = []
+imgui_include = include_directories()
+
+if get_option('ui').enabled()
 imgui_src = [
   '../thirdparty/imgui/imgui.cpp',
 #   '../thirdparty/imgui/imgui_demo.cpp',
@@ -103,6 +107,7 @@ imgui_src = [
 ]
 
 imgui_include = include_directories(['../thirdparty/imgui','../thirdparty/imgui/backends' ])
+endif
 
 required_wlroots_features = ['xwayland']
 
@@ -110,13 +115,11 @@ src = [
   'backend/sdl/sdl_connector.cpp',
   'backend/sdl/sdl_backend.cpp',
   'backend/sdl/sdl_thread.cpp',
-  'backend/sdl/sdl_gui.cpp',
   'backend/sdl/sdl_action.cpp',
-  
+
   'backend/sdl/event/input.cpp',
   'backend/sdl/event/window.cpp',
   'backend/sdl/event/custom.cpp',
-  'backend/sdl/event/ui.cpp',
 
   'Utils/TempFiles.cpp',
   'Utils/Version.cpp',
@@ -136,6 +139,11 @@ src = [
   'backend.cpp',
   'x11cursor.cpp',
 ]
+
+if get_option('ui').enabled()
+  src += 'backend/sdl/sdl_gui.cpp'
+  src += 'backend/sdl/event/ui.cpp'
+endif
 
 stb_src = [
   'Utils/stb_image_impl.c',
@@ -159,12 +167,13 @@ if get_option('pipewire').enabled()
 endif
 
 gamescope_cpp_args = []
-gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_IMGUI=@0@'.format(get_option('ui').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(get_option('rt_cap').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_RESHADE=@0@'.format(get_option('reshade').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_ANIME4K=@0@'.format(get_option('anime4k').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_HEADLESS=@0@'.format(get_option('headless').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCREENSHOT=@0@'.format(get_option('screenshot').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())
 
 src += spirv_shaders
 src += protocols_server_src
