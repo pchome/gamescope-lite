@@ -170,8 +170,7 @@ void UiLayoutOutputResolution(CSDLAction* pAction) {
   static int prev_a = alimit;
 
   // Resolution list
-  static auto filter = rdb::data | where::aspect_ratio(use_a) | min::divisor(min_d) | max::height(max_h);
-  static auto list = filter | get::resolution | as::vector;
+  static auto list = rdb::data | where::aspect_ratio(use_a) | min::divisor(min_d) | max::height(max_h) | get::resolution | as::vector;
 
   // Find current resolution
   static auto res_current = [] {
@@ -189,8 +188,7 @@ void UiLayoutOutputResolution(CSDLAction* pAction) {
 
   // Update list on filter change
   if (prev_h != hlimit || prev_d != dlimit || prev_a != alimit) {
-    filter = rdb::data | where::aspect_ratio(use_a) | min::divisor(min_d) | max::height(max_h);
-    list = filter | get::resolution | as::vector;
+    list = rdb::data | where::aspect_ratio(use_a) | min::divisor(min_d) | max::height(max_h) | get::resolution | as::vector;
     prev_h = hlimit;
     prev_d = dlimit;
     prev_a = alimit;
