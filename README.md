@@ -4,15 +4,15 @@
 
 #### So far:
 * [x] Only SDL, Headless, and Deferred backends left
-* [x] Droped DRM backend
-* [x] Droped OpenVP backend
-* [x] Droped Wayland backend
+* [x] Droped DRM, OpenVR, Wayland backends
 * [x] Droped WSI layer (use upstream one if needed/applicable)
 * [x] Droped Lua scripting support
 * [x] Droped executables other than `gamescope-lite` and `gamescopereaper-lite` (use upstream one if needed/applicable)
-* [x] Optional (disabled by default) reshade, pipewire, screenshots, headless backend, anime4k UL upscaling filter
+* [x] Optional (disabled by default) ui, reshade, pipewire, screenshots, headless backend, anime4k UL upscaling filter
 
+#### New:
 * [x] Ported to SDL3
+* [x] Experimental settings UI (toggle via Super + `) 
 * [x] Updated wlroots version to 0.18.3
     - + patch to run gamescope in containers (unshare, flatpack, ...)
     - + patch to silence error about X0 socket already in use
