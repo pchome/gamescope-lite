@@ -107,9 +107,11 @@ auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> 
     if (event.type == SDL_EVENT_KEY_UP && ((event.key.mod & SDL_KMOD_LGUI) != 0)) {
       bool key_handled = true;
       switch (key) {
+#if HAVE_IMGUI
       case KEY_GRAVE:
         m_Connector.Action()->TogglePopup();
         break;
+#endif
       case KEY_F:
         m_Connector.Action()->ToggleFullscreen();
         break;

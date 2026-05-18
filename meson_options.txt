@@ -32,3 +32,8 @@ option('anime4k',
   description: 'Support Anime4k 2x CNN UL (Ultra Large) upscaling',
   type:        'feature',
   value:       'disabled')
+
+option('ui',
+  description: 'Experimental support for settings ImGui popup',
+  type:        'feature',
+  value:       'disabled')

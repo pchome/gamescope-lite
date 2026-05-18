@@ -219,6 +219,9 @@ const char usage[] =
 	"  --keep-alive                   Keep Gamescope alive even when the primary process has died.\n"
 	"\n"
 	"Keyboard shortcuts:\n"
+#if HAVE_IMGUI
+    "  Super + `                      toggle UI popup\n"
+#endif
 	"  Super + F                      toggle fullscreen\n"
 	"  Super + N                      toggle nearest neighbour filtering\n"
 	"  Super + U                      toggle FSR upscaling\n"

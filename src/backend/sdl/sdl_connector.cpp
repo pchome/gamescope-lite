@@ -35,10 +35,12 @@ CSDLConnector::CSDLConnector(CSDLBackend* pBackend)
     : m_pBackend{pBackend} {}
 
 CSDLConnector::~CSDLConnector() {
+#if HAVE_IMGUI
   UiShutdown();
   if (m_pUiRenderer != nullptr) {
     SDL_DestroyRenderer(m_pUiRenderer);
   }
+#endif
   if (m_pWindow != nullptr) {
     SDL_DestroyWindow(m_pWindow);
   }
@@ -101,6 +103,7 @@ auto CSDLConnector::Init() -> bool {
     return false;
   }
 
+#if HAVE_IMGUI
   {
     constexpr auto offset_x = 10;
     constexpr auto offset_y = 10;
@@ -124,6 +127,7 @@ auto CSDLConnector::Init() -> bool {
 
     UiInit();
   }
+#endif
 
   m_pAction = new CSDLAction(this);
   m_pAction->Init();
@@ -168,6 +172,7 @@ auto CSDLConnector::Present(FrameInfo_t const* pFrameInfo, bool /*bAsync*/) -> i
     return -EINVAL;
   }
 
+#if HAVE_IMGUI
   // Only render if popup visible
   if ((SDL_GetWindowFlags(m_pPopup) & SDL_WINDOW_HIDDEN) == 0u) {
     UiStartFrame();
@@ -175,6 +180,7 @@ auto CSDLConnector::Present(FrameInfo_t const* pFrameInfo, bool /*bAsync*/) -> i
     UiRender();
     UiPresent();
   }
+#endif
 
   vulkan_present_to_window();
 

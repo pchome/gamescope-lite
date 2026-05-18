@@ -20,10 +20,12 @@ namespace gamescope {
 CSDLAction::CSDLAction(CSDLConnector* pConnector)
     : m_pConnector{pConnector} {}
 
+#if HAVE_IMGUI
 void CSDLAction::TogglePopup() {
   auto flags = SDL_GetWindowFlags(m_pConnector->GetPopupWindow());
   m_pConnector->UiShow((flags & SDL_WINDOW_HIDDEN) != 0u);
 }
+#endif
 
 void CSDLAction::ToggleFullscreen() {
   g_bFullscreen = !g_bFullscreen;
