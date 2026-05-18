@@ -1,5 +1,3 @@
-#include "Script/Script.h"
-
 #include <X11/Xlib.h>
 
 #include <cstdio>
@@ -833,12 +831,6 @@ int main(int argc, char **argv)
 
 	gamescope::Process::RaiseFdLimit();
 
-#if HAVE_SCRIPTING
-	{
-		gamescope::CScriptScopedLock script;
-		script.Manager().RunDefaultScripts();
-	}
-#endif
 	XInitThreads();
 	g_mainThread = pthread_self();
 

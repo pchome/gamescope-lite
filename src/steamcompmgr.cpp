@@ -89,7 +89,6 @@
 #include "Utils/Defer.h"
 #include "win32_styles.h"
 #include "convar.h"
-#include "Script/Script.h"
 #include "refresh_rate.h"
 #include "commit.h"
 #if HAVE_RESHADE
@@ -8636,12 +8635,6 @@ steamcompmgr_main(int argc, char **argv)
 			hasRepaint = false;
 			hasRepaintNonBasePlane = false;
 			nIgnoredOverlayRepaints = 0;
-#if HAVE_SCRIPTING
-			{
-				gamescope::CScriptScopedLock script;
-				script.Manager().CallHook( "OnPostPaint" );
-			}
-#endif
 		}
 
 		if ( bIsVBlankFromTimer )

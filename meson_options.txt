@@ -23,11 +23,6 @@ option('reshade',
   type:        'feature',
   value:       'disabled')
 
-option('scripting',
-  description: 'Support for lua scripting',
-  type:        'feature',
-  value:       'disabled')
-
 option('headless',
   description: 'Support headless backend',
   type:        'feature',

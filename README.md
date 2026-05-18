@@ -8,8 +8,9 @@
 * [x] Droped OpenVP backend
 * [x] Droped Wayland backend
 * [x] Droped WSI layer (use upstream one if needed/applicable)
+* [x] Droped Lua scripting support
 * [x] Droped executables other than `gamescope-lite` and `gamescopereaper-lite` (use upstream one if needed/applicable)
-* [x] Optional (disabled by default) scripts, reshade, pipewire, screenshots, headless backend, anime4k UL upscaling filter
+* [x] Optional (disabled by default) reshade, pipewire, screenshots, headless backend, anime4k UL upscaling filter
 
 * [x] Ported to SDL3
 * [x] Updated wlroots version to 0.18.3

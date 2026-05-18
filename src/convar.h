@@ -83,15 +83,12 @@ namespace gamescope
         return tokens;
     }
 
-    namespace detail { struct ConVarScriptRegistrar; }
-
     class ConCommand
     {
-        friend struct detail::ConVarScriptRegistrar;
         using ConCommandFunc = std::function<void( std::span<std::string_view> )>;
 
     public:
-        ConCommand( std::string_view pszName, std::string_view pszDescription, ConCommandFunc func, bool bRegisterScript = true );
+        ConCommand( std::string_view pszName, std::string_view pszDescription, ConCommandFunc func );
         ~ConCommand();
 
         void Invoke( std::span<std::string_view> args )
@@ -116,7 +113,6 @@ namespace gamescope
         std::string_view GetDescription() const { return m_pszDescription; }
 
         static Dict<ConCommand *>& GetCommands();
-        static void RegisterScript( std::string_view name, ConCommand *cmd );
     protected:
         std::string_view m_pszName;
         std::string_view m_pszDescription;
@@ -127,22 +123,16 @@ namespace gamescope
     template <typename T>
     class ConVar : public ConCommand
     {
-        friend struct detail::ConVarScriptRegistrar;
         using ConVarCallbackFunc = std::function<void(ConVar<T> &)>;
     public:
-        ConVar( std::string_view pszName, T defaultValue = T{}, std::string_view pszDescription = "", ConVarCallbackFunc func = nullptr, bool bRunCallbackAtStartup = false, bool bRegisterScript = true )
-            : ConCommand( pszName, pszDescription, [this]( std::span<std::string_view> pArgs ){ this->InvokeFunc( pArgs ); }, false )
+        ConVar( std::string_view pszName, T defaultValue = T{}, std::string_view pszDescription = "", ConVarCallbackFunc func = nullptr, bool bRunCallbackAtStartup = false )
+            : ConCommand( pszName, pszDescription, [this]( std::span<std::string_view> pArgs ){ this->InvokeFunc( pArgs ); } )
             , m_Value{ defaultValue }
             , m_Callback{ func }
         {
             if ( bRunCallbackAtStartup )
             {
                 RunCallback();
-            }
-
-            if ( bRegisterScript )
-            {
-                RegisterScript( pszName, this );
             }
         }
 

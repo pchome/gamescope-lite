@@ -91,8 +91,6 @@ reshade_include = include_directories([
 ])
 endif
 
-sol2_include = include_directories(['../thirdparty'])
-
 required_wlroots_features = ['xwayland']
 
 src = [
@@ -110,7 +108,6 @@ src = [
   'BufferMemo.cpp',
   'steamcompmgr.cpp',
   'convar.cpp',
-  'convar_script.cpp',
   'commit.cpp',
   'color_helpers.cpp',
   'main.cpp',
@@ -141,23 +138,8 @@ if get_option('reshade').enabled()
   src += 'reshade_effect_manager.cpp'
 endif
 
-if get_option('scripting').enabled()
-  src += 'Script/Script.cpp'
-endif
-
 if get_option('pipewire').enabled()
   src += 'pipewire.cpp'
-endif
-
-luajit_dep = dependency('luajit', required: get_option('scripting'))
-
-if get_option('scripting').enabled()
-  # Handle default script/config/looks stuff
-  meson.add_install_script(meson.project_source_root() / 'default_extras_install.sh')
-
-  devenv = environment()
-  devenv.set('GAMESCOPE_SCRIPT_PATH', join_paths(meson.project_source_root(), 'scripts'))
-  meson.add_devenv(devenv)
 endif
 
 gamescope_cpp_args = []
@@ -166,9 +148,7 @@ gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(get_option('rt_cap').enabled().
 gamescope_cpp_args += '-DHAVE_RESHADE=@0@'.format(get_option('reshade').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_ANIME4K=@0@'.format(get_option('anime4k').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_HEADLESS=@0@'.format(get_option('headless').enabled().to_int())
-gamescope_cpp_args += '-DHAVE_SCRIPTING=@0@'.format(get_option('scripting').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCREENSHOT=@0@'.format(get_option('screenshot').enabled().to_int())
-gamescope_cpp_args += '-DSCRIPT_DIR="@0@"'.format(prefix / data_dir / 'gamescope/scripts')
 
 src += spirv_shaders
 src += protocols_server_src
@@ -205,14 +185,14 @@ gamescope_version = configure_file(
   executable(
     'gamescope-lite',
     src, stb_src, reshade_src, gamescope_version,
-    include_directories : [reshade_include, sol2_include],
+    include_directories : [reshade_include],
     dependencies: [
       dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
       dep_xxf86vm, dep_xres, glm_dep, wayland_server,
       xkbcommon, thread_dep, sdl3_dep, wlroots_dep,
       vulkan_dep, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
       stb_dep, dep_xcursor, avif_dep, dep_xi,
-      luajit_dep, pixman_dep,
+      pixman_dep,
     ],
     install: true,
     cpp_args: gamescope_cpp_args,
