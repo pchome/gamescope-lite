@@ -101,11 +101,11 @@ constexpr struct as {
 } // namespace rdb
 
 namespace rdb {
-enum Height : std::uint8_t { Height_HD, Height_FullD, Height_4K, Height_8K, Height_COUNT };
+enum Height : std::uint8_t { Height_HD, Height_FullHD, Height_4K, Height_8K, Height_COUNT };
 static constexpr std::array<char const*, std::to_underlying(Height::Height_COUNT)> HeightName{"HD", "FullHD", "4K", "8K"};
 static constexpr std::array<uint16_t, std::to_underlying(Height::Height_COUNT)> HeightValue{720, 1080, 2160, 4320};
 
-enum Width : std::uint8_t { Width_HD, Width_FullD, Width_4K, Width_8K, Width_COUNT };
+enum Width : std::uint8_t { Width_HD, Width_FullHD, Width_4K, Width_8K, Width_COUNT };
 static constexpr std::array<char const*, std::to_underlying(Width::Width_COUNT)> WidthName{"HD", "FullHD", "4K", "8K"};
 static constexpr std::array<uint16_t, std::to_underlying(Width::Width_COUNT)> WidthValue{1280, 1920, 3840, 7680};
 

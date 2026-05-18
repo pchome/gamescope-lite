@@ -157,7 +157,7 @@ void UiLayoutOutputResolution(CSDLAction* pAction) {
   using namespace rdb;
   using namespace std::literals;
 
-  static int hlimit = rdb::Height_FullD;
+  static int hlimit = rdb::Height_FullHD;
   static int dlimit = rdb::Divisor_16;
   static int alimit = rdb::W16_H9;
 
