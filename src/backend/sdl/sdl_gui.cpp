@@ -145,12 +145,59 @@ void UiLayoutUpscaleFilterPreset() {
   ImHlp::Hint(mhint);
 
   ImGui::SetNextItemWidth(100);
-  ImGui::Combo("Preset", &plimit, rdb::UpscalingPresetName.data(), rdb::UpscalingPresetName.size());
+  ImGui::Combo("Preset##1", &plimit, rdb::UpscalingPresetName.data(), rdb::UpscalingPresetName.size());
 
   if (prev_p != plimit) {
     to_W = g_nNestedWidth * UpscalingPresetValue.at(plimit);
     to_H = g_nNestedHeight * UpscalingPresetValue.at(plimit);
     prev_p = plimit;
+  }
+}
+void UiLayoutDownscaleFilterPreset() {
+  using namespace rdb;
+  using namespace std::literals;
+
+  static int plimit = rdb::Preset_Mitchell_Netravali;
+  static float blimit = rdb::BicubicPresetValue.at(plimit).first;
+  static float climit = rdb::BicubicPresetValue.at(plimit).second;
+  static int prev_p = plimit;
+  static float prev_b = blimit;
+  static float prev_c = climit;
+
+  ImGui::SetNextItemWidth(100);
+  ImGui::Combo("Preset##2", &plimit, rdb::BicubicPresetName.data(), rdb::BicubicPresetName.size());
+
+  static auto sliderFlags = ImGuiSliderFlags_NoInput; // disable Ctrl+Click
+
+  ImGui::BeginDisabled(plimit != rdb::Preset_Custom);
+  static auto const bhint = "More blur"sv;
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderFloat("B", &blimit, 0.0f, 1.0f, "%.2f", sliderFlags);
+  ImGui::SameLine();
+  ImHlp::Hint(bhint);
+
+  static auto const chint = "More ringing"sv;
+  ImGui::SetNextItemWidth(100);
+  ImGui::SliderFloat("C", &climit, 0.0f, 1.0f, "%.2f", sliderFlags);
+  ImGui::SameLine();
+  ImHlp::Hint(chint);
+  ImGui::EndDisabled();
+
+  if (prev_p != plimit) {
+    g_bicubicParams.b = BicubicPresetValue.at(plimit).first;
+    g_bicubicParams.c = BicubicPresetValue.at(plimit).second;
+    blimit = BicubicPresetValue.at(plimit).first;
+    climit = BicubicPresetValue.at(plimit).second;
+    prev_p = plimit;
+    prev_b = blimit;
+    prev_c = climit;
+  }
+
+  if (prev_b != blimit || prev_c != climit) {
+    g_bicubicParams.b = blimit;
+    g_bicubicParams.c = climit;
+    prev_b = blimit;
+    prev_c = climit;
   }
 }
 void UiLayoutOutputResolution(CSDLAction* pAction) {
@@ -213,7 +260,7 @@ void UiLayoutOutputResolution(CSDLAction* pAction) {
   ImGui::SetNextItemWidth(100);
   ImGui::Combo("Aspect Ratio", &alimit, rdb::AspectRatioName.data(), rdb::AspectRatioName.size());
 
-  auto sliderFlags = ImGuiSliderFlags_NoInput; // disable Ctrl+Click
+  static auto sliderFlags = ImGuiSliderFlags_NoInput; // disable Ctrl+Click
 
   static auto const hhint = "Hide resolutions higher than [height]"sv;
   ImGui::SetNextItemWidth(100);
@@ -253,24 +300,33 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImTpl::Toggle("Fullscreen windows", g_bForceWindowsFullscreen, [] { CSDLAction::ToggleWindowsFullscreen(); });
   ImGui::Separator();
   ImFmt::Text("Filters");
-  // Upscale Filter
-  ImTpl::Select("Upscale Filter", g_wantedUpscaleFilter, GamescopeUpscaleFilterName, [](auto value) {
-    CSDLAction::SetUpscaleFilter(static_cast<GamescopeUpscaleFilter>(value));
-  });
-  UiLayoutUpscaleFilterPreset();
-  // Upscale Filter Sharpness
-  UiLayoutUpscaleFilterSharpnessStrenght();
-  // Sharpness
-  static int sharpness = g_upscaleFilterSharpness;
-  ImGui::SetNextItemWidth(100);
-  ImGui::SliderInt("Filter Sharpness", &sharpness, defaults::minFSRSharpness, defaults::maxFSRSharpness, "%d");
-  if (sharpness != g_upscaleFilterSharpness) {
-    CSDLAction::SetUpscaleFilterSharpness(sharpness);
-  }
   // Upscale Scaler
   ImTpl::Select("Upscale Scaler", g_wantedUpscaleScaler, GamescopeUpscaleScalerName, [](auto value) {
     CSDLAction::SetUpscaleScaler(static_cast<GamescopeUpscaleScaler>(value));
   });
+  // Upscale Filter
+  ImTpl::Select("Upscale Filter", g_wantedUpscaleFilter, GamescopeUpscaleFilterName, [](auto value) {
+    CSDLAction::SetUpscaleFilter(static_cast<GamescopeUpscaleFilter>(value));
+  });
+  if (g_wantedUpscaleFilter == GamescopeUpscaleFilter::FSR || g_wantedUpscaleFilter == GamescopeUpscaleFilter::NIS) {
+    UiLayoutUpscaleFilterPreset();
+    // Upscale Filter Sharpness
+    UiLayoutUpscaleFilterSharpnessStrenght();
+    // Sharpness
+    static int sharpness = g_upscaleFilterSharpness;
+    ImGui::SetNextItemWidth(100);
+    ImGui::SliderInt("Filter Sharpness", &sharpness, defaults::minFSRSharpness, defaults::maxFSRSharpness, "%d");
+    if (sharpness != g_upscaleFilterSharpness) {
+      CSDLAction::SetUpscaleFilterSharpness(sharpness);
+    }
+  }
+  // Downscale Filter
+  ImTpl::Select("Downscale Filter", g_wantedDownscaleFilter, GamescopeDownscaleFilterName, [](auto value) {
+    CSDLAction::SetDownscaleFilter(static_cast<GamescopeDownscaleFilter>(value));
+  });
+  if (g_wantedDownscaleFilter == GamescopeDownscaleFilter::BICUBIC) {
+    UiLayoutDownscaleFilterPreset();
+  }
   ImGui::EndGroup();
 
   ImGui::Separator();

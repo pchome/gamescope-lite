@@ -13,6 +13,7 @@ constexpr auto toms = 1000.0f;
 
 constexpr std::array<char const*, 4> GamescopeUpscaleFilterName{"LINEAR", "PIXEL", "FSR", "NIS"};
 constexpr std::array<char const*, 6> GamescopeUpscaleScalerName{"AUTO", "INTEGER", "FIT", "FILL", "STRETCH", "NATIVE"};
+constexpr std::array<char const*, 2> GamescopeDownscaleFilterName{"LINEAR", "BICUBIC"};
 } // namespace
 
 extern bool g_bForceWindowsFullscreen;

@@ -172,6 +172,35 @@ constexpr std::array<double, std::to_underlying(UpscalingPreset::UpscalingPreset
 } // namespace rdb
 
 namespace rdb {
+using BC = std::pair<float, float>;
+/**
+ * Bicubic downscaling presets
+ * 
+ * B: 0->1 blur, C: 0->1 ringing
+ * 
+ * @todo: maybe use fixed B, C or both for some presets
+ *       for Cardinal use B=0, C=any,
+ *       for B-spline use B=1, C=any (?),
+ *       for Mitchell B + 2C = 1
+ * @see: https://en.wikipedia.org/wiki/Mitchell%E2%80%93Netravali_filters
+ */
+enum BicubicPreset : std::uint8_t {
+  // ---                     // B,   C
+  Preset_Cardinal_spline,    // 0,   1    // C - Any value
+  Preset_Catmull_Rom_spline, // 0,   0.5  // ---
+  Preset_Unnamed,            // 0,   0.75 // Bicubic filter in Adobe Photoshop
+  Preset_Mitchell_Netravali, // 0.3, 0.3  // Mitchell filter in ImageMagick
+  Preset_B_spline,           // 1,   0    // Bicubic filter in Paint.net
+  Preset_Custom,             // 0.3, 0.3  // Default
+  BicubicPreset_COUNT,
+};
+constexpr std::array<char const*, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)> BicubicPresetName{
+    "Cardinal spline", "Catmull-Rom spline", "Unnamed", "Mitchell-Netravali", "B-spline", "Custom"};
+constexpr std::array<BC, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)> BicubicPresetValue{
+    {{0.0f, 1.0f}, {0.0f, 0.5f}, {0.0f, 0.75f}, {0.3f, 0.3f}, {1.0f, 0.0f}, {0.3f, 0.3f}}};
+} // namespace rdb
+
+namespace rdb {
 /**
  * Resolution DataBase
  *
