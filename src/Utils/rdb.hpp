@@ -202,6 +202,44 @@ constexpr std::array<BC, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)>
 
 namespace rdb {
 /**
+ * Find resolution height
+ */
+static constexpr auto height_current = [](uint16_t h) {
+  if (h <= HeightValue.at(Height_FullHD)) {
+    return Height_FullHD;
+  }
+  if (h <= HeightValue.at(Height_4K)) {
+    return Height_4K;
+  }
+  return Height_8K;
+};
+/**
+ * Find resolution divisor
+ */
+static constexpr auto divisor_current = [](uint16_t w, uint16_t h) {
+    if (w % 16 == 0 && h % 16 == 0) {
+        return Divisor_16;
+    }
+    if (w % 8 == 0 && h % 8 == 0) {
+        return Divisor_8;
+    }
+    return Divisor_4;
+};
+/**
+ * Find resolution aspect ratio
+ */
+static constexpr auto aspect_current = [](uint16_t w, uint16_t h) {
+  auto a = w / static_cast<double>(h);
+  auto const* it = std::ranges::find(AspectRatioValue, a);
+  if (it != AspectRatioValue.end()) {
+    return static_cast<AspectRatio>(std::ranges::distance(AspectRatioValue.begin(), it));
+  }
+  return W16_H9;
+};
+} // namespace rdb
+
+namespace rdb {
+/**
  * Resolution DataBase
  *
  * Intended to avoid runtime calculations when creating resolution lists,

@@ -85,6 +85,7 @@ void UiLayoutDebugTab() {
   }
   ImFmt::Text("Nested: {}x{}@{}", g_nNestedWidth, g_nNestedHeight, g_nNestedRefresh / toHz);
   ImFmt::Text("Output: {}x{}@{}", g_nOutputWidth, g_nOutputHeight, g_nOutputRefresh / toHz);
+  ImFmt::Text("Preferred: {}x{}", g_nPreferredOutputWidth, g_nPreferredOutputHeight);
   ImFmt::Text("Aspect: {}", g_aspectRatio);
 
   ImGui::SeparatorText("Nested");
@@ -204,9 +205,11 @@ void UiLayoutOutputResolution(CSDLAction* pAction) {
   using namespace rdb;
   using namespace std::literals;
 
-  static int hlimit = rdb::Height_FullHD;
-  static int dlimit = rdb::Divisor_16;
-  static int alimit = rdb::W16_H9;
+  // TODO: window height can't be greater than current desktop height
+
+  static int hlimit = rdb::height_current(g_nOutputHeight); // rdb::Height_FullHD;
+  static int dlimit = rdb::divisor_current(g_nNestedWidth, g_nNestedHeight); // rdb::Divisor_16;
+  static int alimit = rdb::aspect_current(g_nNestedWidth, g_nNestedHeight); // rdb::W16_H9;
 
   auto max_h = rdb::HeightValue.at(hlimit);
   auto min_d = rdb::DivisorValue.at(dlimit);
