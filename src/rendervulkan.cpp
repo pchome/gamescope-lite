@@ -577,14 +577,11 @@ bool CVulkanDevice::createDevice()
 	for ( auto& extension : GetBackend()->GetDeviceExtensions( physDev() ) )
 		enabledExtensions.push_back( extension );
 
-	uint32_t devExtPropCount = 0;
-	vk.EnumerateDeviceExtensionProperties( physDev(), nullptr, &devExtPropCount, nullptr );
-	std::vector<VkExtensionProperties> devExtProp( devExtPropCount );
-	vk.EnumerateDeviceExtensionProperties( physDev(), nullptr, &devExtPropCount, devExtProp.data() );
 	bool anyMissing = false;
+
 	for ( auto& requiredExt : enabledExtensions ) {
 		bool extFound = false;
-		for ( auto & availableExt : devExtProp ) {
+		for ( auto& availableExt : m_supportedExts ) {
 			if ( strcmp( requiredExt, availableExt.extensionName ) == 0 ) {
 				extFound = true;
 				break;
