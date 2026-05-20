@@ -577,22 +577,24 @@ bool CVulkanDevice::createDevice()
 	for ( auto& extension : GetBackend()->GetDeviceExtensions( physDev() ) )
 		enabledExtensions.push_back( extension );
 
-	bool anyMissing = false;
+	bool hasMissingExtensions = false;
+
+    auto isAvailable = [this](auto& ext) -> bool {
+        for ( auto& availableExt : m_supportedExts ) {
+            if ( strcmp( ext, availableExt.extensionName ) == 0 )
+                return true;
+        }
+        return false;
+    };
 
 	for ( auto& requiredExt : enabledExtensions ) {
-		bool extFound = false;
-		for ( auto& availableExt : m_supportedExts ) {
-			if ( strcmp( requiredExt, availableExt.extensionName ) == 0 ) {
-				extFound = true;
-				break;
-			}
-		}
-		if ( !extFound ) {
+		if ( !isAvailable( requiredExt ) ) {
 			vk_log.errorf( "Missing required extension: %s", requiredExt );
-			anyMissing = true;
+			hasMissingExtensions = true;
 		}
 	}
-	if ( anyMissing )
+
+	if ( hasMissingExtensions )
 		return false;
 
 	VkPhysicalDeviceMaintenance5FeaturesKHR maintenance5 = {
