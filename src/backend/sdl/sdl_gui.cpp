@@ -86,6 +86,7 @@ void UiLayoutDebugTab() {
   ImFmt::Text("Nested: {}x{}@{}", g_nNestedWidth, g_nNestedHeight, g_nNestedRefresh / toHz);
   ImFmt::Text("Output: {}x{}@{}", g_nOutputWidth, g_nOutputHeight, g_nOutputRefresh / toHz);
   ImFmt::Text("Preferred: {}x{}", g_nPreferredOutputWidth, g_nPreferredOutputHeight);
+  ImFmt::Text("Focused: {}x{}", g_nFocusedWindowWidth, g_nFocusedWindowHeight);
   ImFmt::Text("Aspect: {}", g_aspectRatio);
 
   ImGui::SeparatorText("Nested");
@@ -280,8 +281,9 @@ void UiLayoutOutputResolution(CSDLAction* pAction) {
 
 void UiLayoutSettingsTab(CSDLAction* pAction) {
   ImGui::BeginGroup();
-  ImFmt::Text("Settings");
+  ImFmt::Text("Resolution");
   // Resolutions
+  ImFmt::Text("Original: {}x{}", g_nFocusedWindowWidth, g_nFocusedWindowHeight);
   ImFmt::Text("Nested {}x{}", g_nNestedWidth, g_nNestedHeight);
   ImGui::SameLine();
   ImFmt::Text("->");

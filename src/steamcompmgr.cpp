@@ -3479,6 +3479,9 @@ static void set_wm_state( xwayland_ctx_t *ctx, Window win, uint32_t state )
 				sizeof(wmState) / sizeof(wmState[0]));
 }
 
+extern int g_nFocusedWindowWidth;
+extern int g_nFocusedWindowHeight;
+
 void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win_t* > &vecPossibleFocusWindows )
 {
 	xwayland_ctx_t *ctx = this;
@@ -3569,6 +3572,12 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 				sprintf( buf,  "xwininfo -id 0x%lx; xprop -id 0x%lx; xwininfo -root -tree", ctx->focus.focusWindow->xwayland().id, ctx->focus.focusWindow->xwayland().id );
 				system( buf );
 			}
+
+			auto focus_window_size = ctx->focus.focusWindow->GetGeometry();
+			xwm_log.infof( "focused window size: %dx%d",  focus_window_size.nHeight, focus_window_size.nWidth);
+
+            g_nFocusedWindowWidth = ctx->focus.focusWindow->GetGeometry().nWidth;
+            g_nFocusedWindowHeight = ctx->focus.focusWindow->GetGeometry().nHeight;
 		}
 	}
 

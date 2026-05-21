@@ -661,6 +661,10 @@ static void UpdateCompatEnvVars()
 
 int g_nPreferredOutputWidth = 0;
 int g_nPreferredOutputHeight = 0;
+
+int g_nFocusedWindowWidth = 0;
+int g_nFocusedWindowHeight = 0;
+
 // bool g_bExposeWayland = false;
 // const char *g_sOutputName = nullptr;
 bool g_bRt = false;

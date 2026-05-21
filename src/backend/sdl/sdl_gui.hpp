@@ -19,6 +19,8 @@ constexpr std::array<char const*, 2> GamescopeDownscaleFilterName{"LINEAR", "BIC
 extern bool g_bForceWindowsFullscreen;
 extern int g_nPreferredOutputHeight;
 extern int g_nPreferredOutputWidth;
+extern int g_nFocusedWindowWidth;
+extern int g_nFocusedWindowHeight;
 
 namespace ImFmt {
 template <typename... Args>
