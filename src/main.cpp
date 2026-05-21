@@ -99,7 +99,6 @@ const struct option *gamescope_options = (struct option[]){
 	{ "debug-hud", no_argument, nullptr, 'v' },
 	{ "debug-events", no_argument, nullptr, 0 },
 	{ "steam", no_argument, nullptr, 'e' },
-	{ "force-composition", no_argument, nullptr, 'c' },
 	{ "force-preemptive-upscaling", no_argument, nullptr, 0 },
 	{ "composite-debug", no_argument, nullptr, 0 },
 	{ "disable-xres", no_argument, nullptr, 'x' },
@@ -196,7 +195,6 @@ const char usage[] =
 	"  --synchronous-x11              force X11 connection synchronization\n"
 	"  --debug-hud                    paint HUD with debug info\n"
 	"  --debug-events                 debug X11 events\n"
-	"  --force-composition            disable direct scan-out\n"
 	"  --force-preemptive-upscaling   always use preemptive upscaling for FSR/NIS\n"
 	"  --composite-debug              draw frame markers on alternating corners of the screen when compositing\n"
 	"  --disable-color-management     disable color management\n"

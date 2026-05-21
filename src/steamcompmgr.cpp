@@ -1019,7 +1019,6 @@ static bool		drawDebugInfo = false;
 static bool		debugEvents = false;
 extern bool		steamMode;
 
-gamescope::ConVar<bool> cv_composite_force{ "composite_force", false, "Force composition always, never use scanout" };
 static bool		useXRes = true;
 #if HAVE_SCREENSHOT
 namespace gamescope
@@ -5929,11 +5928,6 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 	{
 		g_BlurFadeDuration = get_prop( ctx, ctx->root, ctx->atoms.gamescopeBlurFadeDuration, 0 );
 	}
-	if ( ev->atom == ctx->atoms.gamescopeCompositeForce )
-	{
-		cv_composite_force = !!get_prop( ctx, ctx->root, ctx->atoms.gamescopeCompositeForce, 0 );
-		hasRepaint = true;
-	}
 	if ( ev->atom == ctx->atoms.gamescopeCompositeDebug )
 	{
 		cv_composite_debug = get_prop( ctx, ctx->root, ctx->atoms.gamescopeCompositeDebug, 0 );
@@ -7900,9 +7894,6 @@ steamcompmgr_main(int argc, char **argv)
 			case 'v':
 				drawDebugInfo = true;
 				break;
-			case 'c':
-				cv_composite_force = true;
-				break;
 			case 'x':
 				useXRes = false;
 				break;
@@ -7959,12 +7950,6 @@ steamcompmgr_main(int argc, char **argv)
 	if ( optind < argc )
 	{
 		subCommandArg = optind;
-	}
-
-	const char *pchEnableVkBasalt = getenv( "ENABLE_VKBASALT" );
-	if ( pchEnableVkBasalt != nullptr && pchEnableVkBasalt[0] == '1' )
-	{
-		cv_composite_force = true;
 	}
 
 	currentOutputWidth = g_nPreferredOutputWidth;
