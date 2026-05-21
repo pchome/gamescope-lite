@@ -429,7 +429,10 @@ bool CVulkanDevice::selectPhysDev(VkSurfaceKHR surface)
 
 	VkPhysicalDeviceProperties props;
 	vk.GetPhysicalDeviceProperties( m_physDev, &props );
-	vk_log.infof( "selecting physical device '%s': queue family %x (general queue family %x)", props.deviceName, m_queueFamily, m_generalQueueFamily );
+	vk_log.infof( "selecting physical device '%s'", props.deviceName );
+
+    auto selected_queue_family = m_queueFamily != m_generalQueueFamily ? "compute-only" : "general";
+    vk_log.infof( "using %s queue family", selected_queue_family );
 
 	return true;
 }

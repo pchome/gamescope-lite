@@ -86,7 +86,7 @@ void CSDLBackend::SDLThreadFunc() {
     g_nOutputWidth = width;
     g_nOutputHeight = height;
 
-    sdl_log.infof("Using %dx%d window", width, height);
+    sdl_log.infof("Output will match %dx%d SDL window", width, height);
   }
 
   if (g_bForceRelativeMouse) {
