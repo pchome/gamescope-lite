@@ -541,10 +541,11 @@ RuntimeUniform::RuntimeUniform(reshadefx::uniform uniformInfo)
     offset = uniformInfo.offset;
     size   = uniformInfo.size;
     type   = uniformInfo.type;
-    name   = std::find_if(uniformInfo.annotations.begin(), uniformInfo.annotations.end(), [](const auto& a) { return a.name == "source"; })->value.string_data;
+    auto src_annotation = std::ranges::find_if(uniformInfo.annotations, [](const auto& a) { return a.name == "source"; });
+    name = src_annotation != uniformInfo.annotations.end() ? src_annotation->value.string_data : "(empty)";
 
     if (auto defaultValueAnnotation =
-            std::find_if(uniformInfo.annotations.begin(), uniformInfo.annotations.end(), [](const auto& a) { return a.name == "defaultValue"; });
+            std::ranges::find_if(uniformInfo.annotations, [](const auto& a) { return a.name == "defaultValue"; });
         defaultValueAnnotation != uniformInfo.annotations.end())
     {
         reshadefx::constant value = defaultValueAnnotation->value;
