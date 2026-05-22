@@ -80,23 +80,15 @@ spirv_shaders = glsl_generator.process(shader_src)
 
 reshade_src = []
 reshade_include = include_directories()
+reshade_dep = []
 
 if get_option('reshade').enabled()
-reshade_src = [
-  'reshade/source/effect_codegen_spirv.cpp',
-  'reshade/source/effect_expression.cpp',
-  'reshade/source/effect_lexer.cpp',
-  'reshade/source/effect_parser_exp.cpp',
-  'reshade/source/effect_parser_stmt.cpp',
-  'reshade/source/effect_preprocessor.cpp',
-  'reshade/source/effect_symbol_table.cpp',
+reshade_fx_dep = dependency('ReShadeFX')
+reshade_fx_spirv_dep = dependency('ReShadeFX-spirv')
+reshade_fx_type_convert_dep = dependency('ReShadeFX-vulkan-type-convert')
+reshade_dep = [
+  reshade_fx_dep, reshade_fx_spirv_dep, reshade_fx_type_convert_dep,
 ]
-
-reshade_include = include_directories([
-  'reshade/source',
-  'reshade/include',
-  '../thirdparty/SPIRV-Headers/include/spirv/unified1'
-])
 endif
 
 imgui_src = []
@@ -224,7 +216,7 @@ gamescope_version = configure_file(
       dep_xxf86vm, dep_xres, glm_dep, wayland_server,
       xkbcommon, thread_dep, sdl3_dep, wlroots_dep,
       vulkan_dep, dep_xmu, cap_dep, epoll_dep, pipewire_dep, librt_dep,
-      stb_dep, dep_xcursor, avif_dep, dep_xi,
+      stb_dep, dep_xcursor, avif_dep, dep_xi, reshade_dep,
       pixman_dep,
     ],
     install: true,
