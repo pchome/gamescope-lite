@@ -7,13 +7,15 @@
 
 #include "steamcompmgr.hpp"
 
-#include "effect_parser.hpp"
-#include "effect_codegen.hpp"
-#include "effect_preprocessor.hpp"
-#include "gamescope-reshade-protocol.h"
+#include <reshade/effect_parser.hpp>
+#include <reshade/effect_codegen.hpp>
+#include <reshade/effect_preprocessor.hpp>
 
-#include "reshade_api_format.hpp"
-#include "convar.h"
+#include <reshade/reshade_api_format.hpp>
+#include <reshade/reshade_api_pipeline.hpp>
+#include <reshade/reshade_api_resource.hpp>
+
+#include <reshade/vulkan_impl_type_convert.hpp>
 
 #include <stb/stb_image.h>
 #include <stb/deprecated/stb_image_resize.h>
@@ -22,7 +24,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
-#include <iostream>
 
 // This is based on wl_array_for_each from `wayland-util.h` in the Wayland client library.
 #define uint8_array_for_each(pos, data, size) \
@@ -719,6 +720,8 @@ static std::vector<std::shared_ptr<ReshadeUniform>> createReshadeUniforms(const 
 
 static reshade::api::color_space ConvertToReshadeColorSpace(GamescopeAppTextureColorspace colorspace)
 {
+    // TODO:
+    // return reshade::vulkan::convert_color_space(colorspace);
 	switch (colorspace)
 	{
 	default:
@@ -733,8 +736,10 @@ static reshade::api::color_space ConvertToReshadeColorSpace(GamescopeAppTextureC
 	}
 }
 
-static VkFormat ConvertReshadeFormat(reshadefx::texture_format texFormat)
+static VkFormat ConvertReshadeFormat(reshadefx::texture_format texFormat, VkComponentMapping* components)
 {
+    return reshade::vulkan::convert_format(static_cast<reshade::api::format>(texFormat), components);
+#if 0
     switch (texFormat)
     {
         case reshadefx::texture_format::r8: return VK_FORMAT_R8_UNORM;
@@ -753,6 +758,7 @@ static VkFormat ConvertReshadeFormat(reshadefx::texture_format texFormat)
             reshade_log.errorf("Couldn't convert texture format: %d\n", static_cast<int>(texFormat));
             return VK_FORMAT_UNDEFINED;
     }
+#endif
 }
 
 #if 0
@@ -791,6 +797,8 @@ static VkStencilOp ConvertReshadeStencilOp(reshadefx::stencil_op stencilOp)
 
 static VkBlendOp ConvertReshadeBlendOp(reshadefx::blend_op blendOp)
 {
+    return reshade::vulkan::convert_blend_op(static_cast<reshade::api::blend_op>(blendOp));
+#if 0
     switch (blendOp)
     {
         case reshadefx::blend_op::add: return VK_BLEND_OP_ADD;
@@ -800,10 +808,13 @@ static VkBlendOp ConvertReshadeBlendOp(reshadefx::blend_op blendOp)
         case reshadefx::blend_op::max: return VK_BLEND_OP_MAX;
         default: return VK_BLEND_OP_ADD;
     }
+#endif
 }
 
 static VkBlendFactor ConvertReshadeBlendFactor(reshadefx::blend_factor blendFactor)
 {
+    return reshade::vulkan::convert_blend_factor(static_cast<reshade::api::blend_factor>(blendFactor));
+#if 0
     switch (blendFactor)
     {
         case reshadefx::blend_factor::zero: return VK_BLEND_FACTOR_ZERO;
@@ -818,8 +829,9 @@ static VkBlendFactor ConvertReshadeBlendFactor(reshadefx::blend_factor blendFact
         case reshadefx::blend_factor::one_minus_dest_color: return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
         default: return VK_BLEND_FACTOR_ZERO;
     }
+#endif
 }
-
+#if 0
 static VkSamplerAddressMode ConvertReshadeAddressMode(reshadefx::texture_address_mode addressMode)
 {
     switch (addressMode)
@@ -880,7 +892,7 @@ static void ConvertReshadeFilter(const reshadefx::filter_mode& textureFilter, Vk
             return;
     }
 }
-
+#endif
 static uint32_t GetFormatBitDepth(VkFormat format)
 {
     switch (format)
@@ -1140,7 +1152,7 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
             assert(tex.levels == 1);
             assert(tex.type == reshadefx::texture_type::texture_2d);
 
-            bool ret = texture->BInit(tex.width, tex.height, tex.depth, VulkanFormatToDRM(ConvertReshadeFormat(tex.format)), flags, nullptr);
+            bool ret = texture->BInit(tex.width, tex.height, tex.depth, VulkanFormatToDRM(ConvertReshadeFormat(tex.format, nullptr)), flags, nullptr);
             assert(ret);
         }
 
@@ -1270,7 +1282,7 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
             {
                 reshade_log.errorf("Couldn't find texture with name: %s", sampler.texture_name.c_str());
             }
-
+#if 0
             VkFilter            minFilter;
             VkFilter            magFilter;
             VkSamplerMipmapMode mipmapMode;
@@ -1295,6 +1307,24 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
             samplerCreateInfo.maxLod                  = sampler.max_lod;
             samplerCreateInfo.borderColor             = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
             samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+#endif
+            // TODO: try to use reshade::api directly
+            const reshade::api::sampler_desc tmp_map_to_api = {
+                .filter = static_cast<reshade::api::filter_mode>(sampler.filter),
+                .address_u = static_cast<reshade::api::texture_address_mode>(sampler.address_u),
+                .address_v = static_cast<reshade::api::texture_address_mode>(sampler.address_v),
+                .address_w  = static_cast<reshade::api::texture_address_mode>(sampler.address_w),
+                .mip_lod_bias = sampler.lod_bias,
+                .max_anisotropy = 0.0f, // 1.0f default
+                .compare_op = reshade::api::compare_op::always,
+                .border_color = { 0.0f, 0.0f, 0.0f, 0.0f },
+                .min_lod = sampler.min_lod,
+                .max_lod = sampler.max_lod,
+            };
+
+            VkSamplerCreateInfo samplerCreateInfo { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+
+            reshade::vulkan::convert_sampler_desc(tmp_map_to_api, samplerCreateInfo);
 
             VkSampler vkSampler;
             VkResult result = device->vk.CreateSampler(device->device(), &samplerCreateInfo, nullptr, &vkSampler);
@@ -1581,8 +1611,8 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
             vertexInputCreateInfo.pVertexAttributeDescriptions    = nullptr;
 
 
-            VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-
+            VkPrimitiveTopology topology = reshade::vulkan::convert_primitive_topology(static_cast<reshade::api::primitive_topology>(pass.topology)); //VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+#if 0
             switch (pass.topology)
             {
                 case reshadefx::primitive_topology::point_list:     topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST; break;
@@ -1592,7 +1622,7 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
                 case reshadefx::primitive_topology::triangle_strip: topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP; break;
                 default: reshade_log.errorf("Unsupported primitive type: %d", (uint32_t) pass.topology); break;
             }
-
+#endif
             VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
             inputAssemblyCreateInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
             inputAssemblyCreateInfo.pNext                  = nullptr;
