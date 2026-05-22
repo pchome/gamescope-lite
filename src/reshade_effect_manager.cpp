@@ -1725,7 +1725,7 @@ void ReshadeEffectPipeline::update()
         uniform->update(m_mappedPtr);
 }
 
-uint64_t ReshadeEffectPipeline::execute(gamescope::Rc<CVulkanTexture> inImage, gamescope::Rc<CVulkanTexture> *outImage)
+uint64_t ReshadeEffectPipeline::execute(gamescope::Rc<CVulkanTexture> const& inImage, gamescope::Rc<CVulkanTexture> *outImage)
 {
     CVulkanDevice *device = m_device;
     this->update();

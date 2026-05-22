@@ -55,7 +55,7 @@ public:
 
     bool init(CVulkanDevice *device, const ReshadeEffectKey &key);
     void update();
-    uint64_t execute(gamescope::Rc<CVulkanTexture> inImage, gamescope::Rc<CVulkanTexture> *outImage);
+    uint64_t execute(gamescope::Rc<CVulkanTexture> const& inImage, gamescope::Rc<CVulkanTexture> *outImage);
 
     const ReshadeEffectKey& key() const { return m_key; }
     reshadefx::effect_module *module() { return m_module.get(); }

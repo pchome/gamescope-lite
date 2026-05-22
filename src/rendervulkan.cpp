@@ -4160,7 +4160,7 @@ extern uint32_t g_reshade_technique_idx;
 
 ReshadeEffectPipeline *g_pLastReshadeEffect = nullptr;
 #endif
-std::optional<uint64_t> vulkan_composite(struct FrameInfo_t const& frameInfo,
+std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
                                          gamescope::Rc<CVulkanTexture> const& pPipewireTexture,
                                          bool partial,
                                          gamescope::Rc<CVulkanTexture> const& pOutputOverride,

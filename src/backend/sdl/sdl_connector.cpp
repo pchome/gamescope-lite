@@ -167,7 +167,7 @@ void CSDLConnector::GetNativeColorimetry(bool /*bHDR10*/,
 }
 
 auto CSDLConnector::Present(FrameInfo_t const* pFrameInfo, bool /*bAsync*/) -> int {
-  std::optional oCompositeResult = vulkan_composite(*pFrameInfo, nullptr, false);
+  std::optional oCompositeResult = vulkan_composite(*(FrameInfo_t*)pFrameInfo, nullptr, false);
   if (!oCompositeResult) {
     return -EINVAL;
   }
