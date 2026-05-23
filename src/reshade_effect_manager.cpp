@@ -94,7 +94,7 @@ public:
     virtual ~FrameTimeUniform();
 
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> lastFrame;
+    std::chrono::time_point<std::chrono::steady_clock> lastFrame;
 };
 
 class FrameCountUniform : public ReshadeUniform
@@ -135,7 +135,7 @@ public:
     virtual ~TimerUniform();
 
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> start;
+    std::chrono::time_point<std::chrono::steady_clock> start;
 };
 
 class PingPongUniform : public ReshadeUniform
@@ -146,7 +146,7 @@ public:
     virtual ~PingPongUniform();
 
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> lastFrame;
+    std::chrono::time_point<std::chrono::steady_clock> lastFrame;
 
     float min             = 0.0f;
     float max             = 0.0f;
@@ -284,11 +284,11 @@ void ReshadeUniform::copy(void* mappedBuffer, const T* thing)
 FrameTimeUniform::FrameTimeUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
-    lastFrame = std::chrono::high_resolution_clock::now();
+    lastFrame = std::chrono::steady_clock::now();
 }
 void FrameTimeUniform::update(void* mappedBuffer)
 {
-    auto                                     currentFrame = std::chrono::high_resolution_clock::now();
+    auto                                     currentFrame = std::chrono::steady_clock::now();
     std::chrono::duration<float, std::milli> duration     = currentFrame - lastFrame;
     lastFrame                                             = currentFrame;
     float frametime                                       = duration.count();
@@ -353,11 +353,11 @@ DateUniform::~DateUniform()
 TimerUniform::TimerUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
-    start  = std::chrono::high_resolution_clock::now();
+    start  = std::chrono::steady_clock::now();
 }
 void TimerUniform::update(void* mappedBuffer)
 {
-    auto                                     currentFrame = std::chrono::high_resolution_clock::now();
+    auto                                     currentFrame = std::chrono::steady_clock::now();
     std::chrono::duration<float, std::milli> duration     = currentFrame - start;
     float                                    timer        = duration.count();
 
@@ -397,11 +397,11 @@ PingPongUniform::PingPongUniform(reshadefx::uniform uniformInfo)
             stepAnnotation->type.is_floating_point() ? stepAnnotation->value.as_float[1] : static_cast<float>(stepAnnotation->value.as_int[1]);
     }
 
-    lastFrame = std::chrono::high_resolution_clock::now();
+    lastFrame = std::chrono::steady_clock::now();
 }
 void PingPongUniform::update(void* mappedBuffer)
 {
-    auto currentFrame = std::chrono::high_resolution_clock::now();
+    auto currentFrame = std::chrono::steady_clock::now();
 
     std::chrono::duration<float, std::ratio<1>> frameTime = currentFrame - lastFrame;
 
