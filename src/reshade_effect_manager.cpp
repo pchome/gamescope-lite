@@ -1022,10 +1022,12 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
     /** Before ReShade 6.4.1 */
 #if 0
 	codegen->write_result(*m_module);
-    
-    std::vector<uint32_t> spirv(
-        reinterpret_cast<const uint32_t *>(m_module.code.data()),
-        reinterpret_cast<const uint32_t *>(m_module.code.data() + m_module.code.size()));
+#endif
+
+#if 0
+    FILE *f = fopen("test.spv", "wb");
+    fwrite(m_module->code.data(), 1, m_module->code.size(), f);
+    fclose(f);
 #endif
 
     /** After ReShade 6.4.1 */
@@ -1033,13 +1035,9 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 
     std::basic_string<char> code = codegen->finalize_code();
 
-    std::vector<uint32_t> spirv(
-        reinterpret_cast<const uint32_t *>(code.data()),
-        reinterpret_cast<const uint32_t *>(code.data() + code.size()));
-
 #if 0
     FILE *f = fopen("test.spv", "wb");
-    fwrite(m_module->code.data(), 1, m_module->code.size(), f);
+    fwrite(code.data(), 1, code.size(), f);
     fclose(f);
 #endif
 
@@ -1491,8 +1489,8 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
         VkShaderModuleCreateInfo shaderModuleInfo =
         {
             .sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            .codeSize = spirv.size() * sizeof(uint32_t), // m_module->code.size(),
-            .pCode    = spirv.data(), // reinterpret_cast<uint32_t*>(m_module->code.data()),
+            .codeSize = code.size(),
+            .pCode    = reinterpret_cast<uint32_t*>(code.data()),
         };
 
 		if (!pass.cs_entry_point.empty())
