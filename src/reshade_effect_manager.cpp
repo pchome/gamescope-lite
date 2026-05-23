@@ -1,4 +1,5 @@
 #include <cstring>
+#include <ranges>
 #include <utility>
 #include <variant>
 #include <unordered_map>
@@ -22,9 +23,8 @@
 #include <stb/deprecated/stb_image_resize.h>
 
 #include <mutex>
-#include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
+#include <filesystem>
+#include <print>
 
 // This is based on wl_array_for_each from `wayland-util.h` in the Wayland client library.
 #define uint8_array_for_each(pos, data, size) \
@@ -39,28 +39,65 @@ extern int g_nOutputRefresh;
 
 const char *homedir;
 
-std::string_view GetHomeDir()
-{
-    static std::string s_sHomeDir = []() -> std::string
-    {
-        const char *pszHomeDir = getenv( "HOME" );
-        if ( pszHomeDir )
-            return pszHomeDir;
-
-        return getpwuid( getuid() )->pw_dir;
-    }();
-    return s_sHomeDir;
+auto GetEnv(char const* name, char const* def = "") {
+    char const* pszValue = std::getenv( name );
+    return pszValue ?: def;
 }
 
-static std::string GetLocalUsrDir()
-{
-    return std::string{ GetHomeDir() } + "/.local";
-}
+using std::operator""sv;
+using Path = std::filesystem::path;
 
-static std::string GetUsrDir()
-{
-    return "/usr";
+namespace xdg::data {
+static constexpr auto home() -> Path { return GetEnv( "XDG_DATA_HOME", ".local/share" ); }
+static constexpr auto dirs() -> std::string { return GetEnv( "XDG_DATA_DIRS", "/usr/local/share:/usr/share" ); }
+static constexpr auto append(std::string const& s) -> std::string { return dirs() + ":" + s; }
+static constexpr auto prepend(std::string const& s) -> std::string { return s + ":" + dirs(); }
+static constexpr auto transform(Path const& s) -> std::string {
+    std::string out{};
+    for (const auto data_path : std::views::split(dirs(), ":"sv)) {
+        if (!out.empty()) out += ":";
+        out += Path(std::string_view(data_path) / s);
+    }
+    return out;
 }
+static constexpr auto transform(std::list<Path> const& list) -> std::string {
+    std::string out{};
+    for (const auto data_path : std::views::split(dirs(), ":"sv)) {
+        for (auto& item : list) {
+            if (!out.empty()) out += ":";
+            out += Path(std::string_view(data_path) / item);
+        }
+    }
+    return out;
+}
+} // namespace xdg::data
+
+namespace xdg::config {
+static constexpr auto home() -> Path { return GetEnv( "XDG_CONFIG_HOME", ".config" ); }
+static constexpr auto dirs() -> std::string { return GetEnv( "XDG_CONFIG_DIRS", "/usr/local/etc/xdg:/etc/xdg" ); }
+static constexpr auto append(std::string const& s) -> std::string { return dirs() + ":" + s; }
+static constexpr auto prepend(std::string const& s) -> std::string { return s + ":" + dirs(); }
+} // namespace xdg::config
+
+namespace xdg::user {
+static constexpr auto home() -> Path { return GetEnv( "HOME", "." ); }
+static constexpr auto data() -> Path {
+    return xdg::data::home().is_relative() ? home() / xdg::data::home() : xdg::data::home();
+}
+static constexpr auto config() -> Path {
+    return xdg::config::home().is_relative() ? home() / xdg::config::home() : xdg::config::home();
+}
+static constexpr auto data_transform(std::list<Path> const& list) -> std::string {
+    std::string out{};
+    for (auto& item : list) { if (!out.empty()) out += ":"; out += data() / item; }
+    return out;
+}
+static constexpr auto config_transform(std::list<Path> const& list) -> std::string {
+    std::string out{};
+    for (auto& item : list) { if (!out.empty()) out += ":"; out += config() / item; }
+    return out;
+}
+} // namespace xdg::user
 
 static LogScope reshade_log("gamescope_reshade");
 
@@ -978,30 +1015,44 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
     pp.add_macro_definition("GAMESCOPE", "1");
     pp.add_macro_definition("GAMESCOPE_SDR_ON_HDR_NITS", std::to_string(g_ColorMgmt.pending.flSDROnHDRBrightness));
 
-    std::string gamescope_reshade_share_path = "/share/gamescope/reshade";
+    // Path data_dir = xdg::user::data();
+    Path reshade_data_dir = "reshade-shaders";
+    Path gamescope_reshade_data_dir = "gamescope/reshade";
 
-    std::string local_reshade_path = GetLocalUsrDir() + gamescope_reshade_share_path;
-    std::string global_reshade_path = GetUsrDir() + gamescope_reshade_share_path;
+    std::string reshade_data_dirs{};
+    reshade_data_dirs += xdg::user::data_transform({reshade_data_dir, gamescope_reshade_data_dir});
+    reshade_data_dirs += ":";
+    reshade_data_dirs += xdg::data::transform({reshade_data_dir, gamescope_reshade_data_dir});
 
-    pp.add_include_path(local_reshade_path + "/Shaders");
-	pp.add_include_path(global_reshade_path + "/Shaders");
+    /** Include dirs*/
+    for (const auto data_path : std::views::split(reshade_data_dirs, ":"sv)) {
+        pp.add_include_path(Path(std::string_view(data_path)) / "Shaders");
+    }
 
-    std::string local_shader_file_path = local_reshade_path + "/Shaders/" + key.path;
-    std::string global_shader_file_path = global_reshade_path + "/Shaders/" + key.path;
-
-	if (!pp.append_file(local_shader_file_path))
-	{
-        if (!pp.append_file(global_shader_file_path))
-        {
-            reshade_log.errorf("Failed to load reshade fx file: %s (%s or %s) - %s", key.path.c_str(), local_shader_file_path.c_str(), global_shader_file_path.c_str(), pp.errors().c_str());
-            return false;
+    /** Shader file */
+    bool shader_file_found = false;
+    for (const auto data_path : std::views::split(reshade_data_dirs, ":"sv)) {
+        if (pp.append_file(Path(std::string_view(data_path)) / "Shaders" / key.path)) {
+            shader_file_found = true;
+            break;
         }
-	}
+    }
 
+    /** Not found error handler */
+    if (!shader_file_found) {
+        reshade_log.errorf("Failed to load reshade fx file: \"%s\". Looked in:", key.path.data());
+        for (const auto data_path : std::views::split(reshade_data_dirs, ":"sv))
+            std::println("{}", (Path(std::string_view(data_path)) / "Shaders").string());
+        if (!pp.errors().empty())
+            reshade_log.errorf("Error: %s", pp.errors().c_str());
+        return false;
+    }
+
+    /** Pre-processor error handler */
 	std::string errors = pp.errors();
 	if (!errors.empty())
 	{
-		reshade_log.errorf("Failed to parse reshade fx shader module: %s", errors.c_str());
+		reshade_log.errorf("Failed to pre-process reshade fx shader module: %s", errors.c_str());
 		return false;
 	}
 
@@ -1011,6 +1062,7 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 	reshadefx::parser parser;
 	parser.parse(pp.output(), codegen.get());
 
+    /** Parser error handler */
 	errors = parser.errors();
 	if (!errors.empty())
 	{
@@ -1159,15 +1211,30 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
         if (const auto source = std::ranges::find_if(tex.annotations , std::bind_front(std::equal_to{}, "source"), &reshadefx::annotation::name);
             source != tex.annotations.end())
         {
-            std::string filePath = local_reshade_path + "/Textures/" + source->value.string_data;
-
             int w, h, channels;
-            unsigned char *data = stbi_load(filePath.c_str(), &w, &h, &channels, STBI_rgb_alpha);
-
-            if (!data)
+            unsigned char *data = nullptr;
+            
+            /** Texture file */
+            bool texture_file_found = false;
+            for (const auto data_path : std::views::split(reshade_data_dirs, ":"sv))
             {
-                filePath = global_reshade_path + "/Textures/" + source->value.string_data;
-                data = stbi_load(filePath.c_str(), &w, &h, &channels, STBI_rgb_alpha);
+                Path reshade_texture_file = Path(std::string_view(data_path)) / "Textures" / source->value.string_data;
+                if (std::filesystem::is_regular_file(reshade_texture_file) || std::filesystem::is_symlink(reshade_texture_file)) {
+                    data = stbi_load(reshade_texture_file.c_str(), &w, &h, &channels, STBI_rgb_alpha);
+                    if (data) {
+                        texture_file_found = true;
+                        break;
+                    }
+                }
+            }
+
+            /** Not found error handler */
+            if (!texture_file_found) {
+                reshade_log.errorf("Failed to load reshade fx texture file: \"%s\". Looked in:", key.path.data());
+                for (const auto data_path : std::views::split(reshade_data_dirs, ":"sv))
+                    std::println("{}", (Path(std::string_view(data_path)) / "Textures").string());
+                reshade_log.errorf("Error: %s", pp.errors().c_str());
+                return false;
             }
 
             if (data)
