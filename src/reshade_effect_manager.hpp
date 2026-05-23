@@ -1,6 +1,6 @@
 #pragma once
 
-#include "effect_module.hpp"
+#include <reshade/effect_module.hpp>
 #include "rendervulkan.hpp"
 #include <optional>
 

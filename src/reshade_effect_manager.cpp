@@ -1,4 +1,5 @@
 #include <cstring>
+#include <utility>
 #include <variant>
 #include <unordered_map>
 
@@ -88,7 +89,7 @@ protected:
 class FrameTimeUniform : public ReshadeUniform
 {
 public:
-    FrameTimeUniform(reshadefx::uniform uniformInfo);
+    FrameTimeUniform(const reshadefx::uniform& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~FrameTimeUniform();
 
@@ -99,7 +100,7 @@ private:
 class FrameCountUniform : public ReshadeUniform
 {
 public:
-    FrameCountUniform(reshadefx::uniform uniformInfo);
+    FrameCountUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~FrameCountUniform();
 
@@ -110,7 +111,7 @@ private:
 class RefreshRateUniform : public ReshadeUniform
 {
 public:
-    RefreshRateUniform(reshadefx::uniform uniformInfo);
+    RefreshRateUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~RefreshRateUniform();
 
@@ -121,7 +122,7 @@ private:
 class DateUniform : public ReshadeUniform
 {
 public:
-    DateUniform(reshadefx::uniform uniformInfo);
+    DateUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~DateUniform();
 };
@@ -129,7 +130,7 @@ public:
 class TimerUniform : public ReshadeUniform
 {
 public:
-    TimerUniform(reshadefx::uniform uniformInfo);
+    TimerUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~TimerUniform();
 
@@ -170,7 +171,7 @@ private:
 class KeyUniform : public ReshadeUniform
 {
 public:
-    KeyUniform(reshadefx::uniform uniformInfo);
+    KeyUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~KeyUniform();
 };
@@ -178,7 +179,7 @@ public:
 class MouseButtonUniform : public ReshadeUniform
 {
 public:
-    MouseButtonUniform(reshadefx::uniform uniformInfo);
+    MouseButtonUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~MouseButtonUniform();
 };
@@ -186,7 +187,7 @@ public:
 class MousePointUniform : public ReshadeUniform
 {
 public:
-    MousePointUniform(reshadefx::uniform uniformInfo);
+    MousePointUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~MousePointUniform();
 };
@@ -194,7 +195,7 @@ public:
 class MouseDeltaUniform : public ReshadeUniform
 {
 public:
-    MouseDeltaUniform(reshadefx::uniform uniformInfo);
+    MouseDeltaUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~MouseDeltaUniform();
 };
@@ -202,7 +203,7 @@ public:
 class DepthUniform : public ReshadeUniform
 {
 public:
-    DepthUniform(reshadefx::uniform uniformInfo);
+    DepthUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~DepthUniform();
 };
@@ -225,7 +226,7 @@ private:
 class DataUniform : public ReshadeUniform
 {
 public:
-    DataUniform(reshadefx::uniform uniformInfo);
+    DataUniform(reshadefx::uniform const& uniformInfo);
     virtual void update(void* mappedBuffer) override;
     virtual ~DataUniform();
 };
@@ -280,7 +281,7 @@ void ReshadeUniform::copy(void* mappedBuffer, const T* thing)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-FrameTimeUniform::FrameTimeUniform(reshadefx::uniform uniformInfo)
+FrameTimeUniform::FrameTimeUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
     lastFrame = std::chrono::high_resolution_clock::now();
@@ -299,7 +300,7 @@ FrameTimeUniform::~FrameTimeUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-FrameCountUniform::FrameCountUniform(reshadefx::uniform uniformInfo)
+FrameCountUniform::FrameCountUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -313,7 +314,7 @@ FrameCountUniform::~FrameCountUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-RefreshRateUniform::RefreshRateUniform(reshadefx::uniform uniformInfo)
+RefreshRateUniform::RefreshRateUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -327,7 +328,7 @@ RefreshRateUniform::~RefreshRateUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-DateUniform::DateUniform(reshadefx::uniform uniformInfo)
+DateUniform::DateUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -349,7 +350,7 @@ DateUniform::~DateUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-TimerUniform::TimerUniform(reshadefx::uniform uniformInfo)
+TimerUniform::TimerUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
     start  = std::chrono::high_resolution_clock::now();
@@ -458,7 +459,7 @@ RandomUniform::~RandomUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-KeyUniform::KeyUniform(reshadefx::uniform uniformInfo)
+KeyUniform::KeyUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -472,7 +473,7 @@ KeyUniform::~KeyUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-MouseButtonUniform::MouseButtonUniform(reshadefx::uniform uniformInfo)
+MouseButtonUniform::MouseButtonUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -486,7 +487,7 @@ MouseButtonUniform::~MouseButtonUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-MousePointUniform::MousePointUniform(reshadefx::uniform uniformInfo)
+MousePointUniform::MousePointUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -506,7 +507,7 @@ MousePointUniform::~MousePointUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-MouseDeltaUniform::MouseDeltaUniform(reshadefx::uniform uniformInfo)
+MouseDeltaUniform::MouseDeltaUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -521,7 +522,7 @@ MouseDeltaUniform::~MouseDeltaUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-DepthUniform::DepthUniform(reshadefx::uniform uniformInfo)
+DepthUniform::DepthUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -630,7 +631,7 @@ RuntimeUniform::~RuntimeUniform()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-DataUniform::DataUniform(reshadefx::uniform uniformInfo)
+DataUniform::DataUniform(reshadefx::uniform const& uniformInfo)
     : ReshadeUniform(uniformInfo)
 {
 }
@@ -2027,7 +2028,7 @@ void reshade_effect_manager_set_effect(const char *path, std::function<void(cons
     g_runtimeUniforms.clear();
     if (g_reshadeEffectPath) free(g_reshadeEffectPath);
     g_reshadeEffectPath = strdup(path);
-    g_effectReadyCallback = callback;
+    g_effectReadyCallback = std::move(callback);
 }
 
 void reshade_effect_manager_enable_effect() 
