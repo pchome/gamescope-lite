@@ -8,7 +8,7 @@
 * [x] Droped WSI layer (use upstream one if needed/applicable)
 * [x] Droped Lua scripting support
 * [x] Droped executables other than `gamescope-lite` and `gamescopereaper-lite` (use upstream one if needed/applicable)
-* [x] Optional (disabled by default) ui, reshade, pipewire, screenshots, headless backend, anime4k UL upscaling filter
+* [x] Optional (disabled by default) ui, reshade, pipewire, screenshots, headless backend
 
 #### New:
 * [x] Ported to SDL3
@@ -23,7 +23,6 @@
 * [x] Merged some pending (useful or experimental) upstream PRs
     - disabled global `-ffast-math` compiler flag
     - fixed (almost) gamescope abort at exit
-    - Anime4K 2x CNN UL upscaling filter `-F anime4k` (well.., would be base for something more lightwaight e.g. Anime4K 2x 3DGraphics US)
     - Bicubic downscaling filter `-F bicubic`
 * [x] Debug options
     - reenable unused `--disable-color-management` (I'd remove color management but output is too dark. Need more info.)

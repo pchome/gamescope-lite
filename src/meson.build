@@ -46,7 +46,8 @@ if run_command(glsl_compiler, ['--version', '--depfile', 'dummy.dep'], check: fa
     glsl_compiler,
     output    : ['@BASENAME@.h'],
     arguments : ['-V', '@INPUT@', '--vn', '@BASENAME@', '-o', '@OUTPUT@', '--depfile', '@DEPFILE@', '--quiet'
-                ,'-DHAVE_ANIME4K=@0@'.format(get_option('anime4k').enabled().to_int())],
+#                ,'-DHAVE_SOMETHING=@0@'.format(get_option('something').enabled().to_int())
+                ],
     depfile   : '@BASENAME@.h.d',
   )
 else
@@ -54,7 +55,8 @@ else
     glsl_compiler,
     output    : ['@BASENAME@.h'],
     arguments : ['-V', '@INPUT@', '--vn', '@BASENAME@', '-o', '@OUTPUT@'
-                ,'-DHAVE_ANIME4K=@0@'.format(get_option('anime4k').enabled().to_int())],
+#                ,'-DHAVE_SOMETHING=@0@'.format(get_option('something').enabled().to_int())
+                ],
   )
 endif
 
@@ -68,10 +70,6 @@ shader_src = [
   'shaders/cs_nis_fp16.comp',
   'shaders/cs_rgb_to_nv12.comp',
 ]
-
-if get_option('anime4k').enabled()
-  shader_src +=   'shaders/Anime4k/CNN_x2_UL/cs_anime4k_2x_cnn_ul.comp'
-endif
 
 spirv_shaders = glsl_generator.process(shader_src)
 
@@ -167,7 +165,6 @@ gamescope_cpp_args = []
 gamescope_cpp_args += '-DHAVE_IMGUI=@0@'.format(get_option('ui').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(get_option('rt_cap').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_RESHADE=@0@'.format(get_option('reshade').enabled().to_int())
-gamescope_cpp_args += '-DHAVE_ANIME4K=@0@'.format(get_option('anime4k').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_HEADLESS=@0@'.format(get_option('headless').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCREENSHOT=@0@'.format(get_option('screenshot').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())

@@ -43,9 +43,7 @@
 #include "cs_nis.h"
 #include "cs_nis_fp16.h"
 #include "cs_rgb_to_nv12.h"
-#if HAVE_ANIME4K
-#include "cs_anime4k_2x_cnn_ul.h"
-#endif
+
 #define A_CPU
 #include "shaders/ffx_a.h"
 #include "shaders/ffx_fsr1.h"
@@ -310,10 +308,6 @@ bool CVulkanDevice::BInit(VkInstance instance, VkSurfaceKHR surface)
 		return false;
 	if (!createShaders())
 		return false;
-#if HAVE_ANIME4K
-	if (!createAnime4kULPipelines())
-		return false;
-#endif
 	if (!createScratchResources())
 		return false;
 
@@ -771,11 +765,7 @@ bool CVulkanDevice::createLayouts()
 	for (auto& sampler : ycbcrSamplers)
 		sampler = m_ycbcrSampler;
 
-#if HAVE_ANIME4K
-	std::array<VkDescriptorSetLayoutBinding, 8 > layoutBindings = {
-#else
     std::array<VkDescriptorSetLayoutBinding, 7 > layoutBindings = {
-#endif
 		VkDescriptorSetLayoutBinding {
 			.binding = 0,
 			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -794,14 +784,7 @@ bool CVulkanDevice::createLayouts()
 			.descriptorCount = 1,
 			.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
 		},
-#if HAVE_ANIME4K
-		VkDescriptorSetLayoutBinding {
-			.binding = 7,
-			.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-			.descriptorCount = 1,
-			.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-		},
-#endif
+
 		VkDescriptorSetLayoutBinding {
 			.binding = 3,
 			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
@@ -962,9 +945,6 @@ bool CVulkanDevice::createShaders()
 		SHADER(NIS, cs_nis);
 	}
 	SHADER(RGB_TO_NV12, cs_rgb_to_nv12);
-#if HAVE_ANIME4K
-	SHADER(ANIME4K_2X_CNN_UL, cs_anime4k_2x_cnn_ul);
-#endif
 #undef SHADER
 
 	for (uint32_t i = 0; i < shaderInfos.size(); i++)
@@ -985,45 +965,7 @@ bool CVulkanDevice::createShaders()
 
 	return true;
 }
-#if HAVE_ANIME4K
-bool CVulkanDevice::createAnime4kULPipelines()
-{
-	VkSpecializationMapEntry passEntry = {
-		.constantID = 8,
-		.offset = 0,
-		.size = sizeof(uint32_t)
-	};
 
-	for (uint32_t pass = 0; pass < 9; pass++) {
-		VkSpecializationInfo specInfo = {
-			.mapEntryCount = 1,
-			.pMapEntries = &passEntry,
-			.dataSize = sizeof(uint32_t),
-			.pData = &pass
-		};
-
-		VkComputePipelineCreateInfo pipelineInfo = {
-			.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-			.stage = {
-				.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-				.stage = VK_SHADER_STAGE_COMPUTE_BIT,
-				.module = m_shaderModules[SHADER_TYPE_ANIME4K_2X_CNN_UL],
-				.pName = "main",
-				.pSpecializationInfo = &specInfo
-			},
-			.layout = m_pipelineLayout
-		};
-
-		VkResult res = vk.CreateComputePipelines(device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_anime4kULPipelines[pass]);
-		if (res != VK_SUCCESS) {
-			vk_errorf(res, "vkCreateComputePipelines failed for Anime4K UL pass %u", pass);
-			return false;
-		}
-	}
-
-	return true;
-}
-#endif
 bool CVulkanDevice::createScratchResources()
 {
 	std::vector<VkDescriptorSetLayout> descriptorSetLayouts(m_descriptorSets.size(), m_descriptorSetLayout);
@@ -1701,11 +1643,8 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 	insertBarrier();
 
 	VkDescriptorSet descriptorSet = m_device->descriptorSet();
-#if HAVE_ANIME4K
-	std::array<VkWriteDescriptorSet, 8> writeDescriptorSets;
-#else
+
     std::array<VkWriteDescriptorSet, 7> writeDescriptorSets;
-#endif
 	std::array<VkDescriptorImageInfo, VKR_SAMPLER_SLOTS> imageDescriptors = {};
 	std::array<VkDescriptorImageInfo, VKR_SAMPLER_SLOTS> ycbcrImageDescriptors = {};
 	std::array<VkDescriptorImageInfo, VKR_TARGET_SLOTS> targetDescriptors = {};
@@ -1742,23 +1681,8 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
 		.pImageInfo = &targetDescriptors[1],
 	};
-#if HAVE_ANIME4K
-	writeDescriptorSets[3] = {
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = descriptorSet,
-		.dstBinding = 7,
-		.dstArrayElement = 0,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-		.pImageInfo = &targetDescriptors[2],
-	};
-#endif
 
-#if HAVE_ANIME4K
-    writeDescriptorSets[4] = {
-#else
     writeDescriptorSets[3] = {
-#endif
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 3,
@@ -1768,11 +1692,7 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.pImageInfo = imageDescriptors.data(),
 	};
 
-#if HAVE_ANIME4K
-    writeDescriptorSets[5] = {
-#else
     writeDescriptorSets[4] = {
-#endif
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 4,
@@ -1782,11 +1702,7 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.pImageInfo = ycbcrImageDescriptors.data(),
 	};
 
-#if HAVE_ANIME4K
-    writeDescriptorSets[6] = {
-#else
     writeDescriptorSets[5] = {
-#endif
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 5,
@@ -1795,11 +1711,8 @@ void CVulkanCmdBuffer::dispatch(uint32_t x, uint32_t y, uint32_t z)
 		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 		.pImageInfo = shaperLutDescriptor.data(),
 	};
-#if HAVE_ANIME4K
-	writeDescriptorSets[7] = {
-#else
+
     writeDescriptorSets[6] = {
-#endif
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 6,
@@ -3569,50 +3482,6 @@ static void update_tmp_images( uint32_t width, uint32_t height )
 	}
 }
 
-#if HAVE_ANIME4K
-// TODO: Free the textures when anime4k UL is not used anymore
-static void update_anime4k_ul_buffers(uint32_t width, uint32_t height, uint32_t outWidth, uint32_t outHeight)
-{
-    if (g_output.anime4kULLayers[0][0] != nullptr
-        && g_output.anime4kULLayers[0][0]->width() == width
-        && g_output.anime4kULLayers[0][0]->height() == height)
-    {
-        return;
-    }
-
-    CVulkanTexture::createFlags createFlags;
-    createFlags.bSampled = true;
-    createFlags.bStorage = true;
-
-    for (int layer = 0; layer < 7; layer++) {
-        for (int tex = 0; tex < 3; tex++) {
-            g_output.anime4kULLayers[layer][tex] = new CVulkanTexture();
-            if (!g_output.anime4kULLayers[layer][tex]->BInit(width, height, 1u, DRM_FORMAT_ABGR16161616F, createFlags, nullptr))
-            {
-                vk_log.errorf("failed to create anime4k UL layer[%d][%d] buffer", layer, tex);
-                return;
-            }
-        }
-    }
-
-    for (int tex = 0; tex < 3; tex++) {
-        g_output.anime4kULLast[tex] = new CVulkanTexture();
-        if (!g_output.anime4kULLast[tex]->BInit(width, height, 1u, DRM_FORMAT_ABGR16161616F, createFlags, nullptr))
-        {
-            vk_log.errorf("failed to create anime4k UL last[%d] buffer", tex);
-            return;
-        }
-    }
-
-    g_output.anime4kULOut = new CVulkanTexture();
-    if (!g_output.anime4kULOut->BInit(outWidth, outHeight, 1u, DRM_FORMAT_ARGB8888, createFlags, nullptr))
-    {
-        vk_log.errorf("failed to create anime4k UL output buffer");
-        return;
-    }
-}
-#endif
-
 static bool init_nis_data()
 {
 	// Create the NIS images
@@ -4049,17 +3918,7 @@ struct NisPushData_t
 			tempX, tempY);
 	}
 };
-#if HAVE_ANIME4K
-struct Anime4kPushData_t {
-    uvec2_t u_inputSize;
-    uvec2_t u_outputSize;
 
-    Anime4kPushData_t(uint32_t inputX, uint32_t inputY, uint32_t outputX, uint32_t outputY)
-        : u_inputSize{inputX, inputY}
-        , u_outputSize{outputX, outputY}
-    {}
-};
-#endif
 #pragma pack(pop)
 
 void bind_all_layers(CVulkanCmdBuffer* cmdBuffer, const struct FrameInfo_t *frameInfo)
@@ -4317,91 +4176,6 @@ std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
 
 		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
 	}
-#if HAVE_ANIME4K
-	else if ( frameInfo.useAnime4k2xCnnULLayer0 )
-	{
-		uint32_t inputX = frameInfo.layers[0].tex->width();
-		uint32_t inputY = frameInfo.layers[0].tex->height();
-
-		uint32_t outX = inputX * 2;
-		uint32_t outY = inputY * 2;
-
-		update_anime4k_ul_buffers(inputX, inputY, outX, outY);
-
-		const int pixelsPerGroup = 8;
-
-		cmdBuffer->bindPipeline(g_device.anime4kULPipeline(0));
-		cmdBuffer->bindTargets(g_output.anime4kULLayers[0][0], g_output.anime4kULLayers[0][1], g_output.anime4kULLayers[0][2]);
-		cmdBuffer->bindTexture(0, frameInfo.layers[0].tex);
-		cmdBuffer->setTextureSrgb(0, true);
-		cmdBuffer->setSamplerUnnormalized(0, false);
-		cmdBuffer->setSamplerNearest(0, false);
-		cmdBuffer->uploadConstants<Anime4kPushData_t>(inputX, inputY, inputX, inputY);
-		cmdBuffer->dispatch(div_roundup(inputX, pixelsPerGroup), div_roundup(inputY, pixelsPerGroup));
-
-		for (int layer = 1; layer <= 6; layer++) {
-			int passIdx = layer;
-			cmdBuffer->bindPipeline(g_device.anime4kULPipeline(passIdx));
-			cmdBuffer->bindTargets(g_output.anime4kULLayers[layer][0], g_output.anime4kULLayers[layer][1], g_output.anime4kULLayers[layer][2]);
-			
-			for (int t = 0; t < 3; t++) {
-				cmdBuffer->bindTexture(t, g_output.anime4kULLayers[layer - 1][t]);
-				cmdBuffer->setTextureSrgb(t, false);
-				cmdBuffer->setSamplerUnnormalized(t, false);
-				cmdBuffer->setSamplerNearest(t, true);
-			}
-			cmdBuffer->uploadConstants<Anime4kPushData_t>(inputX, inputY, inputX, inputY);
-			cmdBuffer->dispatch(div_roundup(inputX, pixelsPerGroup), div_roundup(inputY, pixelsPerGroup));
-		}
-
-		cmdBuffer->bindPipeline(g_device.anime4kULPipeline(7));
-		cmdBuffer->bindTargets(g_output.anime4kULLast[0], g_output.anime4kULLast[1], g_output.anime4kULLast[2]);
-		
-		int texIdx = 0;
-		for (int layer = 2; layer <= 6; layer++) {
-			for (int t = 0; t < 3; t++) {
-				cmdBuffer->bindTexture(texIdx, g_output.anime4kULLayers[layer][t]);
-				cmdBuffer->setTextureSrgb(texIdx, false);
-				cmdBuffer->setSamplerUnnormalized(texIdx, false);
-				cmdBuffer->setSamplerNearest(texIdx, true);
-				texIdx++;
-			}
-		}
-		cmdBuffer->uploadConstants<Anime4kPushData_t>(inputX, inputY, inputX, inputY);
-		cmdBuffer->dispatch(div_roundup(inputX, pixelsPerGroup), div_roundup(inputY, pixelsPerGroup));
-
-		cmdBuffer->bindPipeline(g_device.anime4kULPipeline(8));
-		cmdBuffer->bindTarget(g_output.anime4kULOut);
-
-		for (int t = 0; t < 3; t++) {
-			cmdBuffer->bindTexture(t, g_output.anime4kULLast[t]);
-			cmdBuffer->setTextureSrgb(t, false);
-			cmdBuffer->setSamplerUnnormalized(t, false);
-			cmdBuffer->setSamplerNearest(t, true);
-		}
-
-		cmdBuffer->bindTexture(3, frameInfo.layers[0].tex);
-		cmdBuffer->setTextureSrgb(3, true);
-		cmdBuffer->setSamplerUnnormalized(3, false);
-		cmdBuffer->setSamplerNearest(3, false);
-		cmdBuffer->uploadConstants<Anime4kPushData_t>(inputX, inputY, outX, outY);
-		cmdBuffer->dispatch(div_roundup(outX, pixelsPerGroup), div_roundup(outY, pixelsPerGroup));
-
-		struct FrameInfo_t anime4kFrameInfo = *frameInfo;
-		anime4kFrameInfo.layers[0].tex = g_output.anime4kULOut;
-
-		float scaleX = (float)outX / (float)currentOutputWidth;
-		float scaleY = (float)outY / (float)currentOutputHeight;
-		float uniformScale = std::max(scaleX, scaleY);
-		anime4kFrameInfo.layers[0].scale.x = uniformScale;
-		anime4kFrameInfo.layers[0].scale.y = uniformScale;
-		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_BLIT, anime4kFrameInfo.layerCount, anime4kFrameInfo.ycbcrMask(), anime4kFrameInfo.colorspaceMask(), outputTF));
-		bind_all_layers(cmdBuffer.get(), &anime4kFrameInfo);
-		cmdBuffer->bindTarget(compositeImage);
-		cmdBuffer->uploadConstants<BlitPushData_t>(&anime4kFrameInfo);
-		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
-	}
-#endif
 	else
 	{
 		cmdBuffer->bindPipeline( g_device.pipeline(SHADER_TYPE_BLIT, frameInfo.layerCount, frameInfo.ycbcrMask(), frameInfo.colorspaceMask(), outputTF ));

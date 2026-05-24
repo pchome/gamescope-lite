@@ -271,7 +271,6 @@ struct FrameInfo_t
 {
 	bool useFSRLayer0;
 	bool useNISLayer0;
-	bool useAnime4k2xCnnULLayer0;
 	bool useBICUBICLayer0;
 	bool bFadingOut;
 
@@ -541,13 +540,6 @@ struct VulkanOutput_t
 	// NIS
 	gamescope::OwningRc<CVulkanTexture> nisScalerImage;
 	gamescope::OwningRc<CVulkanTexture> nisUsmImage;
-
-#if HAVE_ANIME4K
-	// Anime4K UL - 7 layers × 3 textures + 3 final + 1 output
-	gamescope::OwningRc<CVulkanTexture> anime4kULLayers[7][3];
-	gamescope::OwningRc<CVulkanTexture> anime4kULLast[3];
-	gamescope::OwningRc<CVulkanTexture> anime4kULOut;
-#endif
 };
 
 
@@ -558,9 +550,7 @@ enum ShaderType {
 	SHADER_TYPE_NIS,
 	SHADER_TYPE_BICUBIC,
 	SHADER_TYPE_RGB_TO_NV12,
-#if HAVE_ANIME4K
-	SHADER_TYPE_ANIME4K_2X_CNN_UL,
-#endif
+
 	SHADER_TYPE_COUNT
 };
 
@@ -769,9 +759,6 @@ public:
 
 	VkSampler sampler(SamplerState key);
 	VkPipeline pipeline(ShaderType type, uint32_t layerCount = 1, uint32_t ycbcrMask = 0, uint32_t colorspace_mask = 0, uint32_t output_eotf = EOTF_Gamma22, bool itm_enable = false);
-#if HAVE_ANIME4K
-	VkPipeline anime4kULPipeline(uint32_t pass) { return m_anime4kULPipelines[pass]; }
-#endif
 	int32_t findMemoryType( VkMemoryPropertyFlags properties, uint32_t requiredTypeBits );
 	std::unique_ptr<CVulkanCmdBuffer> commandBuffer();
 	uint64_t submit( std::unique_ptr<CVulkanCmdBuffer> cmdBuf);
@@ -845,9 +832,6 @@ protected:
 	bool createLayouts();
 	bool createPools();
 	bool createShaders();
-#if HAVE_ANIME4K
-	bool createAnime4kULPipelines();
-#endif
 	bool createScratchResources();
 	VkPipeline compilePipeline(uint32_t layerCount, uint32_t ycbcrMask, ShaderType type, uint32_t composite_debug, uint32_t colorspace_mask, uint32_t output_eotf, bool itm_enable);
 	void compileAllPipelines();
@@ -882,9 +866,7 @@ protected:
 	std::unordered_map< SamplerState, VkSampler > m_samplerCache;
 	std::array<VkShaderModule, SHADER_TYPE_COUNT> m_shaderModules;
 	std::unordered_map<PipelineInfo_t, VkPipeline> m_pipelineMap;
-#if HAVE_ANIME4K
-	VkPipeline m_anime4kULPipelines[9] = {};
-#endif
+
 	std::mutex m_pipelineMutex;
 
 	static constexpr uint32_t k_uMaxConcurrentSubmits = 8;
