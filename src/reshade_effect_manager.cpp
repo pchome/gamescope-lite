@@ -1011,6 +1011,7 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 	pp.add_macro_definition("BUFFER_HEIGHT", std::to_string(key.bufferHeight));
 	pp.add_macro_definition("BUFFER_RCP_WIDTH", "(1.0 / BUFFER_WIDTH)");
 	pp.add_macro_definition("BUFFER_RCP_HEIGHT", "(1.0 / BUFFER_HEIGHT)");
+    pp.add_macro_definition("BUFFER_COLOR_FORMAT", std::to_string(static_cast<uint32_t>(reshade::vulkan::convert_format(key.bufferFormat))));
 	pp.add_macro_definition("BUFFER_COLOR_SPACE", std::to_string(static_cast<uint32_t>(ConvertToReshadeColorSpace(key.bufferColorSpace))));
 	pp.add_macro_definition("BUFFER_COLOR_BIT_DEPTH", std::to_string(GetFormatBitDepth(key.bufferFormat)));
     pp.add_macro_definition("GAMESCOPE", "1");
