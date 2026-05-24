@@ -170,10 +170,6 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom gamescopeFSRFeedback;
 		Atom gamescopeBicubicFeedback;
 
-		Atom gamescopeBlurMode;
-		Atom gamescopeBlurRadius;
-		Atom gamescopeBlurFadeDuration;
-
 		Atom gamescopeCompositeForce;
 		Atom gamescopeCompositeDebug;
 

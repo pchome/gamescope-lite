@@ -36,13 +36,10 @@
 #include "Utils/Process.h"
 
 #include "cs_composite_blit.h"
-#include "cs_composite_blur.h"
-#include "cs_composite_blur_cond.h"
 #include "cs_composite_rcas.h"
 #include "cs_easu.h"
 #include "cs_easu_fp16.h"
 #include "cs_bicubic.h"
-#include "cs_gaussian_blur_horizontal.h"
 #include "cs_nis.h"
 #include "cs_nis_fp16.h"
 #include "cs_rgb_to_nv12.h"
@@ -952,9 +949,6 @@ bool CVulkanDevice::createShaders()
 	std::array<ShaderInfo_t, SHADER_TYPE_COUNT> shaderInfos;
 #define SHADER(type, array) shaderInfos[SHADER_TYPE_##type] = {array , sizeof(array)}
 	SHADER(BLIT, cs_composite_blit);
-	SHADER(BLUR, cs_composite_blur);
-	SHADER(BLUR_COND, cs_composite_blur_cond);
-	SHADER(BLUR_FIRST_PASS, cs_gaussian_blur_horizontal);
 	SHADER(RCAS, cs_composite_rcas);
 	SHADER(BICUBIC, cs_bicubic);
 	if (m_bSupportsFp16)
@@ -1135,7 +1129,7 @@ VkSampler CVulkanDevice::sampler( SamplerState key )
 	return ret;
 }
 
-VkPipeline CVulkanDevice::compilePipeline(uint32_t layerCount, uint32_t ycbcrMask, ShaderType type, uint32_t blur_layer_count, uint32_t composite_debug, uint32_t colorspace_mask, uint32_t output_eotf, bool itm_enable)
+VkPipeline CVulkanDevice::compilePipeline(uint32_t layerCount, uint32_t ycbcrMask, ShaderType type, uint32_t composite_debug, uint32_t colorspace_mask, uint32_t output_eotf, bool itm_enable)
 {
 	const std::array<VkSpecializationMapEntry, 7> specializationEntries = {{
 		{
@@ -1153,6 +1147,7 @@ VkPipeline CVulkanDevice::compilePipeline(uint32_t layerCount, uint32_t ycbcrMas
 			.offset     = sizeof(uint32_t) * 2,
 			.size       = sizeof(uint32_t)
 		},
+        // TODO: this was for now removed blur, free to override
 		{
 			.constantID = 3,
 			.offset     = sizeof(uint32_t) * 3,
@@ -1181,7 +1176,6 @@ VkPipeline CVulkanDevice::compilePipeline(uint32_t layerCount, uint32_t ycbcrMas
 		uint32_t layerCount;
 		uint32_t ycbcrMask;
 		uint32_t debug;
-		uint32_t blur_layer_count;
 		uint32_t colorspace_mask;
 		uint32_t output_eotf;
 		uint32_t itm_enable;
@@ -1189,7 +1183,6 @@ VkPipeline CVulkanDevice::compilePipeline(uint32_t layerCount, uint32_t ycbcrMas
 		.layerCount   = layerCount,
 		.ycbcrMask    = ycbcrMask,
 		.debug        = composite_debug,
-		.blur_layer_count = blur_layer_count,
 		.colorspace_mask = colorspace_mask,
 		.output_eotf = output_eotf,
 		.itm_enable = itm_enable,
@@ -1230,35 +1223,28 @@ void CVulkanDevice::compileAllPipelines()
 	pthread_setname_np( pthread_self(), "gamescope-shdr" );
 
 	std::array<PipelineInfo_t, SHADER_TYPE_COUNT> pipelineInfos;
-#define SHADER(type, layer_count, max_ycbcr, blur_layers) pipelineInfos[SHADER_TYPE_##type] = {SHADER_TYPE_##type, layer_count, max_ycbcr, blur_layers}
-	SHADER(BLIT, k_nMaxLayers, k_nMaxYcbcrMask_ToPreCompile, 1);
-	SHADER(BLUR, k_nMaxLayers, k_nMaxYcbcrMask_ToPreCompile, k_nMaxBlurLayers);
-	SHADER(BLUR_COND, k_nMaxLayers, k_nMaxYcbcrMask_ToPreCompile, k_nMaxBlurLayers);
-	SHADER(BLUR_FIRST_PASS, 1, 2, 1);
-	SHADER(RCAS, k_nMaxLayers, k_nMaxYcbcrMask_ToPreCompile, 1);
-	SHADER(EASU, 1, 1, 1);
-	SHADER(BICUBIC, 1, 1, 1);
-	SHADER(NIS, 1, 1, 1);
-	SHADER(RGB_TO_NV12, 1, 1, 1);
+#define SHADER(type, layer_count, max_ycbcr) pipelineInfos[SHADER_TYPE_##type] = {SHADER_TYPE_##type, layer_count, max_ycbcr}
+	SHADER(BLIT, k_nMaxLayers, k_nMaxYcbcrMask_ToPreCompile);
+	SHADER(RCAS, k_nMaxLayers, k_nMaxYcbcrMask_ToPreCompile);
+	SHADER(EASU, 1, 1);
+	SHADER(BICUBIC, 1, 1);
+	SHADER(NIS, 1, 1);
+	SHADER(RGB_TO_NV12, 1, 1);
 #undef SHADER
 
 	for (auto& info : pipelineInfos) {
 		for (uint32_t layerCount = 1; layerCount <= info.layerCount; layerCount++) {
 			for (uint32_t ycbcrMask = 0; ycbcrMask < info.ycbcrMask; ycbcrMask++) {
-				for (uint32_t blur_layers = 1; blur_layers <= info.blurLayerCount; blur_layers++) {
-					if (ycbcrMask >= (1u << (layerCount + 1)))
-						continue;
-					if (blur_layers > layerCount)
-						continue;
+				if (ycbcrMask >= (1u << (layerCount + 1)))
+					continue;
 
-					VkPipeline newPipeline = compilePipeline(layerCount, ycbcrMask, info.shaderType, blur_layers, info.compositeDebug, info.colorspaceMask, info.outputEOTF, info.itmEnable);
-					{
-						std::lock_guard<std::mutex> lock(m_pipelineMutex);
-						PipelineInfo_t key = {info.shaderType, layerCount, ycbcrMask, blur_layers, info.compositeDebug};
-						auto result = m_pipelineMap.emplace(std::make_pair(key, newPipeline));
-						if (!result.second)
-							vk.DestroyPipeline(device(), newPipeline, nullptr);
-					}
+				VkPipeline newPipeline = compilePipeline(layerCount, ycbcrMask, info.shaderType, info.compositeDebug, info.colorspaceMask, info.outputEOTF, info.itmEnable);
+				{
+					std::lock_guard<std::mutex> lock(m_pipelineMutex);
+					PipelineInfo_t key = {info.shaderType, layerCount, ycbcrMask, info.compositeDebug};
+					auto result = m_pipelineMap.emplace(std::make_pair(key, newPipeline));
+					if (!result.second)
+						vk.DestroyPipeline(device(), newPipeline, nullptr);
 				}
 			}
 		}
@@ -1267,18 +1253,18 @@ void CVulkanDevice::compileAllPipelines()
 
 extern bool g_bSteamIsActiveWindow;
 
-VkPipeline CVulkanDevice::pipeline(ShaderType type, uint32_t layerCount, uint32_t ycbcrMask, uint32_t blur_layers, uint32_t colorspace_mask, uint32_t output_eotf, bool itm_enable)
+VkPipeline CVulkanDevice::pipeline(ShaderType type, uint32_t layerCount, uint32_t ycbcrMask, uint32_t colorspace_mask, uint32_t output_eotf, bool itm_enable)
 {
 	uint32_t effective_debug = g_uCompositeDebug;
 	if ( g_bSteamIsActiveWindow )
 		effective_debug &= ~(CompositeDebugFlag::Heatmap | CompositeDebugFlag::Heatmap_MSWCG | CompositeDebugFlag::Heatmap_Hard);
 
 	std::lock_guard<std::mutex> lock(m_pipelineMutex);
-	PipelineInfo_t key = {type, layerCount, ycbcrMask, blur_layers, effective_debug, colorspace_mask, output_eotf, itm_enable};
+	PipelineInfo_t key = {type, layerCount, ycbcrMask, effective_debug, colorspace_mask, output_eotf, itm_enable};
 	auto search = m_pipelineMap.find(key);
 	if (search == m_pipelineMap.end())
 	{
-		VkPipeline result = compilePipeline(layerCount, ycbcrMask, type, blur_layers, effective_debug, colorspace_mask, output_eotf, itm_enable);
+		VkPipeline result = compilePipeline(layerCount, ycbcrMask, type, effective_debug, colorspace_mask, output_eotf, itm_enable);
 		m_pipelineMap[key] = result;
 		return result;
 	}
@@ -3841,7 +3827,6 @@ struct BlitPushData_t
 	glm::mat3x4 ctm[k_nMaxLayers];
 	uint32_t borderMask;
 	uint32_t frameId;
-	uint32_t blurRadius;
 
 	uint32_t u_shaderFilter;
 	uint32_t u_alphaMode;
@@ -3885,7 +3870,6 @@ struct BlitPushData_t
 
 		borderMask = frameInfo->borderMask();
 		frameId = s_frameId++;
-		blurRadius = frameInfo->blurRadius ? ( frameInfo->blurRadius * 2 ) - 1 : 0;
 
 		u_linearToNits = g_flInternalDisplayBrightnessNits;
 		u_nitsToLinear = 1.0f / g_flInternalDisplayBrightnessNits;
@@ -4110,7 +4094,7 @@ std::optional<uint64_t> vulkan_screenshot( const struct FrameInfo_t *frameInfo, 
 	for (uint32_t i = 0; i < EOTF_Count; i++)
 		cmdBuffer->bindColorMgmtLuts(i, frameInfo->shaperLut[i], frameInfo->lut3D[i]);
 
-	cmdBuffer->bindPipeline( g_device.pipeline(SHADER_TYPE_BLIT, frameInfo->layerCount, frameInfo->ycbcrMask(), 0u, frameInfo->colorspaceMask(), outputTF ));
+	cmdBuffer->bindPipeline( g_device.pipeline(SHADER_TYPE_BLIT, frameInfo->layerCount, frameInfo->ycbcrMask(), frameInfo->colorspaceMask(), outputTF ));
 	bind_all_layers(cmdBuffer.get(), frameInfo);
 	cmdBuffer->bindTarget(pScreenshotTexture);
 	cmdBuffer->uploadConstants<BlitPushData_t>(frameInfo);
@@ -4131,7 +4115,7 @@ std::optional<uint64_t> vulkan_screenshot( const struct FrameInfo_t *frameInfo, 
 		for (uint32_t i = 0; i < EOTF_Count; i++)
 			cmdBuffer->bindColorMgmtLuts(i, nullptr, nullptr);
 
-		cmdBuffer->bindPipeline(g_device.pipeline( SHADER_TYPE_RGB_TO_NV12, 1, 0, 0, GAMESCOPE_APP_TEXTURE_COLORSPACE_SRGB, EOTF_Count ));
+		cmdBuffer->bindPipeline(g_device.pipeline( SHADER_TYPE_RGB_TO_NV12, 1, 0, GAMESCOPE_APP_TEXTURE_COLORSPACE_SRGB, EOTF_Count ));
 		cmdBuffer->bindTexture(0, pScreenshotTexture);
 		cmdBuffer->setTextureSrgb(0, true);
 		cmdBuffer->setSamplerNearest(0, false);
@@ -4277,7 +4261,7 @@ std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
 
 		cmdBuffer->dispatch(div_roundup(tempX, pixelsPerGroup), div_roundup(tempY, pixelsPerGroup));
 
-		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_RCAS, frameInfo.layerCount, frameInfo.ycbcrMask() & ~1, 0u, frameInfo.colorspaceMask(), outputTF ));
+		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_RCAS, frameInfo.layerCount, frameInfo.ycbcrMask() & ~1, frameInfo.colorspaceMask(), outputTF ));
 		bind_all_layers(cmdBuffer.get(), &frameInfo);
 		cmdBuffer->bindTexture(0, g_output.tmpOutput);
 		cmdBuffer->setTextureSrgb(0, true);
@@ -4324,7 +4308,7 @@ std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
 		nisFrameInfo.layers[0].scale.x = 1.0f;
 		nisFrameInfo.layers[0].scale.y = 1.0f;
 
-		cmdBuffer->bindPipeline( g_device.pipeline(SHADER_TYPE_BLIT, nisFrameInfo.layerCount, nisFrameInfo.ycbcrMask(), 0u, nisFrameInfo.colorspaceMask(), outputTF ));
+		cmdBuffer->bindPipeline( g_device.pipeline(SHADER_TYPE_BLIT, nisFrameInfo.layerCount, nisFrameInfo.ycbcrMask(), nisFrameInfo.colorspaceMask(), outputTF ));
 		bind_all_layers(cmdBuffer.get(), &nisFrameInfo);
 		cmdBuffer->bindTarget(compositeImage);
 		cmdBuffer->uploadConstants<BlitPushData_t>(&nisFrameInfo);
@@ -4411,55 +4395,16 @@ std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
 		float uniformScale = std::max(scaleX, scaleY);
 		anime4kFrameInfo.layers[0].scale.x = uniformScale;
 		anime4kFrameInfo.layers[0].scale.y = uniformScale;
-		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_BLIT, anime4kFrameInfo.layerCount, anime4kFrameInfo.ycbcrMask(), 0u, anime4kFrameInfo.colorspaceMask(), outputTF));
+		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_BLIT, anime4kFrameInfo.layerCount, anime4kFrameInfo.ycbcrMask(), anime4kFrameInfo.colorspaceMask(), outputTF));
 		bind_all_layers(cmdBuffer.get(), &anime4kFrameInfo);
 		cmdBuffer->bindTarget(compositeImage);
 		cmdBuffer->uploadConstants<BlitPushData_t>(&anime4kFrameInfo);
 		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
 	}
 #endif
-	else if ( frameInfo.blurLayer0 )
-	{
-		update_tmp_images(currentOutputWidth, currentOutputHeight);
-
-		ShaderType type = SHADER_TYPE_BLUR_FIRST_PASS;
-
-		uint32_t blur_layer_count = 1;
-		// Also blur the override on top if we have one.
-		if (frameInfo.layerCount >= 2 && frameInfo.layers[1].zpos == g_zposOverride)
-			blur_layer_count++;
-
-		cmdBuffer->bindPipeline(g_device.pipeline(type, blur_layer_count, frameInfo.ycbcrMask() & 0x3u, 0, frameInfo.colorspaceMask(), outputTF ));
-		cmdBuffer->bindTarget(g_output.tmpOutput);
-		for (uint32_t i = 0; i < blur_layer_count; i++)
-		{
-			cmdBuffer->bindTexture(i, frameInfo.layers[i].tex);
-			cmdBuffer->setTextureSrgb(i, false);
-			cmdBuffer->setSamplerUnnormalized(i, true);
-			cmdBuffer->setSamplerNearest(i, false);
-		}
-		cmdBuffer->uploadConstants<BlitPushData_t>(&frameInfo);
-
-		int pixelsPerGroup = 8;
-
-		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
-
-		bool useSrgbView = frameInfo.layers[0].colorspace == GAMESCOPE_APP_TEXTURE_COLORSPACE_LINEAR;
-
-		type = frameInfo.blurLayer0 == BLUR_MODE_COND ? SHADER_TYPE_BLUR_COND : SHADER_TYPE_BLUR;
-		cmdBuffer->bindPipeline(g_device.pipeline(type, frameInfo.layerCount, frameInfo.ycbcrMask(), blur_layer_count, frameInfo.colorspaceMask(), outputTF ));
-		bind_all_layers(cmdBuffer.get(), &frameInfo);
-		cmdBuffer->bindTarget(compositeImage);
-		cmdBuffer->bindTexture(VKR_BLUR_EXTRA_SLOT, g_output.tmpOutput);
-		cmdBuffer->setTextureSrgb(VKR_BLUR_EXTRA_SLOT, !useSrgbView); // Inverted because it chooses whether to view as linear (sRGB view) or sRGB (raw view). It's horrible. I need to change it.
-		cmdBuffer->setSamplerUnnormalized(VKR_BLUR_EXTRA_SLOT, true);
-		cmdBuffer->setSamplerNearest(VKR_BLUR_EXTRA_SLOT, false);
-
-		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
-	}
 	else
 	{
-		cmdBuffer->bindPipeline( g_device.pipeline(SHADER_TYPE_BLIT, frameInfo.layerCount, frameInfo.ycbcrMask(), 0u, frameInfo.colorspaceMask(), outputTF ));
+		cmdBuffer->bindPipeline( g_device.pipeline(SHADER_TYPE_BLIT, frameInfo.layerCount, frameInfo.ycbcrMask(), frameInfo.colorspaceMask(), outputTF ));
 		bind_all_layers(cmdBuffer.get(), &frameInfo);
 		cmdBuffer->bindTarget(compositeImage);
 		cmdBuffer->uploadConstants<BlitPushData_t>(&frameInfo);
@@ -4496,7 +4441,7 @@ std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
 			for (uint32_t i = 0; i < EOTF_Count; i++)
 				cmdBuffer->bindColorMgmtLuts(i, nullptr, nullptr);
 
-			cmdBuffer->bindPipeline(g_device.pipeline( ycbcr ? SHADER_TYPE_RGB_TO_NV12 : SHADER_TYPE_BLIT, 1, 0, 0, GAMESCOPE_APP_TEXTURE_COLORSPACE_SRGB, EOTF_Count ));
+			cmdBuffer->bindPipeline(g_device.pipeline( (ycbcr ? SHADER_TYPE_RGB_TO_NV12 : SHADER_TYPE_BLIT), 1, 0, GAMESCOPE_APP_TEXTURE_COLORSPACE_SRGB, EOTF_Count ));
 			cmdBuffer->bindTexture(0, compositeImage);
 			cmdBuffer->setTextureSrgb(0, true);
 			cmdBuffer->setSamplerNearest(0, false);

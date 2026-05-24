@@ -922,12 +922,6 @@ static int g_nRuntimeInfoFd = -1;
 bool g_bFSRActive = false;
 bool g_bBicubicActive = false;
 
-BlurMode g_BlurMode = BLUR_MODE_OFF;
-BlurMode g_BlurModeOld = BLUR_MODE_OFF;
-unsigned int g_BlurFadeDuration = 0;
-int g_BlurRadius = 5;
-unsigned int g_BlurFadeStartTime = 0;
-
 pid_t focusWindow_pid, sdFocusWindow_pid;
 std::atomic<std::shared_ptr<std::string>> focusWindow_engine = nullptr;
 
@@ -2558,32 +2552,6 @@ paint_all( global_focus_t *pFocus, bool async )
 	if ( !bValidContents || GetBackend()->IsPaused() )
 	{
 		return;
-	}
-
-	unsigned int blurFadeTime = get_time_in_milliseconds() - g_BlurFadeStartTime;
-	bool blurFading = blurFadeTime < g_BlurFadeDuration;
-	BlurMode currentBlurMode = blurFading ? std::max(g_BlurMode, g_BlurModeOld) : g_BlurMode;
-
-	if (currentBlurMode && !(frameInfo.layerCount <= 1 && currentBlurMode == BLUR_MODE_COND))
-	{
-		frameInfo.blurLayer0 = currentBlurMode;
-		frameInfo.blurRadius = g_BlurRadius;
-
-		if (blurFading)
-		{
-			float ratio = blurFadeTime / (float) g_BlurFadeDuration;
-			bool fadingIn = g_BlurMode > g_BlurModeOld;
-
-			if (!fadingIn)
-				ratio = 1.0 - ratio;
-
-			frameInfo.blurRadius = ratio * g_BlurRadius;
-		}
-
-		frameInfo.useFSRLayer0 = false;
-		frameInfo.useBICUBICLayer0 = false;
-		frameInfo.useNISLayer0 = false;
-		frameInfo.useAnime4k2xCnnULLayer0 = false;
 	}
 
 	g_bFSRActive = frameInfo.useFSRLayer0;
@@ -5913,30 +5881,6 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 	{
 		g_bLowLatency = !!get_prop( ctx, ctx->root, ctx->atoms.gamescopeLowLatency, 0 );
 	}
-	if ( ev->atom == ctx->atoms.gamescopeBlurMode )
-	{
-		BlurMode newBlur = (BlurMode)get_prop( ctx, ctx->root, ctx->atoms.gamescopeBlurMode, 0 );
-		if (newBlur < BLUR_MODE_OFF || newBlur > BLUR_MODE_ALWAYS)
-			newBlur = BLUR_MODE_OFF;
-
-		if (newBlur != g_BlurMode) {
-			g_BlurFadeStartTime = get_time_in_milliseconds();
-			g_BlurModeOld = g_BlurMode;
-			g_BlurMode = newBlur;
-			hasRepaint = true;
-		}
-	}
-	if ( ev->atom == ctx->atoms.gamescopeBlurRadius )
-	{
-		unsigned int pixel = get_prop( ctx, ctx->root, ctx->atoms.gamescopeBlurRadius, 0 );
-		g_BlurRadius = (int)clamp((pixel / 2) + 1, 1u, kMaxBlurRadius - 1);
-		if ( g_BlurMode )
-			hasRepaint = true;
-	}
-	if ( ev->atom == ctx->atoms.gamescopeBlurFadeDuration )
-	{
-		g_BlurFadeDuration = get_prop( ctx, ctx->root, ctx->atoms.gamescopeBlurFadeDuration, 0 );
-	}
 	if ( ev->atom == ctx->atoms.gamescopeCompositeDebug )
 	{
 		cv_composite_debug = get_prop( ctx, ctx->root, ctx->atoms.gamescopeCompositeDebug, 0 );
@@ -7452,10 +7396,6 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 
 	ctx->atoms.gamescopeFSRFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_FSR_FEEDBACK", false );
 	ctx->atoms.gamescopeBicubicFeedback = XInternAtom( ctx->dpy, "GAMESCOPE_BICUBIC_FEEDBACK", false );
-
-	ctx->atoms.gamescopeBlurMode = XInternAtom( ctx->dpy, "GAMESCOPE_BLUR_MODE", false );
-	ctx->atoms.gamescopeBlurRadius = XInternAtom( ctx->dpy, "GAMESCOPE_BLUR_RADIUS", false );
-	ctx->atoms.gamescopeBlurFadeDuration = XInternAtom( ctx->dpy, "GAMESCOPE_BLUR_FADE_DURATION", false );
 
 	ctx->atoms.gamescopeCompositeForce = XInternAtom( ctx->dpy, "GAMESCOPE_COMPOSITE_FORCE", false );
 	ctx->atoms.gamescopeCompositeDebug = XInternAtom( ctx->dpy, "GAMESCOPE_COMPOSITE_DEBUG", false );

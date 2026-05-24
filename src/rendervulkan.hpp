@@ -40,16 +40,6 @@ class CVulkanCmdBuffer;
 #define k_nMaxYcbcrMask 16
 #define k_nMaxYcbcrMask_ToPreCompile 3
 
-#define k_nMaxBlurLayers 2
-
-#define kMaxBlurRadius (37u / 2 + 1)
-
-enum BlurMode {
-    BLUR_MODE_OFF = 0,
-    BLUR_MODE_COND = 1,
-    BLUR_MODE_ALWAYS = 2,
-};
-
 enum EStreamColorspace : int
 {
 	k_EStreamColorspace_Unknown = 0,
@@ -284,8 +274,6 @@ struct FrameInfo_t
 	bool useAnime4k2xCnnULLayer0;
 	bool useBICUBICLayer0;
 	bool bFadingOut;
-	BlurMode blurLayer0;
-	int blurRadius;
 
 	gamescope::Rc<CVulkanTexture> shaperLut[EOTF_Count];
 	gamescope::Rc<CVulkanTexture> lut3D[EOTF_Count];
@@ -565,9 +553,6 @@ struct VulkanOutput_t
 
 enum ShaderType {
 	SHADER_TYPE_BLIT = 0,
-	SHADER_TYPE_BLUR,
-	SHADER_TYPE_BLUR_COND,
-	SHADER_TYPE_BLUR_FIRST_PASS,
 	SHADER_TYPE_EASU,
 	SHADER_TYPE_RCAS,
 	SHADER_TYPE_NIS,
@@ -617,7 +602,6 @@ struct PipelineInfo_t
 
 	uint32_t layerCount;
 	uint32_t ycbcrMask;
-	uint32_t blurLayerCount;
 
 	uint32_t compositeDebug;
 
@@ -630,7 +614,6 @@ struct PipelineInfo_t
 		shaderType == o.shaderType &&
 		layerCount == o.layerCount &&
 		ycbcrMask == o.ycbcrMask &&
-		blurLayerCount == o.blurLayerCount &&
 		compositeDebug == o.compositeDebug &&
 		colorspaceMask == o.colorspaceMask &&
 		outputEOTF == o.outputEOTF &&
@@ -653,7 +636,6 @@ namespace std
 			uint32_t hash = k.shaderType;
 			hash = hash_combine(hash, k.layerCount);
 			hash = hash_combine(hash, k.ycbcrMask);
-			hash = hash_combine(hash, k.blurLayerCount);
 			hash = hash_combine(hash, k.compositeDebug);
 			hash = hash_combine(hash, k.colorspaceMask);
 			hash = hash_combine(hash, k.outputEOTF);
@@ -786,7 +768,7 @@ public:
 	bool BInit(VkInstance instance, VkSurfaceKHR surface);
 
 	VkSampler sampler(SamplerState key);
-	VkPipeline pipeline(ShaderType type, uint32_t layerCount = 1, uint32_t ycbcrMask = 0, uint32_t blur_layers = 0, uint32_t colorspace_mask = 0, uint32_t output_eotf = EOTF_Gamma22, bool itm_enable = false);
+	VkPipeline pipeline(ShaderType type, uint32_t layerCount = 1, uint32_t ycbcrMask = 0, uint32_t colorspace_mask = 0, uint32_t output_eotf = EOTF_Gamma22, bool itm_enable = false);
 #if HAVE_ANIME4K
 	VkPipeline anime4kULPipeline(uint32_t pass) { return m_anime4kULPipelines[pass]; }
 #endif
@@ -867,7 +849,7 @@ protected:
 	bool createAnime4kULPipelines();
 #endif
 	bool createScratchResources();
-	VkPipeline compilePipeline(uint32_t layerCount, uint32_t ycbcrMask, ShaderType type, uint32_t blur_layer_count, uint32_t composite_debug, uint32_t colorspace_mask, uint32_t output_eotf, bool itm_enable);
+	VkPipeline compilePipeline(uint32_t layerCount, uint32_t ycbcrMask, ShaderType type, uint32_t composite_debug, uint32_t colorspace_mask, uint32_t output_eotf, bool itm_enable);
 	void compileAllPipelines();
 
 	VkDevice m_device = nullptr;

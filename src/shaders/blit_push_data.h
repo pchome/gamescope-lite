@@ -6,7 +6,6 @@ uniform layers_t {
     mat3x4 u_ctm[VKR_MAX_LAYERS];
     uint u_borderMask;
     uint u_frameId;
-    uint u_blur_radius;
 
     uint u_shaderFilter;
     uint u_alphaMode;
