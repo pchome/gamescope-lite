@@ -3541,7 +3541,7 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 			}
 
 			auto focus_window_size = ctx->focus.focusWindow->GetGeometry();
-			xwm_log.infof( "focused window size: %dx%d",  focus_window_size.nHeight, focus_window_size.nWidth);
+			xwm_log.infof( "focused window size: %dx%d", focus_window_size.nWidth, focus_window_size.nHeight);
 
             g_nFocusedWindowWidth = ctx->focus.focusWindow->GetGeometry().nWidth;
             g_nFocusedWindowHeight = ctx->focus.focusWindow->GetGeometry().nHeight;
