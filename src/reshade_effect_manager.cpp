@@ -1001,6 +1001,7 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 
 	reshadefx::preprocessor pp;
 	pp.add_macro_definition("__RESHADE__", std::to_string(INT_MAX));
+    // pp.add_macro_definition("__RESHADE_PERMUTATION__", /*permutation_index != 0 ? "1" :*/ "0");
 	pp.add_macro_definition("__RESHADE_PERFORMANCE_MODE__", "0");
 	pp.add_macro_definition("__VENDOR__", std::to_string(deviceProperties.vendorID));
 	pp.add_macro_definition("__DEVICE__", std::to_string(deviceProperties.deviceID));
@@ -1014,6 +1015,17 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 	pp.add_macro_definition("BUFFER_COLOR_BIT_DEPTH", std::to_string(GetFormatBitDepth(key.bufferFormat)));
     pp.add_macro_definition("GAMESCOPE", "1");
     pp.add_macro_definition("GAMESCOPE_SDR_ON_HDR_NITS", std::to_string(g_ColorMgmt.pending.flSDROnHDRBrightness));
+
+    // Add some conversion macros for compatibility with older versions of ReShade
+    pp.append_string(
+        "#define tex2Doffset(s, coords, offset) tex2D(s, coords, offset)\n"
+        "#define tex2Dlodoffset(s, coords, offset) tex2Dlod(s, coords, offset)\n"
+        "#define tex2Dgather(s, t, c) tex2Dgather##c(s, t)\n"
+        "#define tex2Dgatheroffset(s, t, o, c) tex2Dgather##c(s, t, o)\n"
+        "#define tex2Dgather0 tex2DgatherR\n"
+        "#define tex2Dgather1 tex2DgatherG\n"
+        "#define tex2Dgather2 tex2DgatherB\n"
+        "#define tex2Dgather3 tex2DgatherA\n");
 
     // Path data_dir = xdg::user::data();
     Path reshade_data_dir = "reshade-shaders";
@@ -1060,11 +1072,11 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 		true /* vulkan semantics */, true /* debug info */, false /* uniforms to spec constants */, false /* enable_16bit_types */, false /*flip vertex shader*/));
 
 	reshadefx::parser parser;
-	parser.parse(pp.output(), codegen.get());
+	bool compiled = parser.parse(pp.output(), codegen.get());
 
     /** Parser error handler */
 	errors = parser.errors();
-	if (!errors.empty())
+	if (!compiled || !errors.empty())
 	{
 		reshade_log.errorf("Failed to parse reshade fx shader module: %s", errors.c_str());
 		return false;

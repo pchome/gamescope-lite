@@ -83,9 +83,9 @@ reshade_include = include_directories()
 reshade_dep = []
 
 if get_option('reshade').enabled()
-reshade_fx_dep = dependency('ReShadeFX', version: ['>=6.6.0', '<6.7.0'])
-reshade_fx_spirv_dep = dependency('ReShadeFX-spirv', version: ['>=6.6.0', '<6.7.0'])
-reshade_fx_type_convert_dep = dependency('ReShadeFX-vulkan-type-convert', version: ['>=6.6.0', '<6.7.0'])
+reshade_fx_dep = dependency('ReShadeFX', version: ['>=6.6.0', '<6.8.0'])
+reshade_fx_spirv_dep = dependency('ReShadeFX-spirv', version: ['>=6.6.0', '<6.8.0'])
+reshade_fx_type_convert_dep = dependency('ReShadeFX-vulkan-type-convert', version: ['>=6.6.0', '<6.8.0'])
 reshade_dep = [
   reshade_fx_dep, reshade_fx_spirv_dep, reshade_fx_type_convert_dep,
 ]
