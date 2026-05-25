@@ -2,7 +2,7 @@ project(
   'gamescope-lite',
   'c',
   'cpp',
-  meson_version: '>=0.58.0',
+  meson_version: '>=0.64.0',
   default_options: [
     'cpp_std=c++23',
     'c_std=c23,c11',
@@ -14,8 +14,11 @@ project(
 )
 
 fallbacks = get_option('force_fallback_for')
-if not (fallbacks.contains('wlroots'))
-  error('!!!"force_fallback_for" is missing entries!!!\n\tPlease do not remove entries from force_fallback_for if you are packaging the project.\n\tWe pull in these projects at specific commits/forks/builds for a reason.\n\tIf you are not packaging, remove this line to continue.')
+if not fallbacks.contains('wlroots')
+  error('"force_fallback_for=wlroots" is missing!',
+    'Please do not remove entries from "force_fallback_for" if you are packaging the project.',
+    'We pull in these projects at specific commits/forks/builds for a reason.',
+    'If you are not packaging, remove this line to continue.')
 endif
 
 add_project_arguments([
@@ -58,8 +61,10 @@ librt_dep = cppc.find_library('rt', required : get_option('pipewire'))
 dep_x11 = dependency('x11')
 vulkan_dep = dependency('vulkan')
 
-glm_dep = dependency('glm')
-stb_dep = dependency('stb')
+# INFO: WrapDB: `meson wrap update-db`
+dep_notfound = 'Install system package or use "--wrap-mode=default" option.'
+glm_dep = dependency('glm', not_found_message: dep_notfound)
+stb_dep = dependency('stb', not_found_message: dep_notfound)
 
 add_project_arguments(
   '-DHAVE_PIPEWIRE=@0@'.format(get_option('pipewire').enabled().to_int()),

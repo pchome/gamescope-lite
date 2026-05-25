@@ -78,12 +78,11 @@ reshade_include = include_directories()
 reshade_dep = []
 
 if get_option('reshade').enabled()
-reshade_fx_dep = dependency('ReShadeFX', version: ['>=6.6.0', '<6.8.0'])
-reshade_fx_spirv_dep = dependency('ReShadeFX-spirv', version: ['>=6.6.0', '<6.8.0'])
-reshade_fx_type_convert_dep = dependency('ReShadeFX-vulkan-type-convert', version: ['>=6.6.0', '<6.8.0'])
-reshade_dep = [
-  reshade_fx_dep, reshade_fx_spirv_dep, reshade_fx_type_convert_dep,
-]
+  reshadefx_version = ['>=6.6.0', '<6.8.0']
+  reshadefx_dep = dependency('ReShadeFX', version: reshadefx_version, not_found_message: dep_notfound)
+  reshadefx_spirv_dep = dependency('ReShadeFX-spirv', version: reshadefx_version)
+  reshadefx_tc_dep = dependency('ReShadeFX-vulkan-type-convert', version: reshadefx_version)
+  reshade_dep = [reshadefx_dep, reshadefx_spirv_dep, reshadefx_tc_dep]
 endif
 
 imgui_src = []

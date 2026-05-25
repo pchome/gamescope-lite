@@ -1,8 +1,8 @@
 [wrap-git]
 
-# 6.6.2
+# 6.7.3
 url = https://github.com/pchome/reshade-fx.git
-revision = b985b5f29f10f399c46b993fe127229b05d4ce9f
+revision = 64d57209a87b0832c25aeed8b4482b8884701583
 depth = 1
 
 directory = reshade-fx
