@@ -1,11 +1,11 @@
 #pragma once
-
-#include "WaylandProtocol.h"
+#include <cstring>
 
 #include "gamescope-reshade-protocol.h"
-#include "reshade_effect_manager.hpp"
 
-#include <cstring>
+#include "WaylandServer/WaylandResource.h"
+
+#include "reshade_effect_manager.hpp"
 
 namespace gamescope::WaylandServer
 {

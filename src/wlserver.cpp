@@ -1,29 +1,36 @@
-#include "GamescopeVersion.h"
-#include <xkbcommon/xkbcommon-keysyms.h>
 #define _GNU_SOURCE 1
 
-#include <assert.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <string.h>
-#include <poll.h>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+
+#include <algorithm>
+#include <list>
+#include <set>
+
 #include <fcntl.h>
+#include <poll.h>
+#include <pthread.h>
+#include <unistd.h>
 #include <xf86drm.h>
+
 #include <sys/eventfd.h>
 
 #include <linux/input-event-codes.h>
 
 #include <X11/extensions/XTest.h>
-#include <xkbcommon/xkbcommon.h>
 
-#include "WaylandServer/WaylandResource.h"
-#include "WaylandServer/WaylandProtocol.h"
-#include "WaylandServer/LinuxDrmSyncobj.h"
+#include <xkbcommon/xkbcommon.h>
+#include <xkbcommon/xkbcommon-keysyms.h>
+
+#include "GamescopeVersion.h"
+#include "Timeline.h"
 #if HAVE_RESHADE
-#include "WaylandServer/Reshade.h"
+#include "WaylandServer/Reshade.h" // IWYU pragma: keep
 #endif
 #include "WaylandServer/GamescopeActionBinding.h"
+#include "WaylandServer/LinuxDrmSyncobj.h"
+#include "WaylandServer/WaylandProtocol.h" // IWYU pragma: keep
 
 #include "wlr_begin.hpp"
 #include <wlr/backend.h>
@@ -32,19 +39,19 @@
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_drm.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_pointer_constraints_v1.h>
+#include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_touch.h>
-#include <wlr/types/wlr_drm.h>
-#include <wlr/util/log.h>
-#include <wlr/xwayland/server.h>
 #include <wlr/types/wlr_xdg_shell.h>
-#include <wlr/types/wlr_relative_pointer_v1.h>
-#include <wlr/types/wlr_pointer_constraints_v1.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/util/log.h>
 #include <wlr/util/region.h>
+#include <wlr/xwayland/server.h>
 #include "wlr_end.hpp"
 
 #include "gamescope-xwayland-protocol.h"
@@ -53,26 +60,22 @@
 #include "gamescope-swapchain-protocol.h"
 // #include "presentation-time-protocol.h"
 
-#include "wlserver.hpp"
-#include "hdmi.h"
-#include "main.hpp"
-#include "steamcompmgr.hpp"
 #include "color_helpers.h"
-#include "log.hpp"
-#include "xwayland_ctx.hpp"
-#include "refresh_rate.h"
 #include "commit.h"
-#include "Timeline.h"
-#include "Utils/NonCopyable.h"
+#include "hdmi.h"
+#include "log.hpp"
+#include "main.hpp"
+#include "refresh_rate.h"
+#include "steamcompmgr.hpp"
+#include "wlserver.hpp"
+#include "xwayland_ctx.hpp"
 
 #if HAVE_PIPEWIRE
 #include "gamescope-pipewire-protocol.h"
 #include "pipewire.hpp"
 #endif
 
-#include <algorithm>
-#include <list>
-#include <set>
+
 
 static LogScope wl_log("wlserver");
 static LogScope wlroots_log("wlroots");

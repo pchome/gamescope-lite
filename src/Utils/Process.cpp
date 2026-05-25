@@ -1,15 +1,13 @@
-#include "Process.h"
-#include "../Utils/Algorithm.h"
-#include "../convar.h"
-#include "../log.hpp"
-#include "../Utils/Defer.h"
-
-#include <algorithm>
 #include <array>
+#include <cerrno>
+#include <csignal>
+#include <cstdlib>
 #include <ranges>
-#include <errno.h>
-#include <pthread.h>
+
+#include <dirent.h>
 #include <fcntl.h>
+#include <pthread.h>
+
 #include <sys/resource.h>
 #include <sys/wait.h>
 #if defined(__linux__)
@@ -21,14 +19,13 @@
 #include <sys/procctl.h>
 #endif
 
-#include <pthread.h>
-#include <stdlib.h>
-#include <dirent.h>
-#include <limits.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <errno.h>
+#include "Process.h"
+#include "Utils/Algorithm.h"
+#include "Utils/Defer.h"
+
+#include "convar.h"
+#include "log.hpp"
+
 
 extern const char *__progname;
 

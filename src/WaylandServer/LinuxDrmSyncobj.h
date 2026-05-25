@@ -1,8 +1,15 @@
-#include "WaylandProtocol.h"
-#include "WaylandServerLegacy.h"
-#include "../Timeline.h"
+#pragma once
+#include <cassert>
+
+#include "wlr_begin.hpp"
+#include <wlr/types/wlr_compositor.h>
+#include "wlr_end.hpp"
 
 #include "linux-drm-syncobj-v1-protocol.h"
+
+#include "Timeline.h"
+#include "WaylandServer/WaylandResource.h"
+#include "WaylandServer/WaylandServerLegacy.h"
 
 namespace gamescope::WaylandServer
 {

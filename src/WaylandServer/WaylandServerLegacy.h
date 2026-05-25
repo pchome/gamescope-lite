@@ -1,17 +1,15 @@
 #pragma once
-
-#include <wayland-server-core.h>
-#include "WaylandDecls.h"
 #include <memory>
 #include <optional>
 #include <vector>
-#include "vulkan_include.h"
 
+#define VK_NO_STDDEF_H
+#define VK_NO_STDINT_H
+#define VK_NO_PROTOTYPES
+#include <vulkan/vulkan.h>
+#include <wayland-server-core.h>
 
-#include "wlr_begin.hpp"
-#include <wlr/types/wlr_compositor.h>
-#include "wlr_end.hpp"
-
+#include "WaylandServer/WaylandDecls.h"
 
 namespace gamescope
 {

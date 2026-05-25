@@ -1,43 +1,32 @@
-#include <X11/Xlib.h>
-
-#include <cstdio>
-#include <thread>
-#include <mutex>
-#include <vector>
+#include <cfloat>
+#include <csignal>
 #include <cstring>
 #include <sstream>
-#include <string>
+
 #if HAVE_LIBCAP
 #include <sys/capability.h>
 #endif
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 
 #include <getopt.h>
-#include <signal.h>
 #include <unistd.h>
-#include <float.h>
-#include <climits>
 
-#include "main.hpp"
-#include "steamcompmgr.hpp"
-#include "rendervulkan.hpp"
-#include "wlserver.hpp"
-#include "convar.h"
+#include "Utils/Process.h"
 #include "Utils/TempFiles.h"
 #include "Utils/Version.h"
-#include "Utils/Process.h"
-#include "Utils/Defer.h"
 
 #include "backends.h"
+#include "main.hpp"
 #include "refresh_rate.h"
+#include "rendervulkan.hpp"
+#include "steamcompmgr.hpp"
+#include "wlserver.hpp"
 
 #if HAVE_PIPEWIRE
 #include "pipewire.hpp"
 #endif
-
-// #include <wayland-client.h>
 
 using namespace std::literals;
 

@@ -1,13 +1,11 @@
 #pragma once
-
 #include <variant>
-#include <string>
-#include <utility>
 
+#include <X11/extensions/Xdamage.h>
 #include <wlr/util/box.h>
 
+#include "backend.h"
 #include "xwayland_ctx.hpp"
-#include "gamescope-control-protocol.h"
 
 struct commit_t;
 struct wlserver_vk_swapchain_feedback;

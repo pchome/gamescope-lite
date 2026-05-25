@@ -1,7 +1,7 @@
 #pragma once
-
-#include <climits>
 #include <cstdio>
+
+#include <linux/limits.h>
 
 namespace gamescope
 {

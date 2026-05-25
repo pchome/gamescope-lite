@@ -1,12 +1,10 @@
-#include <cstdlib>
-#include <cstdio>
-#include <climits>
-
-#include <string>
 #include <list>
+#include <string>
 
 #include <fcntl.h>
 #include <unistd.h>
+
+#include <linux/limits.h>
 
 #include "TempFiles.h"
 

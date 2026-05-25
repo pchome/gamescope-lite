@@ -1,7 +1,8 @@
 #pragma once
-
-#include "WaylandResource.h"
 #include <vector>
+
+#include "Utils/NonCopyable.h"
+#include "WaylandServer/WaylandResource.h"
 
 namespace gamescope::WaylandServer
 {

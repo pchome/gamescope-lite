@@ -1,14 +1,15 @@
-#include <xf86drm.h>
+#include <cassert>
+
 #include <sys/eventfd.h>
 
-#include "Timeline.h"
-#include "wlserver.hpp"
-#include "rendervulkan.hpp"
+#include <xf86drm.h>
 
-#include "wlr_begin.hpp"
-#include <wlr/render/drm_syncobj.h>
-#include <wlr/types/wlr_linux_drm_syncobj_v1.h>
-#include "wlr_end.hpp"
+#include "Timeline.h"
+
+#include "rendervulkan.hpp"
+#include "log.hpp"
+
+
 
 namespace gamescope
 {

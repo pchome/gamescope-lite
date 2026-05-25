@@ -1,24 +1,18 @@
 // Wayland stuff
 
 #pragma once
-
-#include <wayland-server-core.h>
 #include <atomic>
-#include <vector>
 #include <memory>
 #include <mutex>
-#include <map>
-#include <set>
-#include <list>
-#include <unordered_map>
 #include <optional>
-
-#include "WaylandServer/WaylandDecls.h"
-#include "WaylandServer/WaylandServerLegacy.h"
+#include <set>
+#include <unordered_map>
+#include <vector>
 
 #include <pixman-1/pixman.h>
+#include <wayland-server-core.h>
 
-#include "vulkan_include.h"
+#include "WaylandServer/WaylandServerLegacy.h"
 
 #include "steamcompmgr_shared.hpp"
 

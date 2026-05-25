@@ -1,12 +1,9 @@
-#include "backend.h"
 #include "Backends/DeferredBackend.h"
-#include "vblankmanager.hpp"
-#include "convar.h"
-#include "wlserver.hpp"
 
-#include "wlr_begin.hpp"
-#include <wlr/types/wlr_buffer.h>
-#include "wlr_end.hpp"
+#include "backend.h"
+#include "convar.h"
+#include "vblankmanager.hpp"
+#include "wlserver.hpp"
 
 extern void sleep_until_nanos(uint64_t nanos);
 extern bool env_to_bool(const char *env);

@@ -1,20 +1,19 @@
 // Initialize Vulkan and composite stuff with a compute queue
-
 #include <cassert>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
+#include <cstring>
+
 #include <algorithm>
 #include <array>
 #include <bitset>
 #include <thread>
 #include <utility>
+
 #include <dlfcn.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <xf86drm.h>
 
-#include "Utils/Algorithm.h"
-
+#include <sys/stat.h>
 #if defined(__linux__)
 #include <sys/sysmacros.h>
 #endif
@@ -24,15 +23,11 @@
 // NIS_Config needs to be included before the X11 headers because of conflicting defines introduced by X11
 #include "shaders/NVIDIAImageScaling/NIS/NIS_Config.h"
 
-#include <xf86drm.h>
 #include "wlr_begin.hpp"
 #include <wlr/render/drm_format_set.h>
 #include "wlr_end.hpp"
 
-#include "rendervulkan.hpp"
-#include "main.hpp"
-#include "steamcompmgr.hpp"
-#include "log.hpp"
+#include "Utils/Algorithm.h"
 #include "Utils/Process.h"
 
 #include "cs_composite_blit.h"
@@ -48,9 +43,15 @@
 #include "shaders/ffx_a.h"
 #include "shaders/ffx_fsr1.h"
 #include "shaders/bicubic.h"
+
 #if HAVE_RESHADE
 #include "reshade_effect_manager.hpp"
 #endif
+#include "log.hpp"
+#include "main.hpp"
+#include "rendervulkan.hpp"
+#include "steamcompmgr.hpp"
+
 extern bool g_bWasPartialComposite;
 extern bool g_bAllowDeferredBackend;
 

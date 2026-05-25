@@ -29,36 +29,50 @@
  *   says above. Not that I can really do anything about it
  */
 
-#include "backend.h"
-#include "gamescope_shared.h"
-#include "xwayland_ctx.hpp"
-#include <X11/X.h>
-#include <X11/Xlib.h>
-#include <X11/Xcursor/Xcursor.h>
-#include <X11/extensions/xfixeswire.h>
-#include <X11/extensions/XInput2.h>
+#include <cassert>
+#include <cinttypes>
+#include <csignal>
 #include <cstdint>
-#include <memory>
-#include <thread>
-#include <condition_variable>
-#include <mutex>
-#include <atomic>
-#include <vector>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+
 #include <algorithm>
 #include <array>
-#include <iostream>
+#include <atomic>
+#include <condition_variable>
 #include <fstream>
+#include <memory>
+#include <mutex>
 #include <string>
-#include <queue>
-#include <filesystem>
-#include <variant>
+#include <thread>
 #include <unordered_set>
+#include <variant>
+#include <vector>
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <X11/Xatom.h>
+#include <X11/Xcursor/Xcursor.h>
+#include <X11/Xmu/CurUtil.h>
+
+#include <X11/extensions/XInput2.h>
+#include <X11/extensions/XRes.h>
+#include <X11/extensions/Xcomposite.h>
+#include <X11/extensions/Xdamage.h>
+#include <X11/extensions/Xrender.h>
+
+#include <X11/extensions/composite.h>
+#include <X11/extensions/damagewire.h>
+#include <X11/extensions/shape.h>
+#include <X11/extensions/shapeconst.h>
+#include <X11/extensions/xf86vmode.h>
+
 #include <fcntl.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <spawn.h>
+
 #include <sys/poll.h>
 #include <sys/time.h>
 #include <sys/wait.h>
@@ -70,37 +84,42 @@
 #endif
 #include <sys/socket.h>
 #include <sys/resource.h>
-#include <time.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <spawn.h>
-#include <signal.h>
-#include <linux/input-event-codes.h>
-#include <X11/Xmu/CurUtil.h>
-#include "waitable.h"
-#include <inttypes.h>
 
-#include "main.hpp"
-#include "wlserver.hpp"
-#include "rendervulkan.hpp"
-#include "steamcompmgr.hpp"
-#include "vblankmanager.hpp"
-#include "log.hpp"
-#include "Utils/Defer.h"
-#include "win32_styles.h"
-#include "convar.h"
-#include "refresh_rate.h"
-#include "commit.h"
-#if HAVE_RESHADE
-#include "reshade_effect_manager.hpp"
-#endif
-#include "BufferMemo.h"
-#include "Utils/Process.h"
-#include "Utils/Algorithm.h"
+#include <linux/input-event-codes.h>
 
 #include "wlr_begin.hpp"
 #include "wlr/types/wlr_pointer_constraints_v1.h"
 #include "wlr_end.hpp"
+
+#include <stb/stb_image.h>
+#if HAVE_SCREENSHOT
+#include <stb/stb_image_write.h>
+#endif
+#include <stb/deprecated/stb_image_resize.h>
+
+#include "BufferMemo.h"
+#include "Utils/Algorithm.h"
+#include "Utils/Defer.h"
+#include "Utils/Process.h"
+
+#include "backend.h"
+#include "commit.h"
+#include "convar.h"
+#include "gamescope_shared.h"
+#include "log.hpp"
+#include "main.hpp"
+#include "refresh_rate.h"
+#include "rendervulkan.hpp"
+#include "steamcompmgr.hpp"
+#include "vblankmanager.hpp"
+#include "waitable.h"
+#include "win32_styles.h"
+#include "wlserver.hpp"
+#include "xwayland_ctx.hpp"
+
+#if HAVE_RESHADE
+#include "reshade_effect_manager.hpp"
+#endif
 
 #if HAVE_AVIF
 #include "avif/avif.h"
@@ -112,11 +131,7 @@ static const int g_nBaseCursorScale = 36;
 #include "pipewire.hpp"
 #endif
 
-#include <stb/stb_image.h>
-#if HAVE_SCREENSHOT
-#include <stb/stb_image_write.h>
-#endif
-#include <stb/deprecated/stb_image_resize.h>
+
 
 LogScope xwm_log("xwm");
 LogScope focus_log("focus");

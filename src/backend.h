@@ -1,23 +1,26 @@
 #pragma once
-
-#include "color_helpers.h"
-#include "gamescope_shared.h"
-#include "vulkan_include.h"
-#include "Timeline.h"
-#include "convar.h"
-#include "rc.h"
-#include <cstdint>
-#include <drm_fourcc.h>
-#include "Utils/Algorithm.h"
-
+#include <any>
+#include <atomic>
 #include <cassert>
+#include <cstdint>
+#include <memory>
 #include <span>
 #include <vector>
-#include <memory>
-#include <optional>
-#include <atomic>
-#include <variant>
-#include <any>
+
+#include <drm_fourcc.h>
+
+#define VK_NO_STDDEF_H
+#define VK_NO_STDINT_H
+#define VK_NO_PROTOTYPES
+#include <vulkan/vulkan.h>
+
+#include "Timeline.h"
+#include "Utils/Algorithm.h"
+
+#include "color_helpers.h"
+#include "convar.h"
+#include "gamescope_shared.h"
+#include "rc.h"
 
 struct wlr_buffer;
 struct wlr_dmabuf_attributes;

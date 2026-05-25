@@ -1,24 +1,18 @@
 #pragma once
+#include <optional>
+#include <span>
+#include <string>
+#include <unordered_set>
 
-#include "WaylandProtocol.h"
+#include "wlr_begin.hpp"
+#include <wlr/types/wlr_keyboard.h>
+#include "wlr_end.hpp"
 
 #include "gamescope-action-binding-protocol.h"
 
-#include "../log.hpp"
+#include "WaylandServer/WaylandResource.h"
 
-#include <string>
-#include <span>
-#include <string>
-#include <array>
-#include <unordered_set>
-
-#include "convar.h"
-#include "Utils/Algorithm.h"
-
-#include "wlr_begin.hpp"
-#include <xkbcommon/xkbcommon.h>
-#include <wlr/types/wlr_keyboard.h>
-#include "wlr_end.hpp"
+#include "log.hpp"
 
 using namespace std::literals;
 

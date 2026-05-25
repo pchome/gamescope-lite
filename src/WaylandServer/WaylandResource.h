@@ -1,8 +1,9 @@
 #pragma once
-
 #include <cstdint>
+
 #include <wayland-server-core.h>
-#include "../Utils/NonCopyable.h"
+
+#include "Utils/NonCopyable.h"
 
 namespace gamescope::WaylandServer
 {

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <reshade/effect_module.hpp>
+
 #include "rendervulkan.hpp"
-#include <optional>
 
 namespace reshadefx
 {

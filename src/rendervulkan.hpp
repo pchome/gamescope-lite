@@ -1,21 +1,29 @@
 // Initialize Vulkan and composite stuff with a compute queue
 
 #pragma once
-
-#include <atomic>
-#include <stdint.h>
-#include <memory>
-#include <map>
-#include <unordered_map>
 #include <array>
+#include <atomic>
 #include <bitset>
+#include <cstdint>
+#include <map>
+#include <memory>
 #include <mutex>
 #include <optional>
+#include <unordered_map>
+#include <vector>
 
-#include "main.hpp"
+#define VK_NO_STDDEF_H
+#define VK_NO_STDINT_H
+#define VK_NO_PROTOTYPES
+#include <vulkan/vulkan.h>
 
-#include "gamescope_shared.h"
+#include "wlr_begin.hpp"
+#include <wlr/render/interface.h>
+#include "wlr_end.hpp"
+
 #include "backend.h"
+#include "gamescope_shared.h"
+#include "main.hpp"
 
 #include "shaders/descriptor_set_constants.h"
 
@@ -48,21 +56,6 @@ enum EStreamColorspace : int
 	k_EStreamColorspace_BT709 = 3,
 	k_EStreamColorspace_BT709_Full = 4
 };
-
-#include <memory>
-#include <unordered_map>
-#include <vector>
-#include <atomic>
-#include <wayland-server-core.h>
-
-#include "wlr_begin.hpp"
-#include <wlr/render/dmabuf.h>
-#include <wlr/render/interface.h>
-#include "wlr_end.hpp"
-
-#define VK_NO_PROTOTYPES
-#include <vulkan/vulkan.h>
-#include <drm_fourcc.h>
 
 struct VulkanRenderer_t
 {

@@ -1,13 +1,13 @@
 #include <cstring>
+
+#include <filesystem>
+#include <list>
+#include <mutex>
+#include <print>
 #include <ranges>
+#include <unordered_map>
 #include <utility>
 #include <variant>
-#include <unordered_map>
-
-#include "reshade_effect_manager.hpp"
-#include "log.hpp"
-
-#include "steamcompmgr.hpp"
 
 #include <reshade/effect_parser.hpp>
 #include <reshade/effect_codegen.hpp>
@@ -22,9 +22,9 @@
 #include <stb/stb_image.h>
 #include <stb/deprecated/stb_image_resize.h>
 
-#include <mutex>
-#include <filesystem>
-#include <print>
+#include "log.hpp"
+#include "reshade_effect_manager.hpp"
+#include "steamcompmgr.hpp"
 
 // This is based on wl_array_for_each from `wayland-util.h` in the Wayland client library.
 #define uint8_array_for_each(pos, data, size) \

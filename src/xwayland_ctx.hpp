@@ -1,21 +1,11 @@
 #pragma once
-
-#include "backend.h"
-#include "waitable.h"
-
-#include <mutex>
 #include <memory>
+#include <mutex>
 #include <vector>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <X11/extensions/Xcomposite.h>
-#include <X11/extensions/Xdamage.h>
-#include <X11/extensions/Xrender.h>
-#include <X11/extensions/XRes.h>
-#include <X11/extensions/shape.h>
-#include <X11/extensions/xf86vmode.h>
+#include <X11/extensions/Xfixes.h>
+
+#include "waitable.h"
 
 class gamescope_xwayland_server_t;
 struct ignore;
