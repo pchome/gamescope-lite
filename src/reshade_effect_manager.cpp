@@ -1,7 +1,6 @@
 #include <cstring>
 
 #include <filesystem>
-#include <list>
 #include <mutex>
 #include <print>
 #include <ranges>
@@ -22,6 +21,8 @@
 #include <stb/stb_image.h>
 #include <stb/deprecated/stb_image_resize.h>
 
+#include "Utils/xdg_helper.hpp"
+
 #include "log.hpp"
 #include "reshade_effect_manager.hpp"
 #include "steamcompmgr.hpp"
@@ -37,67 +38,8 @@ static std::mutex g_runtimeUniformsMutex;
 
 extern int g_nOutputRefresh;
 
-const char *homedir;
-
-auto GetEnv(char const* name, char const* def = "") {
-    char const* pszValue = std::getenv( name );
-    return pszValue ?: def;
-}
-
 using std::operator""sv;
 using Path = std::filesystem::path;
-
-namespace xdg::data {
-static constexpr auto home() -> Path { return GetEnv( "XDG_DATA_HOME", ".local/share" ); }
-static constexpr auto dirs() -> std::string { return GetEnv( "XDG_DATA_DIRS", "/usr/local/share:/usr/share" ); }
-static constexpr auto append(std::string const& s) -> std::string { return dirs() + ":" + s; }
-static constexpr auto prepend(std::string const& s) -> std::string { return s + ":" + dirs(); }
-static constexpr auto transform(Path const& s) -> std::string {
-    std::string out{};
-    for (const auto data_path : std::views::split(dirs(), ":"sv)) {
-        if (!out.empty()) out += ":";
-        out += Path(std::string_view(data_path) / s);
-    }
-    return out;
-}
-static constexpr auto transform(std::list<Path> const& list) -> std::string {
-    std::string out{};
-    for (const auto data_path : std::views::split(dirs(), ":"sv)) {
-        for (auto& item : list) {
-            if (!out.empty()) out += ":";
-            out += Path(std::string_view(data_path) / item);
-        }
-    }
-    return out;
-}
-} // namespace xdg::data
-
-namespace xdg::config {
-static constexpr auto home() -> Path { return GetEnv( "XDG_CONFIG_HOME", ".config" ); }
-static constexpr auto dirs() -> std::string { return GetEnv( "XDG_CONFIG_DIRS", "/usr/local/etc/xdg:/etc/xdg" ); }
-static constexpr auto append(std::string const& s) -> std::string { return dirs() + ":" + s; }
-static constexpr auto prepend(std::string const& s) -> std::string { return s + ":" + dirs(); }
-} // namespace xdg::config
-
-namespace xdg::user {
-static constexpr auto home() -> Path { return GetEnv( "HOME", "." ); }
-static constexpr auto data() -> Path {
-    return xdg::data::home().is_relative() ? home() / xdg::data::home() : xdg::data::home();
-}
-static constexpr auto config() -> Path {
-    return xdg::config::home().is_relative() ? home() / xdg::config::home() : xdg::config::home();
-}
-static constexpr auto data_transform(std::list<Path> const& list) -> std::string {
-    std::string out{};
-    for (auto& item : list) { if (!out.empty()) out += ":"; out += data() / item; }
-    return out;
-}
-static constexpr auto config_transform(std::list<Path> const& list) -> std::string {
-    std::string out{};
-    for (auto& item : list) { if (!out.empty()) out += ":"; out += config() / item; }
-    return out;
-}
-} // namespace xdg::user
 
 static LogScope reshade_log("gamescope_reshade");
 
