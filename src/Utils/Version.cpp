@@ -7,7 +7,7 @@
 
 namespace gamescope {
 void PrintVersion() {
-    std::println("[{0}] [version]  {1} ({2})",
+    std::println("[{}] [version]  {} ({})",
                  Process::GetProcessName(),
                  gamescope::k_szGamescopeVersion,
                  gamescope::build::buildtype);

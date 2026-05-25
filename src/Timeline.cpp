@@ -17,9 +17,8 @@ namespace gamescope
 
     static uint32_t SyncobjFdToHandle( int32_t nFd )
     {
-        int32_t nRet;
         uint32_t uHandle = 0;
-        if ( ( nRet = drmSyncobjFDToHandle( g_device.drmRenderFd(), nFd, &uHandle ) ) < 0 )
+        if ( int32_t const nRet = drmSyncobjFDToHandle( g_device.drmRenderFd(), nFd, &uHandle ); nRet < 0 )
             return 0;
 
         return uHandle;

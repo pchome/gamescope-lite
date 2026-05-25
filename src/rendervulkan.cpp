@@ -151,8 +151,7 @@ static void vk_errorf(VkResult result, const char *fmt, ...) {
 #define vk_check( x ) \
 	do \
 	{ \
-		VkResult check_res = VK_SUCCESS; \
-		if ( ( check_res = ( x ) ) != VK_SUCCESS ) \
+		if ( VkResult check_res = ( x ); check_res != VK_SUCCESS ) \
 		{ \
 			vk_errorf( check_res, #x " failed!" ); \
 			abort(); \

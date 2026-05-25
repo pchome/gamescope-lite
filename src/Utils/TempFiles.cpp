@@ -13,7 +13,7 @@ namespace gamescope
     class CDeferUnlinks
     {
     public:
-        void Add( std::string sPath )
+        void Add( const std::string& sPath )
         {
             m_DeferredUnlinks.emplace_front( sPath );
         }
@@ -40,7 +40,7 @@ namespace gamescope
 
     int MakeTempFile( char ( &pszOutPath )[ PATH_MAX ], const char *pszTemplate, bool bDeferUnlink )
     {
-        const char *pXDGPath = getenv( "XDG_RUNTIME_DIR" );
+        const char *pXDGPath = std::getenv( "XDG_RUNTIME_DIR" );
         if ( !pXDGPath || !*pXDGPath )
             return -1;
 
