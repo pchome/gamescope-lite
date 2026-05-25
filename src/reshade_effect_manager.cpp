@@ -1033,6 +1033,7 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
     Path gamescope_reshade_data_dir = "gamescope/reshade";
 
     std::string reshade_data_dirs{};
+    reshade_data_dirs += "./" + reshade_data_dir.string() + ":";
     reshade_data_dirs += xdg::user::data_transform({reshade_data_dir, gamescope_reshade_data_dir});
     reshade_data_dirs += ":";
     reshade_data_dirs += xdg::data::transform({reshade_data_dir, gamescope_reshade_data_dir});
