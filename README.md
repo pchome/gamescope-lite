@@ -13,9 +13,14 @@
 #### New:
 * [x] Ported to SDL3
 * [x] Experimental settings UI (toggle via Super + `) 
+* [x] Updated ReShade FX supported version to v6.6.2 (up to v6.7.3)
+    + unbundled ReShade submodule (uses ReShadeFX[^1] shared library)
+    + added `./reshade-shaders/` path to the top of shader search list
+    + added XDG support
+    + both `gamescope/reshade/` and `reshade-shaders/` paths are supported across all XDG_DATA_* directories
 * [x] Updated wlroots version to 0.18.3
-    - + patch to run gamescope in containers (unshare, flatpack, ...)
-    - + patch to silence error about X0 socket already in use
+    + patch to run gamescope in containers (unshare, flatpack, ...)
+    + patch to silence error about X0 socket already in use
 * [x] Disabled upscaling by default (prev. default was `-S fit`, cur. default: `-S native`)
 * [x] Initial support for aspect ratio option `-a, --aspect-ratio`
     - currently some fixed values are added: 4:3, 16:9, 16:10, 24:10, 43:18, 64:27
@@ -29,13 +34,15 @@
     - added `--force-preemptive-upscaling` (Ok with lower fps but higher load w/o vsync. Need more info.)
 
 #### Build notes
-* If missing `glm` or `stb` deps use `meson configure --wrap-mode=default build/`
+* If missing `glm`, `stb`, or `ReShadeFX` deps use `meson configure --wrap-mode=default build/`
 
 
 #### TODO:
 * [ ] Upgrade to wlroots 0.19 or 0.20 (if it worth it)
 * [ ] Drop VRR (seems not used by sdl backend)
 * [ ] Drop HDR (I don't have hw to test this. Low priority.)
+
+[^1]: https://github.com/pchome/reshade-fx - repository contain patched ReShade FX v6.6.2 and v6.7.3
 
 
 ## gamescope: the micro-compositor formerly known as steamcompmgr
