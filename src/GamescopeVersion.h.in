@@ -7,6 +7,8 @@ namespace gamescope
 
     namespace build {
         //static constexpr bool have_headless = @HAVE_HEADLESS@;
+        static constexpr auto project_name = "@PROJECT_NAME@";
+        
         static constexpr auto buildtype = "@BUILDTYPE@";
         
         static constexpr auto prefix = "@PREFIX@";

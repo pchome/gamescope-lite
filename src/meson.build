@@ -186,6 +186,7 @@ vcs_tag = run_command(vcs_tag_cmd, check: false).stdout().strip()
 version_tag = vcs_tag + ' (' + compiler_name + ' ' + compiler_version + ')'
 
 gamescope_version_conf = configuration_data()
+gamescope_version_conf.set('PROJECT_NAME', meson.project_name())
 gamescope_version_conf.set('VCS_TAG', version_tag)
 gamescope_version_conf.set('BUILDTYPE', get_option('buildtype'))
 gamescope_version_conf.set('PREFIX', get_option('prefix'))
