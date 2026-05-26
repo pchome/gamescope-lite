@@ -10,9 +10,9 @@
 #include "sdl_gui.hpp"
 #endif
 
-#include "GamescopeVersion.h"
+#include "core/log.hpp"
+#include "core/version.hpp"
 
-#include "log.hpp"
 #include "main.hpp"
 #include "rendervulkan.hpp"
 #include "steamcompmgr.hpp"
@@ -35,7 +35,7 @@ void CSDLBackend::SDLThreadFunc() {
 
   SDL_SetHint(SDL_HINT_APP_NAME, gamescopeName);
   SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
-  SDL_SetAppMetadata(gamescopeName, k_szGamescopeVersion, nullptr);
+  SDL_SetAppMetadata(gamescopeName, gamescopeVersion, nullptr);
 
   if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
     m_eSDLInit = SDLInitState::SDLInit_Failure;

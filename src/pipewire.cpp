@@ -12,7 +12,7 @@
 
 #include "main.hpp"
 #include "pipewire.hpp"
-#include "log.hpp"
+#include "core/log.hpp"
 
 #include <spa/debug/format.h>
 

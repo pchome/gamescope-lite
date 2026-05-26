@@ -9,7 +9,7 @@
 #include "sdl_connector.hpp"
 #include "sdl_gui.hpp"
 
-#include "GamescopeVersion.h"
+#include "core/version.hpp"
 #include "constants_include.hpp"
 #include "main.hpp"
 
@@ -50,7 +50,7 @@ namespace {
 void UiLayoutAboutTab() {
   ImGui::SeparatorText("About");
   ImGui::LabelText("Name", "%s", gamescopeName);
-  ImGui::LabelText("Version", "%s", k_szGamescopeVersion);
+  ImGui::LabelText("Version", "%s", gamescopeVersion);
   ImGui::SeparatorText("ImGui");
   ImGui::LabelText("Version", "%s", ImGui::GetVersion());
 }

@@ -114,18 +114,14 @@ src = [
   'backend/sdl/event/custom.cpp',
 
   'Utils/TempFiles.cpp',
-  'Utils/Version.cpp',
-  'Utils/Process.cpp',
   'BufferMemo.cpp',
   'steamcompmgr.cpp',
-  'convar.cpp',
   'commit.cpp',
   'color_helpers.cpp',
   'main.cpp',
   'wlserver.cpp',
   'vblankmanager.cpp',
   'rendervulkan.cpp',
-  'log.cpp',
   'mangoapp.cpp',
   'Timeline.cpp',
   'backend.cpp',
@@ -175,34 +171,13 @@ foreach feat : required_wlroots_features
   endif
 endforeach
 
-cc = meson.get_compiler('c')
-compiler_name = cc.get_id()
-compiler_version = cc.version()
-
-vcs_tag_cmd = ['git', 'describe', '--always', '--tags', '--dirty=+']
-vcs_tag = run_command(vcs_tag_cmd, check: false).stdout().strip()
-version_tag = vcs_tag + ' (' + compiler_name + ' ' + compiler_version + ')'
-
-gamescope_version_conf = configuration_data()
-gamescope_version_conf.set('PROJECT_NAME', meson.project_name())
-gamescope_version_conf.set('VCS_TAG', version_tag)
-gamescope_version_conf.set('BUILDTYPE', get_option('buildtype'))
-gamescope_version_conf.set('PREFIX', get_option('prefix'))
-gamescope_version_conf.set('DATADIR', get_option('datadir'))
-gamescope_version_conf.set('LIBDIR', get_option('libdir'))
-gamescope_version_conf.set('BINDIR', get_option('bindir'))
-gamescope_version_conf.set('HAVE_HEADLESS', get_option('headless').enabled().to_string().to_lower())
-
-gamescope_version = configure_file(
-  input : 'GamescopeVersion.h.in',
-  output : 'GamescopeVersion.h',
-  configuration : gamescope_version_conf
-)
+subdir('core')
 
   executable(
     'gamescope-lite',
-    src, imgui_src, stb_src, reshade_src, gamescope_version,
+    src, gamescope_version, imgui_src, stb_src, reshade_src,
     include_directories : [imgui_include, reshade_include],
+    link_with: [core_lib],
     dependencies: [
       dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
       dep_xxf86vm, dep_xres, glm_dep, wayland_server,
@@ -215,11 +190,4 @@ gamescope_version = configure_file(
     cpp_args: gamescope_cpp_args,
   )
 
-gamescope_core_src = [
-  'convar.cpp',
-  'log.cpp',
-  'Utils/Process.cpp',
-  'Utils/Version.cpp',
-]
 
-executable('gamescopereaper-lite', ['Apps/gamescopereaper.cpp', gamescope_core_src], gamescope_version, dependencies: [cap_dep], install:true )

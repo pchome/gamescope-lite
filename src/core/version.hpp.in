@@ -1,0 +1,32 @@
+#pragma once
+
+namespace gamescope
+{
+    static constexpr auto gamescopeName = "Gamescope Lite";
+    static constexpr const char gamescopeVersion[] = "@VCS_TAG@";
+
+    namespace build {
+        static constexpr auto project_name = "@PROJECT_NAME@";
+
+        static constexpr auto buildtype = "@BUILDTYPE@";
+
+        static constexpr auto prefix = "@PREFIX@";
+        static constexpr auto datadir = "@DATADIR@";
+        static constexpr auto libdir = "@LIBDIR@";
+        static constexpr auto bindir = "@BINDIR@";
+        // whatever dir we may need ... see `$ meson setup --help`
+
+        namespace have {
+            static constexpr bool pipewire = @HAVE_PIPEWIRE@;
+            static constexpr bool rt_cap = @HAVE_LIBCAP@;
+            static constexpr bool screenshot = @HAVE_SCREENSHOT@;
+            static constexpr bool avif_screenshots = @HAVE_AVIF@;
+            static constexpr bool reshade = @HAVE_RESHADE@;
+            static constexpr bool headless = @HAVE_HEADLESS@;
+            static constexpr bool steam = @HAVE_STEAM@;
+            // static constexpr bool mangoapp = @HAVE_MANGOAPP@;
+            static constexpr bool ui = @HAVE_IMGUI@;
+        }
+    }
+    void PrintVersion();
+}

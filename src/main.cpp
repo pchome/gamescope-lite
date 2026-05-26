@@ -13,9 +13,10 @@
 #include <getopt.h>
 #include <unistd.h>
 
-#include "Utils/Process.h"
+#include "core/process.hpp"
+#include "core/version.hpp"
+
 #include "Utils/TempFiles.h"
-#include "Utils/Version.h"
 
 #include "backends.h"
 #include "main.hpp"

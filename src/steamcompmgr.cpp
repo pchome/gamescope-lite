@@ -98,16 +98,17 @@
 #endif
 #include <stb/deprecated/stb_image_resize.h>
 
+#include "core/convar.hpp"
+#include "core/process.hpp"
+#include "core/log.hpp"
+
 #include "BufferMemo.h"
 #include "Utils/Algorithm.h"
 #include "Utils/Defer.h"
-#include "Utils/Process.h"
 
 #include "backend.h"
 #include "commit.h"
-#include "convar.h"
 #include "gamescope_shared.h"
-#include "log.hpp"
 #include "main.hpp"
 #include "refresh_rate.h"
 #include "rendervulkan.hpp"

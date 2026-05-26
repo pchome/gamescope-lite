@@ -19,12 +19,12 @@
 #include <sys/procctl.h>
 #endif
 
-#include "Process.h"
-#include "Utils/Algorithm.h"
-#include "Utils/Defer.h"
+#include "../Utils/Algorithm.h"
+#include "../Utils/Defer.h"
 
-#include "convar.h"
+#include "convar.hpp"
 #include "log.hpp"
+#include "process.hpp"
 
 
 extern const char *__progname;

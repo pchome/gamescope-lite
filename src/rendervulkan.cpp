@@ -28,7 +28,7 @@
 #include "wlr_end.hpp"
 
 #include "Utils/Algorithm.h"
-#include "Utils/Process.h"
+#include "core/process.hpp"
 
 #include "cs_composite_blit.h"
 #include "cs_composite_rcas.h"
@@ -47,7 +47,7 @@
 #if HAVE_RESHADE
 #include "reshade_effect_manager.hpp"
 #endif
-#include "log.hpp"
+#include "core/log.hpp"
 #include "main.hpp"
 #include "rendervulkan.hpp"
 #include "steamcompmgr.hpp"

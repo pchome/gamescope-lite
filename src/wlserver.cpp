@@ -23,7 +23,6 @@
 #include <xkbcommon/xkbcommon.h>
 #include <xkbcommon/xkbcommon-keysyms.h>
 
-#include "GamescopeVersion.h"
 #include "Timeline.h"
 #if HAVE_RESHADE
 #include "WaylandServer/Reshade.h" // IWYU pragma: keep
@@ -60,10 +59,12 @@
 #include "gamescope-swapchain-protocol.h"
 // #include "presentation-time-protocol.h"
 
+#include "core/log.hpp"
+#include "core/version.hpp"
+
 #include "color_helpers.h"
 #include "commit.h"
 #include "hdmi.h"
-#include "log.hpp"
 #include "main.hpp"
 #include "refresh_rate.h"
 #include "steamcompmgr.hpp"
@@ -74,8 +75,6 @@
 #include "gamescope-pipewire-protocol.h"
 #include "pipewire.hpp"
 #endif
-
-
 
 static LogScope wl_log("wlserver");
 static LogScope wlroots_log("wlroots");
@@ -2057,10 +2056,6 @@ void wlserver_run(void)
 		std::unique_lock lock2(g_wlserver_xdg_shell_windows_lock);
 		wlserver.xdg_wins.clear();
 	}
-
-#if HAVE_LIBEIS
-	g_InputServer = nullptr;
-#endif
 
 	// Released when steamcompmgr closes.
 	std::unique_lock<std::mutex> xwayland_server_guard(g_SteamCompMgrXWaylandServerMutex);

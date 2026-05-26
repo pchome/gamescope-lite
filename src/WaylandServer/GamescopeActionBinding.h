@@ -12,7 +12,7 @@
 
 #include "WaylandServer/WaylandResource.h"
 
-#include "log.hpp"
+#include "core/log.hpp"
 
 using namespace std::literals;
 

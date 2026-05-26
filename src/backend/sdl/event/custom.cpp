@@ -5,7 +5,8 @@
 #include "./custom.hpp"
 #include "backend/sdl/sdl_backend.hpp"
 
-#include "GamescopeVersion.h"
+#include "core/version.hpp"
+
 #include "main.hpp"
 #include "steamcompmgr.hpp"
 

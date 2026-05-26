@@ -28,6 +28,16 @@ option('headless',
   type:        'feature',
   value:       'disabled')
 
+option('steam',
+  description: 'Support Steam integration',
+  type:        'feature',
+  value:       'disabled')
+
+#option('mangoapp',
+#  description: 'Support mangoapp (mangohud) performance overlay',
+#  type:        'feature',
+#  value:       'disabled')
+
 option('ui',
   description: 'Experimental support for settings ImGui popup',
   type:        'feature',

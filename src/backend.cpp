@@ -1,7 +1,8 @@
 #include "Backends/DeferredBackend.h"
 
+#include "core/convar.hpp"
+
 #include "backend.h"
-#include "convar.h"
 #include "vblankmanager.hpp"
 #include "wlserver.hpp"
 

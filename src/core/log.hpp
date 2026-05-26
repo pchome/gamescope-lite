@@ -8,7 +8,7 @@
 #include <print>
 #include <string_view>
 
-#include "GamescopeVersion.h"
+#include "../core/version.hpp"
 
 #ifdef __GNUC__
 #define ATTRIB_PRINTF(start, end) __attribute__((format(printf, start, end)))

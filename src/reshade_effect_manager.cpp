@@ -23,7 +23,7 @@
 
 #include "Utils/xdg_helper.hpp"
 
-#include "log.hpp"
+#include "core/log.hpp"
 #include "reshade_effect_manager.hpp"
 #include "steamcompmgr.hpp"
 

@@ -1,6 +1,3 @@
-#include "../Utils/Process.h"
-#include "../log.hpp"
-
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -11,6 +8,9 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include "process.hpp"
+#include "log.hpp"
 
 namespace gamescope
 {

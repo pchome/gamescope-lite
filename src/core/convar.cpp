@@ -1,7 +1,8 @@
-#include "convar.h"
-#include "Utils/Version.h"
 #include <algorithm>
 #include <utility>
+
+#include "convar.hpp"
+#include "version.hpp"
 
 LogScope console_log("console");
 

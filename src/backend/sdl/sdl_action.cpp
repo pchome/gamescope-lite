@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_render.h>
@@ -6,11 +8,11 @@
 #include "backend/sdl/sdl_connector.hpp"
 
 #include "./sdl_action.hpp"
-#include "GamescopeVersion.h"
+
+#include "core/version.hpp"
+
 #include "constants_include.hpp"
 #include "main.hpp"
-
-#include <algorithm>
 
 namespace gamescope {
 //////////////////

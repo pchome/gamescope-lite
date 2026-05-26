@@ -17,8 +17,9 @@
 #include "Timeline.h"
 #include "Utils/Algorithm.h"
 
+#include "core/convar.hpp"
+
 #include "color_helpers.h"
-#include "convar.h"
 #include "gamescope_shared.h"
 #include "rc.h"
 

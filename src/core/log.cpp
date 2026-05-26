@@ -5,10 +5,11 @@
 
 #include <format>
 
-#include "Utils/Process.h"
-#include "Utils/Defer.h"
-#include "convar.h"
+#include "../Utils/Defer.h"
+
+#include "convar.hpp"
 #include "log.hpp"
+#include "process.hpp"
 
 static constexpr std::string_view GetLogPriorityText( LogPriority ePriority )
 {

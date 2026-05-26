@@ -4,12 +4,10 @@
 
 #include <xf86drm.h>
 
+#include "core/log.hpp"
+
 #include "Timeline.h"
-
 #include "rendervulkan.hpp"
-#include "log.hpp"
-
-
 
 namespace gamescope
 {
