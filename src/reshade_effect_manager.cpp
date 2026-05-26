@@ -95,7 +95,7 @@ public:
     virtual ~RefreshRateUniform();
 
 private:
-    int32_t count = 0;
+    [[maybe_unused]] int32_t count = 0;
 };
 
 class DateUniform : public ReshadeUniform
@@ -996,11 +996,9 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 
     /** Not found error handler */
     if (!shader_file_found) {
-        reshade_log.errorf("Failed to load reshade fx file: \"%s\". Looked in:", key.path.data());
+        reshade_log.error("Failed to load reshade fx file: {}. Looked in:", key.path);
         for (const auto data_path : std::views::split(reshade_data_dirs, ":"sv))
-            std::println("{}", (Path(std::string_view(data_path)) / "Shaders").string());
-        if (!pp.errors().empty())
-            reshade_log.errorf("Error: %s", pp.errors().c_str());
+            reshade_log.error("{}", (Path(std::string_view(data_path)) / "Shaders").string());
         return false;
     }
 
@@ -1141,6 +1139,10 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 
         bool ret = m_rt->BInit(m_key.bufferWidth, m_key.bufferHeight, 1, VulkanFormatToDRM(m_key.bufferFormat), flags, nullptr);
         assert(ret);
+        if (!ret) {
+            reshade_log.error("{}", "Failed to create vulkan texture");
+            return false;
+        }
     }
 
     for (const auto& tex : m_module->textures)
@@ -1162,6 +1164,10 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 
             bool ret = texture->BInit(tex.width, tex.height, tex.depth, VulkanFormatToDRM(ConvertReshadeFormat(tex.format, nullptr)), flags, nullptr);
             assert(ret);
+            if (!ret) {
+                reshade_log.error("{}", "Failed to create ReShade texture");
+                return false;
+            }
         }
 
         if (const auto source = std::ranges::find_if(tex.annotations , std::bind_front(std::equal_to{}, "source"), &reshadefx::annotation::name);

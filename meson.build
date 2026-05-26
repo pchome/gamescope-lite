@@ -2,15 +2,16 @@ project(
   'gamescope-lite',
   'c',
   'cpp',
-  meson_version: '>=0.64.0',
-  default_options: [
-    'cpp_std=c++23',
-    'c_std=c23,c11',
-    'warning_level=2',
-    'b_ndebug=if-release',
-    'force_fallback_for=wlroots',
-    'wrap_mode=nodownload',
-  ],
+  meson_version: '>=1.2.0',
+  default_options: {
+    'cpp_std'           : 'c++23',
+    'c_std'             : 'c23,c11',
+    'warning_level'     : '2',
+    'b_ndebug'          : 'if-release',
+    'force_fallback_for': 'wlroots',
+    'wrap_mode'         : 'nodownload',
+    
+  },
 )
 
 fallbacks = get_option('force_fallback_for')
@@ -43,13 +44,23 @@ add_project_arguments(cppc.get_supported_arguments([
   '-Wno-missing-braces',
 ]), language: 'cpp')
 
+# # Disable "unused" type warnings for 'wlroots' when assertions disabled by NDEBUG
+# if get_option('buildtype') == 'plain' or get_option('buildtype') == 'release'
+#   add_project_arguments(cppc.get_supported_arguments([
+#     '-Wno-unused-variable',
+#     '-Wno-unused-but-set-variable',
+#   ]), language: ['c', 'cpp'])
+# endif
+
 # These warnings indicate likely runtime problems with LTO, so promote them to errors.
 # If a package fails to build with these, LTO should not be used there.
-add_project_arguments(cppc.get_supported_arguments([
-  '-Werror=odr',
-  '-Werror=lto-type-mismatch',
-  '-Werror=strict-aliasing',
-]), language: ['c','cpp'])
+if get_option('b_lto')
+  add_project_arguments(cppc.get_supported_arguments([
+    '-Werror=odr',
+    '-Werror=lto-type-mismatch',
+    '-Werror=strict-aliasing',
+  ]), language: ['c','cpp'])
+endif
 
 add_project_arguments(cppc.get_supported_arguments([
   '-fno-exceptions',

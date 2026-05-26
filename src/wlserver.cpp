@@ -1485,7 +1485,7 @@ void wlserver_refresh_cycle( struct wlr_surface *surface, uint64_t refresh_cycle
 
 ///////////////////////
 
-static void handle_wlr_log(enum wlr_log_importance importance, const char *fmt, va_list args)
+[[maybe_unused]] static void handle_wlr_log(enum wlr_log_importance importance, const char *fmt, va_list args)
 {
 	enum LogPriority prio;
 	switch (importance) {

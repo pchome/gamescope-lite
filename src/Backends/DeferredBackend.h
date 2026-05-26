@@ -403,6 +403,8 @@ namespace gamescope
                         {
                             bool bRet = m_pChild->PostInit();
                             assert( bRet && "PostInit failed!" );
+                            if ( !bRet )
+                                return;
                         }
 
                         m_bJustInittedClient = true;

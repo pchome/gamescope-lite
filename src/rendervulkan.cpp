@@ -1948,7 +1948,7 @@ void CVulkanCmdBuffer::insertBarrier(bool flush)
 
 CVulkanDevice g_device;
 
-static bool allDMABUFsEqual( wlr_dmabuf_attributes *pDMA )
+[[maybe_unused]] static bool allDMABUFsEqual( wlr_dmabuf_attributes *pDMA )
 {
 	if ( pDMA->n_planes == 1 )
 		return true;
@@ -3044,7 +3044,9 @@ gamescope::Rc<CVulkanTexture> vulkan_create_1d_lut(uint32_t size)
 	auto drmFormat = VulkanFormatToDRM( VK_FORMAT_R16G16B16A16_UNORM );
 	bool bRes = texture->BInit( size, 1u, 1u, drmFormat, flags );
 	assert( bRes );
-
+    if ( !bRes ) {
+        vk_log.error("Failed to create 1d_lut texture");
+    }
 	return texture;
 }
 
@@ -3059,7 +3061,9 @@ gamescope::Rc<CVulkanTexture> vulkan_create_3d_lut(uint32_t width, uint32_t heig
 	auto drmFormat = VulkanFormatToDRM( VK_FORMAT_R16G16B16A16_UNORM );
 	bool bRes = texture->BInit( width, height, depth, drmFormat, flags );
 	assert( bRes );
-
+    if ( !bRes ) {
+        vk_log.error("Failed to create 3d_lut texture");
+    }
 	return texture;
 }
 
@@ -3097,7 +3101,9 @@ gamescope::OwningRc<CVulkanTexture> vulkan_create_flat_texture( uint32_t width, 
 	gamescope::OwningRc<CVulkanTexture> texture = new CVulkanTexture();
 	bool bRes = texture->BInit( width, height, 1u, VulkanFormatToDRM( VK_FORMAT_B8G8R8A8_UNORM ), flags );
 	assert( bRes );
-
+    if ( !bRes ) {
+        vk_log.error("Failed to create flat texture");
+    }
 	auto [_dst, offset] = g_device.uploadBufferData( width * height * 4 );
 	uint8_t *dst = (uint8_t *)_dst;
 	for ( uint32_t i = 0; i < width * height * 4; i += 4 )
