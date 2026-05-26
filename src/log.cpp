@@ -99,8 +99,8 @@ void LogScope::vlogf(enum LogPriority priority, const char *fmt, va_list args)
 		return;
 
 	char *buf = nullptr;
-	vasprintf(&buf, fmt, args);
-	if (!buf)
+	int ret = vasprintf(&buf, fmt, args);
+	if (ret < 0 || !buf)
 		return;
 	defer( free(buf); );
 

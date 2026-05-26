@@ -89,7 +89,9 @@ namespace gamescope::Process
             defer( fclose( pStatFile ) );
 
             pid_t nParentPid = -1;
-            fscanf( pStatFile, "%*d %*s %*c %d", &nParentPid );
+            int ret = fscanf( pStatFile, "%*d %*s %*c %d", &nParentPid );
+            if (ret < 0)
+                continue;
             if ( nParentPid > 0 && nParentPid == nPid )
                 nPids.push_back( *Parse<pid_t>( pEntry->d_name ) );
         }

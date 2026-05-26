@@ -32,6 +32,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <csignal>
+#include <cstddef>
 #include <cstdint>
 #include <cstdint>
 #include <cstdio>
@@ -648,7 +649,10 @@ bool set_color_3dlut_override(const char *path)
 		return true;
 	}
 
-	fread(g_ColorMgmtLutsOverride[nLutIndex].lut3d, elems, sizeof(uint16_t), f);
+	size_t ret = fread(g_ColorMgmtLutsOverride[nLutIndex].lut3d, elems, sizeof(uint16_t), f);
+    if (!ret) {
+        return true;
+    }
 	g_ColorMgmtLutsOverride[nLutIndex].bHasLut3D = true;
 
 	return true;
@@ -676,7 +680,10 @@ bool set_color_shaperlut_override(const char *path)
 		return true;
 	}
 
-	fread(g_ColorMgmtLutsOverride[nLutIndex].lut1d, elems, sizeof(uint16_t), f);
+	size_t ret = fread(g_ColorMgmtLutsOverride[nLutIndex].lut1d, elems, sizeof(uint16_t), f);
+    if (!ret) {
+        return true;
+    }
 	g_ColorMgmtLutsOverride[nLutIndex].bHasLut1D = true;
 
 	return true;
@@ -3550,9 +3557,9 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 			if ( debugFocus == true )
 			{
 				xwm_log.debugf( "determine_and_apply_focus focus %lu", ctx->focus.focusWindow->xwayland().id );
-				char buf[512];
-				sprintf( buf,  "xwininfo -id 0x%lx; xprop -id 0x%lx; xwininfo -root -tree", ctx->focus.focusWindow->xwayland().id, ctx->focus.focusWindow->xwayland().id );
-				system( buf );
+				// char buf[512];
+				// sprintf( buf,  "xwininfo -id 0x%lx; xprop -id 0x%lx; xwininfo -root -tree", ctx->focus.focusWindow->xwayland().id, ctx->focus.focusWindow->xwayland().id );
+				// system( buf );
 			}
 
 			auto focus_window_size = ctx->focus.focusWindow->GetGeometry();
@@ -5402,7 +5409,9 @@ update_runtime_info()
 		return;
 
 	uint32_t limiter_enabled = g_nSteamCompMgrTargetFPS != 0 ? 1 : 0;
-	pwrite( g_nRuntimeInfoFd, &limiter_enabled, sizeof( limiter_enabled ), 0 );
+	ssize_t ret = pwrite( g_nRuntimeInfoFd, &limiter_enabled, sizeof( limiter_enabled ), 0 );
+    if (!ret)
+        return;
 }
 
 static void
