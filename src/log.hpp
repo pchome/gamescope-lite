@@ -1,11 +1,14 @@
 #pragma once
-
 #include <cstdarg>
 #include <cstdint>
 
-#include <memory>
+#include <format>
 #include <functional>
+#include <memory>
+#include <print>
 #include <string_view>
+
+#include "GamescopeVersion.h"
 
 #ifdef __GNUC__
 #define ATTRIB_PRINTF(start, end) __attribute__((format(printf, start, end)))
@@ -23,6 +26,8 @@ enum LogPriority
 };
 
 struct LogConVar_t;
+
+using std::operator""sv;
 
 class LogScope
 {
@@ -43,6 +48,43 @@ public:
 	void debugf(const char *fmt, ...) ATTRIB_PRINTF(2, 3);
 
 	void errorf_errno(const char *fmt, ...) ATTRIB_PRINTF(2, 3);
+
+    constexpr auto prefix(std::string const& fmt) {
+      return std::format("[{}]{}[\e[1;30m{}\e[0m]: ", gamescope::build::project_name, fmt, m_psvPrefix);
+    }
+    constexpr auto eprefix() { return prefix("[\e[0;31m" "Error" "\e[0m]"); }
+    constexpr auto wprefix() { return prefix("[\e[0;33m" "Warn " "\e[0m]"); }
+    constexpr auto iprefix() { return prefix("[\e[0;34m" "Info " "\e[0m]"); }
+    constexpr auto dprefix() { return prefix("[\e[0;35m" "Debug" "\e[0m]"); }
+
+    template <typename... Args>
+    constexpr auto msg(std::format_string<Args...> const fmt, Args&&... args) {
+        return std::format(fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    constexpr void error(std::format_string<Args...> const fmt, Args&&... args) {
+        auto pre = std::format("{}", eprefix());
+        std::println(stderr, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
+    }
+    template <typename... Args>
+    constexpr void warn(std::format_string<Args...> const fmt, Args&&... args) {
+        auto pre = std::format("{}", wprefix());
+        std::println(stderr, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
+    }
+    template <typename... Args>
+    constexpr void info(std::format_string<Args...> const fmt, Args&&... args) {
+        auto pre = std::format("{}", iprefix());
+        std::println(stderr, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
+    }
+    template <typename... Args>
+    constexpr void debug(std::format_string<Args...> const fmt, Args&&... args) {
+        auto pre = std::format("{}", dprefix());
+        std::println(stderr, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
+    }
+    template <typename... Args>
+    constexpr void log(std::format_string<Args...> const fmt, Args&&... args) {
+        std::println(stdout, fmt, std::forward<Args>(args)...);
+    }
 
 	bool bPrefixEnabled = true;
 
