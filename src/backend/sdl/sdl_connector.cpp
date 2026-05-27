@@ -9,6 +9,8 @@
 
 #include "backend/sdl/sdl_action.hpp"
 
+#include "global/steamcompmgr.hpp"
+
 #include "constants_include.hpp"
 #include "gamescope_shared.h"
 #include "main.hpp"
@@ -20,11 +22,6 @@
 #include <format>
 #include <optional>
 #include <print>
-
-extern bool g_bForceHDR10OutputDebug;
-// extern bool g_bFirstFrame;
-extern int g_nPreferredOutputWidth;
-extern int g_nPreferredOutputHeight;
 
 namespace gamescope {
 //////////////////

@@ -2,12 +2,13 @@
 #include <cerrno>
 #include <cstring>
 #include <cerrno>
-
+#if HAVE_CONVAR
 #include <format>
-
+#endif
 #include "../Utils/Defer.h"
-
+#if HAVE_CONVAR
 #include "convar.hpp"
+#endif
 #include "log.hpp"
 #include "process.hpp"
 
@@ -23,7 +24,7 @@ static constexpr std::string_view GetLogPriorityText( LogPriority ePriority )
 		case LOG_INFO:		return "[\e[0;34m" "Info" "\e[0m] ";
 	}
 }
-
+#if HAVE_CONVAR
 static constexpr std::string_view GetLogName( LogPriority ePriority )
 {
 	switch ( ePriority )
@@ -71,7 +72,7 @@ struct LogConVar_t
 
 	gamescope::ConVar<std::string> convar;
 };
-
+#endif
 LogScope::LogScope( std::string_view psvName, LogPriority eMaxPriority )
 	: LogScope( psvName, psvName, eMaxPriority )
 {
@@ -81,7 +82,9 @@ LogScope::LogScope( std::string_view psvName, std::string_view psvPrefix, LogPri
 	: m_psvName{ psvName }
 	, m_psvPrefix{ psvPrefix }
 	, m_eMaxPriority{ eMaxPriority }
+#if HAVE_CONVAR
 	, m_pEnableConVar{ std::make_unique<LogConVar_t>( this, psvName, eMaxPriority ) }
+#endif
 {
 }
 

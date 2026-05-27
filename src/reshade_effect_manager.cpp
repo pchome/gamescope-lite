@@ -1050,12 +1050,12 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 
 	if (m_module->techniques.size() <= key.techniqueIdx)
 	{
-		reshade_log.errorf("Invalid technique index");
+		reshade_log.error("Invalid technique index");
 		return false;
 	}
 
 	auto& technique = m_module->techniques[key.techniqueIdx];
-	reshade_log.infof("Using technique: %s\n", technique.name.c_str());
+	reshade_log.info("Using technique: {}", technique.name);
 
     // Allocate command buffers
     {
@@ -1071,7 +1071,7 @@ bool ReshadeEffectPipeline::init(CVulkanDevice *device, const ReshadeEffectKey &
 		VkResult result = device->vk.AllocateCommandBuffers(device->device(), &commandBufferAllocateInfo, &cmdBuffer);
 		if (result != VK_SUCCESS)
 		{
-			reshade_log.errorf("vkAllocateCommandBuffers failed");
+			reshade_log.error("vkAllocateCommandBuffers failed");
 			return false;
 		}
 

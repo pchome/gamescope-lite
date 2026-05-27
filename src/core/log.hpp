@@ -4,7 +4,9 @@
 
 #include <format>
 #include <functional>
+#if HAVE_CONVAR
 #include <memory>
+#endif
 #include <print>
 #include <string_view>
 
@@ -99,6 +101,7 @@ private:
 	std::string_view m_psvPrefix;
 
 	LogPriority m_eMaxPriority = LOG_INFO;
-	
+#if HAVE_CONVAR
 	std::unique_ptr<LogConVar_t> m_pEnableConVar;
+#endif
 };

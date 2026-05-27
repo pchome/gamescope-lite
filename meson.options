@@ -33,10 +33,10 @@ option('steam',
   type:        'feature',
   value:       'disabled')
 
-#option('mangoapp',
-#  description: 'Support mangoapp (mangohud) performance overlay',
-#  type:        'feature',
-#  value:       'disabled')
+option('convar',
+  description: 'Support convar commands',
+  type:        'feature',
+  value:       'disabled')
 
 option('ui',
   description: 'Experimental support for settings ImGui popup',

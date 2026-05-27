@@ -1,20 +1,28 @@
+#if 0
 #include "Backends/DeferredBackend.h"
+#endif
+#include "wlr_begin.hpp"
+#include <wlr/types/wlr_buffer.h>
+#include "wlr_end.hpp"
 
+#include "core/console.hpp"
+#if HAVE_CONVAR
 #include "core/convar.hpp"
-
+#endif
 #include "backend.h"
 #include "vblankmanager.hpp"
 #include "wlserver.hpp"
 
 extern void sleep_until_nanos(uint64_t nanos);
 extern bool env_to_bool(const char *env);
-
+#if 0
 extern bool g_bAllowDeferredBackend;
-
+#endif
 namespace gamescope
 {
+#if HAVE_CONVAR
     ConVar<VirtualConnectorStrategy> cv_backend_virtual_connector_strategy( "backend_virtual_connector_strategy", VirtualConnectorStrategies::SingleApplication );
-
+#endif
     /////////////
     // IBackend
     /////////////
@@ -38,6 +46,7 @@ namespace gamescope
             s_pBackend = pBackend;
             if ( !s_pBackend->Init() )
             {
+#if 0
                 if ( g_bAllowDeferredBackend )
                 {
                     s_pBackend = new CDeferredBackend( pBackend );
@@ -49,6 +58,7 @@ namespace gamescope
                     }
                 }
                 else
+#endif
                 {
                     delete s_pBackend;
                     s_pBackend = nullptr;
@@ -157,9 +167,10 @@ namespace gamescope
         const bool bForceTimerFd = env_to_bool( getenv( "GAMESCOPE_DISABLE_TIMERFD" ) );
         return bForceTimerFd;
     }
-
+#if HAVE_CONVAR
     ConVar<bool> cv_touch_external_display_trackpad( "touch_external_display_trackpad", false, "If we are using an external display, should we treat the internal display's touch as a trackpad insteaad?" );
     ConVar<TouchClickMode> cv_touch_click_mode( "touch_click_mode", TouchClickModes::Left, "The default action to perform on touch." );
+
     TouchClickMode CBaseBackend::GetTouchClickMode()
     {
         if ( cv_touch_external_display_trackpad && this->GetCurrentConnector() )
@@ -171,7 +182,12 @@ namespace gamescope
 
         return cv_touch_click_mode;
     }
-
+#else
+    TouchClickMode CBaseBackend::GetTouchClickMode()
+    {
+        return TouchClickModes::Left;
+    }
+#endif
     void CBaseBackend::DumpDebugInfo()
     {
         console_log.infof( "Uses Modifiers: %s", this->UsesModifiers() ? "true" : "false" );
@@ -199,7 +215,7 @@ namespace gamescope
         assert( false );
         return nullptr;
     }
-
+#if HAVE_CONVAR
     ConCommand cc_backend_info( "backend_info", "Dump debug info about the backend state",
     []( std::span<std::string_view> svArgs )
     {
@@ -217,5 +233,5 @@ namespace gamescope
 
         GetBackend()->DirtyState( true, true );
     });
-
+#endif
 }

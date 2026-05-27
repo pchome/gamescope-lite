@@ -276,13 +276,13 @@ void wlserver_presentation_feedback_discard( struct wlr_surface *surface, std::v
 #endif
 void wlserver_past_present_timing( struct wlr_surface *surface, uint32_t present_id, uint64_t desired_present_time, uint64_t actual_present_time, uint64_t earliest_present_time, uint64_t present_margin );
 void wlserver_refresh_cycle( struct wlr_surface *surface, uint64_t refresh_cycle );
-
+#if HAVE_CONVAR
 void wlserver_app_presented( uint32_t app_id, uint64_t frametime_ns );
-
+#endif
 void wlserver_shutdown();
-
+#if HAVE_CONVAR
 void wlserver_send_gamescope_control( wl_resource *control );
-
+#endif
 bool wlsession_active();
 
 void wlserver_fake_mouse_pos( double x, double y );

@@ -1,6 +1,7 @@
 #pragma once
 #include <mutex>
 #include <thread>
+#include <utility>
 
 #include <fcntl.h>
 
@@ -110,7 +111,7 @@ namespace gamescope
     public:
         CFunctionWaitable( int nFD, std::function<void()> fnPollFunc = nullptr )
             : m_nFD{ nFD }
-            , m_fnPollFunc{ fnPollFunc }
+            , m_fnPollFunc{ std::move(fnPollFunc) }
         {
         }
 
@@ -191,7 +192,7 @@ namespace gamescope
     {
     public:
         CTimerFunction( std::function<void()> fnPollFunc )
-            : m_fnPollFunc{ fnPollFunc }
+            : m_fnPollFunc{ std::move(fnPollFunc) }
         {
         }
 

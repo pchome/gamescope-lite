@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "vblankmanager.hpp"
+#include "backend.h"
 #include "steamcompmgr.hpp"
 #include "main.hpp"
 #include "refresh_rate.h"
@@ -21,8 +22,11 @@ LogScope g_VBlankLog("vblank");
 
 namespace gamescope
 {
+#if HAVE_CONVAR
 	ConVar<bool> vblank_debug( "vblank_debug", false, "Enable vblank debug spew to stderr." );
-
+#else
+    constexpr bool vblank_debug = false;
+#endif
 	CVBlankTimer::CVBlankTimer()
 	{
 		m_ulTargetVBlank = get_time_in_nanos();

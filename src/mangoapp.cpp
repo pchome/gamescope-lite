@@ -3,9 +3,10 @@
 #include <sys/msg.h>
 #include <cstring>
 
-#include "steamcompmgr.hpp"
+#include "global/steamcompmgr.hpp"
 #include "refresh_rate.h"
 #include "main.hpp"
+#include "wlserver.hpp"
 
 static bool inited = false;
 static int msgid = 0;
@@ -73,8 +74,9 @@ void mangoapp_update( uint64_t visible_frametime, uint64_t app_frametime_ns, uin
 extern uint64_t g_uCurrentBasePlaneCommitID;
 extern bool g_bCurrentBasePlaneIsFifo;
 extern uint32_t g_uCurrentBasePlaneAppID;
+#if HAVE_CONVAR
 extern gamescope::ConVar<bool> cv_mangoapp_use_output_timing;
-
+#endif
 void mangoapp_output_update( uint64_t vblanktime )
 {
 	static uint64_t s_uLastBasePlaneCommitID = 0;
@@ -89,12 +91,13 @@ void mangoapp_output_update( uint64_t vblanktime )
             return;
 
 		mangoapp_update( frametime, uint64_t(~0ull), uint64_t(~0ull) );
-
+#if HAVE_CONVAR
         if ( cv_mangoapp_use_output_timing )
         {
             wlserver_lock();
             wlserver_app_presented( g_uCurrentBasePlaneAppID, frametime );
             wlserver_unlock();
         }
+#endif
 	}
 }

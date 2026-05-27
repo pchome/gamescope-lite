@@ -50,10 +50,14 @@
 #include "core/log.hpp"
 #include "main.hpp"
 #include "rendervulkan.hpp"
+#include "global/steamcompmgr.hpp"
 #include "steamcompmgr.hpp"
+#include "WaylandServer/WaylandServerLegacy.h"
 
 extern bool g_bWasPartialComposite;
+#if 0
 extern bool g_bAllowDeferredBackend;
+#endif
 
 static constexpr mat3x4 g_rgb2yuv_srgb_to_bt601_limited = {{
   { 0.257f, 0.504f, 0.098f, 0.0625f },
@@ -119,8 +123,9 @@ static VkResult vulkan_load_module()
 VulkanOutput_t g_output;
 
 uint32_t g_uCompositeDebug = 0u;
+#if HAVE_CONVAR
 gamescope::ConVar<uint32_t> cv_composite_debug{ "composite_debug", 0, "Debug composition flags" };
-
+#endif
 static std::map< VkFormat, std::map< uint64_t, VkDrmFormatModifierPropertiesEXT > > DRMModifierProps = {};
 static std::unordered_map<uint32_t, std::vector<uint64_t>> s_SampledModifierFormats = {};
 static struct wlr_drm_format_set sampledShmFormats = {};
@@ -732,8 +737,8 @@ bool CVulkanDevice::createLayouts()
 	{
 		.sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
 		.format = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM,
-		.ycbcrModel = colorspaceToYCBCRModel( g_ForcedNV12ColorSpace ),
-		.ycbcrRange = colorspaceToYCBCRRange( g_ForcedNV12ColorSpace ),
+		.ycbcrModel = colorspaceToYCBCRModel( EStreamColorspace::k_EStreamColorspace_Unknown /*g_ForcedNV12ColorSpace*/ ),
+		.ycbcrRange = colorspaceToYCBCRRange( EStreamColorspace::k_EStreamColorspace_Unknown /*g_ForcedNV12ColorSpace*/ ),
 		.xChromaOffset = cosited ? VK_CHROMA_LOCATION_COSITED_EVEN : VK_CHROMA_LOCATION_MIDPOINT,
 		.yChromaOffset = cosited ? VK_CHROMA_LOCATION_COSITED_EVEN : VK_CHROMA_LOCATION_MIDPOINT,
 		.chromaFilter = VK_FILTER_LINEAR,
@@ -2867,9 +2872,10 @@ bool vulkan_init_format(VkFormat format, uint32_t drmFormat)
 			{
 				continue;
 			}
-
+#if 0
 			// The deferred backend exposes all sample-able formats as supported modifiers.
 			if ( !g_bAllowDeferredBackend )
+#endif
 			{
 				if ( GetBackend()->UsesModifiers() && !gamescope::Algorithm::Contains( GetBackend()->GetSupportedModifiers( drmFormat ), modifier ) )
 					continue;

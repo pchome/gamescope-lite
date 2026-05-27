@@ -173,18 +173,18 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom gamescopeCursorVisibleFeedback;
 
 		Atom gamescopeSteamMaxHeight;
-
+#if 0
 		Atom gamescopeVRRCapable;
 		Atom gamescopeVRREnabled;
 		Atom gamescopeVRRInUse;
-
+#endif
 		Atom gamescopeNewScalingFilter;
 		Atom gamescopeNewScalingScaler;
 
 		Atom gamescopeDisplayEdidPath;
 
 		Atom gamescopeXwaylandServerId;
-
+#if 0
 		Atom gamescopeDisplaySupportsHDR;
 		Atom gamescopeDisplayHDREnabled;
 		Atom gamescopeDebugForceHDR10Output;
@@ -198,19 +198,25 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom gamescopeHDRItmEnable;
 		Atom gamescopeHDRItmSDRNits;
 		Atom gamescopeHDRItmTargetNits;
+#endif
+#if HAVE_CONVAR
 		Atom gamescopeColorLookPQ;
 		Atom gamescopeColorLookG22;
+#endif
+#if 0
 		Atom gamescopeColorOutputVirtualWhite;
+
 		Atom gamescopeHDRTonemapDisplayMetadata;
 		Atom gamescopeHDRTonemapSourceMetadata;
 		Atom gamescopeHDRTonemapOperator;
-
+#endif
 		Atom gamescopeForceWindowsFullscreen;
 
 		Atom gamescopeColorLut3DOverride;
 		Atom gamescopeColorShaperLutOverride;
-
+#if 0
 		Atom gamescopeColorSDRGamutWideness;
+#endif
 		Atom gamescopeColorNightMode; // amount, hue, saturation
 		Atom gamescopeColorManagementDisable;
 		Atom gamescopeColorAppWantsHDRFeedback;

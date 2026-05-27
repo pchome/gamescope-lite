@@ -1,10 +1,10 @@
 #include <algorithm>
 #include <utility>
 
+#include "console.hpp"
 #include "convar.hpp"
 #include "version.hpp"
 
-LogScope console_log("console");
 
 extern void PrintGamescopeVersion();
 

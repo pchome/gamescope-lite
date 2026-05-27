@@ -12,7 +12,7 @@ wl_protocol_dir = wayland_protos.get_variable('pkgdatadir')
 
 protocols = [
 	# Upstream protocols
-	wl_protocol_dir / 'stable/xdg-shell/xdg-shell.xml',
+# 	wl_protocol_dir / 'stable/xdg-shell/xdg-shell.xml',
 # 	wl_protocol_dir / 'stable/presentation-time/presentation-time.xml',
 	wl_protocol_dir / 'unstable/pointer-constraints/pointer-constraints-unstable-v1.xml',
 	wl_protocol_dir / 'staging/linux-drm-syncobj/linux-drm-syncobj-v1.xml',
@@ -20,15 +20,15 @@ protocols = [
 	# Gamescope protocols
 	'gamescope-xwayland.xml',
 
-	'gamescope-input-method.xml',
-	'gamescope-control.xml',
+# 	'gamescope-input-method.xml',
+# 	'gamescope-control.xml',
 
 	'gamescope-swapchain.xml',
-	'gamescope-private.xml',
+
 	'gamescope-action-binding.xml',
 
 	# wlroots protocols
-	'wlr-layer-shell-unstable-v1.xml',
+# 	'wlr-layer-shell-unstable-v1.xml',
 ]
 
 if get_option('pipewire').enabled()
@@ -37,6 +37,11 @@ endif
 
 if get_option('reshade').enabled()
   protocols += 'gamescope-reshade.xml'
+endif
+
+if get_option('convar').enabled()
+  protocols += 'gamescope-control.xml'
+  protocols += 'gamescope-private.xml'
 endif
 
 protocols_server_src = []

@@ -24,8 +24,8 @@ namespace gamescope
             static constexpr bool reshade = @HAVE_RESHADE@;
             static constexpr bool headless = @HAVE_HEADLESS@;
             static constexpr bool steam = @HAVE_STEAM@;
-            // static constexpr bool mangoapp = @HAVE_MANGOAPP@;
             static constexpr bool ui = @HAVE_IMGUI@;
+            static constexpr bool convar = @HAVE_CONVAR@;
         }
     }
     void PrintVersion();

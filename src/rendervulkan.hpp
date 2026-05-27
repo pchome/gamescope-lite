@@ -270,7 +270,6 @@ struct FrameInfo_t
 	gamescope::Rc<CVulkanTexture> shaperLut[EOTF_Count];
 	gamescope::Rc<CVulkanTexture> lut3D[EOTF_Count];
 
-	bool allowVRR;
 	bool applyOutputColorMgmt; // drm only
 	EOTF outputEncodingEOTF;
 
@@ -368,8 +367,9 @@ result |= layers[ i ].colorspace << (i * GamescopeAppTextureColorspace_Bits);
 };
 
 extern uint32_t g_uCompositeDebug;
+#if HAVE_CONVAR
 extern gamescope::ConVar<uint32_t> cv_composite_debug;
-
+#endif
 namespace CompositeDebugFlag
 {
 	static constexpr uint32_t Markers = 1u << 0;

@@ -161,6 +161,7 @@ gamescope_cpp_args += '-DHAVE_RESHADE=@0@'.format(get_option('reshade').enabled(
 gamescope_cpp_args += '-DHAVE_HEADLESS=@0@'.format(get_option('headless').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCREENSHOT=@0@'.format(get_option('screenshot').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_CONVAR=@0@'.format(get_option('convar').enabled().to_int())
 
 src += spirv_shaders
 src += protocols_server_src

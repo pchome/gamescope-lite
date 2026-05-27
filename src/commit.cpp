@@ -1,3 +1,5 @@
+#include "global/mangoapp.hpp"
+
 #include "wlserver.hpp"
 #include "rendervulkan.hpp"
 #include "steamcompmgr.hpp"

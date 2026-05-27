@@ -16,9 +16,9 @@
 
 #include "Timeline.h"
 #include "Utils/Algorithm.h"
-
+#if HAVE_CONVAR
 #include "core/convar.hpp"
-
+#endif
 #include "color_helpers.h"
 #include "gamescope_shared.h"
 #include "rc.h"
@@ -27,9 +27,9 @@ struct wlr_buffer;
 struct wlr_dmabuf_attributes;
 
 struct FrameInfo_t;
-
+#if HAVE_STEAM
 extern bool steamMode;
-
+#endif
 namespace gamescope
 {
     struct VBlankScheduleTime;
@@ -50,6 +50,7 @@ namespace gamescope
     }
     using VirtualConnectorStrategy = VirtualConnectorStrategies::VirtualConnectorStrategy;
     using VirtualConnectorKey_t = uint64_t;
+#if HAVE_CONVAR
     extern ConVar<VirtualConnectorStrategy> cv_backend_virtual_connector_strategy;
 
     static constexpr bool VirtualConnectorStrategyIsSingleOutput( VirtualConnectorStrategy eStrategy )
@@ -71,7 +72,12 @@ namespace gamescope
     {
         return VirtualConnectorInSteamPerAppState() && ulKey == 769;
     }
-
+#else
+    static constexpr bool VirtualConnectorStrategyIsSingleOutput( VirtualConnectorStrategy ) { return true; }
+    static inline bool VirtualConnectorIsSingleOutput() { return true; }
+    static inline bool VirtualConnectorInSteamPerAppState() { return false; }
+    static inline bool VirtualConnectorKeyIsSteam( VirtualConnectorKey_t ulKey ) { return false; }
+#endif
     static constexpr uint64_t k_ulNonSteamWindowBit = ( uint64_t( 1 ) << 63u );
     static constexpr uint64_t k_ulReservedBit = ( uint64_t( 1 ) << 62u );
 
@@ -501,8 +507,9 @@ namespace gamescope
         uint32_t m_uBlob = 0;
         bool m_bOwned = false;
     };
-
+#if HAVE_CONVAR
     extern ConVar<TouchClickMode> cv_touch_click_mode;
+#endif
 }
 
 inline gamescope::IBackend *GetBackend()

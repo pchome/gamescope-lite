@@ -13,11 +13,13 @@
 #include <getopt.h>
 #include <unistd.h>
 
+#include "core/console.hpp"
+#include "core/convar.hpp"
 #include "core/process.hpp"
 #include "core/version.hpp"
-
+#if HAVE_STEAM
 #include "Utils/TempFiles.h"
-
+#endif
 #include "backends.h"
 #include "main.hpp"
 #include "refresh_rate.h"
@@ -31,15 +33,16 @@
 
 using namespace std::literals;
 
-EStreamColorspace g_ForcedNV12ColorSpace = k_EStreamColorspace_Unknown;
+// EStreamColorspace g_ForcedNV12ColorSpace = k_EStreamColorspace_Unknown;
+#if HAVE_CONVAR
 extern gamescope::ConVar<bool> cv_adaptive_sync;
 extern gamescope::ConVar<bool> cv_shutdown_on_primary_child_death;
-
+#endif
 const char *gamescope_optstring = nullptr;
 const char *g_pOriginalDisplay = nullptr;
-
+#if 0
 bool g_bAllowDeferredBackend = false;
-
+#endif
 int g_nCursorScaleHeight = -1;
 
 const struct option *gamescope_options = (struct option[]){
@@ -58,15 +61,16 @@ const struct option *gamescope_options = (struct option[]){
 	{ "fsr-sharpness", required_argument, nullptr, 0 },
 	{ "rt", no_argument, nullptr, 0 },
 	{ "prefer-vk-device", required_argument, 0 },
-	{ "expose-wayland", no_argument, 0 },
 	{ "mouse-sensitivity", required_argument, nullptr, 's' },
+#if HAVE_STEAM
 	{ "mangoapp", no_argument, nullptr, 0 },
+#endif
 	{ "adaptive-sync", no_argument, nullptr, 0 },
 
 	{ "backend", required_argument, nullptr, 0 },
 
-	// nested mode options
-	{ "nested-unfocused-refresh", required_argument, nullptr, 'o' },
+	// 'nested mode' options
+    { "unfocused-refresh", required_argument, nullptr, 'o' },
 	{ "borderless", no_argument, nullptr, 'b' },
 	{ "fullscreen", no_argument, nullptr, 'f' },
 	{ "grab", no_argument, nullptr, 'g' },
@@ -80,7 +84,9 @@ const struct option *gamescope_options = (struct option[]){
 	{ "cursor", required_argument, nullptr, 0 },
 	{ "cursor-hotspot", required_argument, nullptr, 0 },
 	{ "cursor-scale-height", required_argument, nullptr, 0 },
+#if HAVE_CONVAR
 	{ "virtual-connector-strategy", required_argument, nullptr, 0 },
+#endif
 	{ "ready-fd", required_argument, nullptr, 'R' },
 	{ "stats-path", required_argument, nullptr, 'T' },
 	{ "hide-cursor-delay", required_argument, nullptr, 'C' },
@@ -88,7 +94,9 @@ const struct option *gamescope_options = (struct option[]){
 	{ "synchronous-x11", no_argument, nullptr, 0 },
 	{ "debug-hud", no_argument, nullptr, 'v' },
 	{ "debug-events", no_argument, nullptr, 0 },
+#if HAVE_STEAM
 	{ "steam", no_argument, nullptr, 'e' },
+#endif
 	{ "force-preemptive-upscaling", no_argument, nullptr, 0 },
 	{ "composite-debug", no_argument, nullptr, 0 },
 	{ "disable-xres", no_argument, nullptr, 'x' },
@@ -97,6 +105,7 @@ const struct option *gamescope_options = (struct option[]){
 	{ "force-windows-fullscreen", no_argument, nullptr, 0 },
 
 	{ "disable-color-management", no_argument, nullptr, 0 },
+#if 0
 	{ "sdr-gamut-wideness", required_argument, nullptr, 0 },
 	{ "hdr-enabled", no_argument, nullptr, 0 },
 	{ "hdr-sdr-content-nits", required_argument, nullptr, 0 },
@@ -106,13 +115,17 @@ const struct option *gamescope_options = (struct option[]){
 	{ "hdr-debug-force-support", no_argument, nullptr, 0 },
 	{ "hdr-debug-force-output", no_argument, nullptr, 0 },
 	{ "hdr-debug-heatmap", no_argument, nullptr, 0 },
+#endif
 #if HAVE_RESHADE
 	{ "reshade-effect", required_argument, nullptr, 0 },
 	{ "reshade-technique-idx", required_argument, nullptr, 0 },
 #endif
+#if 0
 	{ "allow-deferred-backend", no_argument, nullptr, 0 },
+#endif
+#if HAVE_CONVAR
 	{ "keep-alive", no_argument, nullptr, 0 },
-
+#endif
 	{} // keep last
 };
 
@@ -140,7 +153,6 @@ const char usage[] =
 	"                                     fsr => AMD FidelityFX™ Super Resolution 1.0\n"
 	"                                     nis => NVIDIA Image Scaling v1.0.3\n"
 	"  --sharpness, --fsr-sharpness   upscaler sharpness from 0 (max) to 20 (min)\n"
-	"  --expose-wayland               support wayland clients using xdg-shell\n"
 	"  -s, --mouse-sensitivity        multiply mouse movement by given decimal number\n"
 	"  --backend                      select rendering backend\n"
 	"                                     auto => autodetect (default)\n"
@@ -151,13 +163,18 @@ const char usage[] =
 	"  --rt                           Use realtime scheduling\n"
 	"  -T, --stats-path               write statistics to path\n"
 	"  -C, --hide-cursor-delay        hide cursor image after delay\n"
+#if HAVE_STEAM
 	"  -e, --steam                    enable Steam integration\n"
+#endif
 	"  --xwayland-count               create N xwayland servers\n"
 	"  --prefer-vk-device             prefer Vulkan device for compositing (ex: 1002:7300)\n"
 	"  --force-orientation            rotate the internal display (left, right, normal, upsidedown)\n"
 	"  --force-windows-fullscreen     force windows inside of gamescope to be the size of the nested display (fullscreen)\n"
 	"  --cursor-scale-height          if specified, sets a base output height to linearly scale the cursor against.\n"
+#if HAVE_CONVAR
 	"  --virtual-connector-strategy   Specifies how we should make virtual connectors.\n"
+#endif
+#if 0
 	"  --hdr-enabled                  enable HDR output (needs Gamescope WSI layer enabled for support from clients)\n"
 	"                                 If this is not set, and there is a HDR client, it will be tonemapped SDR.\n"
 	"  --sdr-gamut-wideness           Set the 'wideness' of the gamut for SDR comment. 0 - 1.\n"
@@ -167,12 +184,17 @@ const char usage[] =
 	"                                 Default: 100 nits, Max: 1000 nits\n"
 	"  --hdr-itm-target-nits          set the target luminace of the inverse tone mapping process.\n"
 	"                                 Default: 1000 nits, Max: 10000 nits\n"
+#endif
+#if HAVE_STEAM
 	"  --mangoapp                     Launch with the mangoapp (mangohud) performance overlay enabled.\n"
 	"                                 You should use this instead of using mangohud on the game or gamescope.\n"
+#endif
+#if 0
 	"  --adaptive-sync                Enable adaptive sync if available (variable rate refresh)\n"
+#endif
 	"\n"
 	"Nested mode options:\n"
-	"  -o, --nested-unfocused-refresh game refresh rate when unfocused\n"
+	"  -o, --unfocused-refresh        game refresh rate when unfocused\n"
 	"  -b, --borderless               make the window borderless\n"
 	"  -f, --fullscreen               make the window fullscreen\n"
 	"  -g, --grab                     grab the keyboard\n"
@@ -188,10 +210,12 @@ const char usage[] =
 	"  --composite-debug              draw frame markers on alternating corners of the screen when compositing\n"
 	"  --disable-color-management     disable color management\n"
 	"  --disable-xres                 disable XRes for PID lookup\n"
+#if 0
 	"  --hdr-debug-force-support      forces support for HDR, etc even if the display doesn't support it.\n"
 	"                                 HDR clients will be outputted as SDR still in that case.\n"
 	"  --hdr-debug-force-output       forces support and output to HDR10 PQ even if the output does not support it (will look very wrong if it doesn't)\n"
 	"  --hdr-debug-heatmap            displays a heatmap-style debug view of HDR luminence across the scene in nits.\n"
+#endif
 #if HAVE_RESHADE
 	"\n"
 	"Reshade shader options:\n"
@@ -199,11 +223,15 @@ const char usage[] =
 	"                                 or ~/.local/share/gamescope/reshade/Shaders\n"
 	"  --reshade-technique-idx        sets technique idx to use from the reshade effect\n"
 #endif
+#if 0
 	"\n"
 	"Platform options:\n"
 	"  --allow-deferred-backend       Allows initting the backend in a deferred way, if it doesn't work immediately.\n"
 	"                                 (Note: This has some very minor correctness compromises that you should consider wrt. your platform with modifiers, etc).\n"
+#endif
+#if HAVE_CONVAR
 	"  --keep-alive                   Keep Gamescope alive even when the primary process has died.\n"
+#endif
 	"\n"
 	"Keyboard shortcuts:\n"
 #if HAVE_IMGUI
@@ -453,14 +481,14 @@ void ShutdownGamescope()
 
 	nudge_steamcompmgr();
 }
-
+#if HAVE_CONVAR
 static gamescope::ConCommand cc_shutdown( "shutdown", "Cleanly shutdown gamescope",
 []( std::span<std::string_view> svArgs )
 {
 	console_log.infof( "Shutting down..." );
 	ShutdownGamescope();
 });
-
+#endif
 static void handle_signal( int sig )
 {
 	switch ( sig ) {
@@ -482,7 +510,7 @@ static void handle_signal( int sig )
 		assert( false ); // unreachable
 	}
 }
-
+#if 0
 static EStreamColorspace parse_colorspace_string( const char *pszStr )
 {
 	if ( !pszStr || !*pszStr )
@@ -499,7 +527,7 @@ static EStreamColorspace parse_colorspace_string( const char *pszStr )
 	else
 	 	return k_EStreamColorspace_Unknown;
 }
-
+#endif
 
 
 #if 0
@@ -552,6 +580,7 @@ bool g_bLaunchMangoapp = false;
 static void UpdateCompatEnvVars()
 {
 	// Legacy env vars for compat.
+#if HAVE_SREAM
 	if ( steamMode )
 	{
 		// We have NIS support.
@@ -597,7 +626,7 @@ static void UpdateCompatEnvVars()
 		setenv( "STEAM_MANGOAPP_PRESETS_SUPPORTED", "1", 0 );
 		setenv( "STEAM_USE_MANGOAPP", "1", 0 );
 	}
-
+#endif
 	// Always set this to false, we never want buffers to be waited on by Mesa.
 	// That is our job!
 	setenv( "vk_xwayland_wait_ready", "false", 1 );
@@ -613,6 +642,7 @@ static void UpdateCompatEnvVars()
 	// Don't minimise stuff on focus loss with SDL.
 	setenv( "SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS", "0", 1 );
 
+#if HAVE_STEAM
 	const char *pszMangoConfigPath = getenv( "MANGOHUD_CONFIGFILE" );
 	if ( (g_bLaunchMangoapp && steamMode) && ( !pszMangoConfigPath || !*pszMangoConfigPath ) )
 	{
@@ -642,6 +672,7 @@ static void UpdateCompatEnvVars()
 			gamescope::Process::CloseFd( nLimiterFd );
 		}
 	}
+#endif
 }
 
 int g_nPreferredOutputWidth = 0;
@@ -699,7 +730,7 @@ int main(int argc, char **argv)
 				g_nPreferredOutputHeight = parse_integer( optarg, "output-height" );
 				break;
 			case 'o':
-				g_nNestedUnfocusedRefresh = gamescope::ConvertHztomHz( parse_integer( optarg, "nested-unfocused-refresh" ) );
+				g_nNestedUnfocusedRefresh = gamescope::ConvertHztomHz( parse_integer( optarg, "unfocused-refresh" ) );
 				break;
 			case 'm':
 				g_flMaxWindowScale = parse_float( optarg, "max-scale" );
@@ -728,11 +759,16 @@ int main(int argc, char **argv)
 			case 's':
 				g_mouseSensitivity = parse_float( optarg, "mouse-sensitivity" );
 				break;
+#if HAVE_STEAM
 			case 'e':
 				steamMode = true;
+#if HAVE_CONVAR
 				if ( gamescope::cv_backend_virtual_connector_strategy == gamescope::VirtualConnectorStrategies::SingleApplication )
 					gamescope::cv_backend_virtual_connector_strategy = gamescope::VirtualConnectorStrategies::SteamControlled;
-				break;
+                }
+#endif
+            break;
+#endif
 			case 0: // long options without a short option
 				opt_name = gamescope_options[opt_index].name;
 				if (strcmp(opt_name, "help") == 0) {
@@ -744,10 +780,19 @@ int main(int argc, char **argv)
 				} else if (strcmp(opt_name, "xwayland-count") == 0) {
 					g_nXWaylandCount = parse_integer( optarg, opt_name );
 				} else if (strcmp(opt_name, "composite-debug") == 0) {
+#if HAVE_CONVAR
 					cv_composite_debug |= CompositeDebugFlag::Markers;
 					cv_composite_debug |= CompositeDebugFlag::PlaneBorders;
+#else
+                    g_uCompositeDebug |= CompositeDebugFlag::Markers;
+                    g_uCompositeDebug |= CompositeDebugFlag::PlaneBorders;
+#endif
 				} else if (strcmp(opt_name, "hdr-debug-heatmap") == 0) {
+#if HAVE_CONVAR
 					cv_composite_debug |= CompositeDebugFlag::Heatmap;
+#else
+                    g_uCompositeDebug |= CompositeDebugFlag::Heatmap;
+#endif
 				} else if (strcmp(opt_name, "sharpness") == 0 ||
 						   strcmp(opt_name, "fsr-sharpness") == 0) {
 					g_upscaleFilterSharpness = parse_integer( optarg, opt_name );
@@ -765,8 +810,10 @@ int main(int argc, char **argv)
 					g_bForceRelativeMouse = true;
 				} else if (strcmp(opt_name, "display-index") == 0) {
 					g_nNestedDisplayIndex = parse_integer( optarg, opt_name );
+#if 0
 				} else if (strcmp(opt_name, "adaptive-sync") == 0) {
 					cv_adaptive_sync = true;
+#endif
 #if 0
 				} else if (strcmp(opt_name, "expose-wayland") == 0) {
 					g_bExposeWayland = true;
@@ -775,10 +822,15 @@ int main(int argc, char **argv)
 					eCurrentBackend = parse_backend_name( optarg );
 				} else if (strcmp(opt_name, "cursor-scale-height") == 0) {
 					g_nCursorScaleHeight = parse_integer(optarg, opt_name);
+#if HAVE_STEAM
 				} else if (strcmp(opt_name, "mangoapp") == 0) {
 					g_bLaunchMangoapp = true;
+#endif
+#if 0
 				} else if (strcmp(opt_name, "allow-deferred-backend") == 0) {
 					g_bAllowDeferredBackend = true;
+#endif
+#if HAVE_CONVAR
 				} else if (strcmp(opt_name, "keep-alive") == 0) {
 					cv_shutdown_on_primary_child_death = false;
 				} else if (strcmp(opt_name, "virtual-connector-strategy") == 0) {
@@ -792,6 +844,7 @@ int main(int argc, char **argv)
 								
 						}
 					}
+#endif
 				}
 				break;
 			case '?':
@@ -836,7 +889,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	g_ForcedNV12ColorSpace = parse_colorspace_string( getenv( "GAMESCOPE_NV12_COLORSPACE" ) );
+	// g_ForcedNV12ColorSpace = parse_colorspace_string( getenv( "GAMESCOPE_NV12_COLORSPACE" ) );
 
 #if HAVE_HEADLESS
 	switch ( eCurrentBackend )

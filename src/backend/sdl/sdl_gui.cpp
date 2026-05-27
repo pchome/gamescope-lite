@@ -95,7 +95,7 @@ void UiLayoutDebugTab() {
 
   ImGui::SeparatorText("Output");
   ImGui::BeginDisabled();
-  ImTpl::Toggle("HDR Enabled", g_bOutputHDREnabled, [] {});
+  // ImTpl::Toggle("HDR Enabled", g_bOutputHDREnabled, [] {});
   ImFmt::Text("Screen Type: Internal");
   ImTpl::Toggle("Fullscreen", g_bFullscreen, [] {});
   ImGui::EndDisabled();
@@ -350,6 +350,7 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
   }
   ImGui::EndGroup();
 }
+#if 0
 void UiLayoutHdrTab() {
   ImGui::BeginGroup();
   ImFmt::Text("HDR");
@@ -357,6 +358,7 @@ void UiLayoutHdrTab() {
   ImTpl::Toggle("HDR Enabled", g_bOutputHDREnabled, [] { g_bOutputHDREnabled = !g_bOutputHDREnabled; });
   ImGui::EndGroup();
 }
+#endif
 void UiLayoutMainTabs(CSDLAction* p_Action) {
   ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
   if (ImGui::BeginTabBar("MainTabBar", tab_bar_flags)) {
@@ -364,10 +366,12 @@ void UiLayoutMainTabs(CSDLAction* p_Action) {
       UiLayoutSettingsTab(p_Action);
       ImGui::EndTabItem();
     }
+#if 0
     if (ImGui::BeginTabItem("Hdr")) {
       UiLayoutHdrTab();
       ImGui::EndTabItem();
     }
+#endif
 #if !defined(NDEBUG)
     if (ImGui::BeginTabItem("Debug")) {
       UiLayoutDebugTab();

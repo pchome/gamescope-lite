@@ -8,7 +8,7 @@
 #include "core/version.hpp"
 
 #include "main.hpp"
-#include "steamcompmgr.hpp"
+// #include "global/steamcompmgr.hpp"
 
 namespace gamescope {
 
@@ -19,10 +19,11 @@ void CSDLBackend::SwitchMainWindowVisibility() {
   // whenever we have had a first frame to match
   // what we do in embedded with Steam for testing
   // held commits, etc.
+#if HAVE_STEAM
   if (steamMode) {
     bVisible |= !g_bFirstFrame;
   }
-
+#endif
   if (m_bShown != bVisible) {
     m_bShown = bVisible;
 

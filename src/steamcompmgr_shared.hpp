@@ -95,9 +95,9 @@ struct Rect
 	int32_t nWidth;
 	int32_t nHeight;
 };
-
+#if 0
 extern focus_t g_steamcompmgr_xdg_focus;
-
+#endif
 struct steamcompmgr_win_t {
 	unsigned int	opacity = 0xffffffff;
 
@@ -176,8 +176,10 @@ struct steamcompmgr_win_t {
 	{
 		if (type == steamcompmgr_win_type_t::XWAYLAND)
 			return &xwayland().ctx->focus;
+#if 0
 		else if (type == steamcompmgr_win_type_t::XDG)
 			return &g_steamcompmgr_xdg_focus;
+#endif
 		else
 			return nullptr;
 	}
@@ -186,8 +188,10 @@ struct steamcompmgr_win_t {
 	{
 		if (type == steamcompmgr_win_type_t::XWAYLAND)
 			return Rect{ xwayland().a.x, xwayland().a.y, xwayland().a.width, xwayland().a.height };
+#if 0
 		else if (type == steamcompmgr_win_type_t::XDG)
 			return Rect{ xdg().geometry.x, xdg().geometry.y, xdg().geometry.width, xdg().geometry.height };
+#endif
 		else
 			return Rect{};
 	}
@@ -196,8 +200,10 @@ struct steamcompmgr_win_t {
 	{
 		if (type == steamcompmgr_win_type_t::XWAYLAND)
 			return uint32_t(xwayland().id);
+#if 0
 		else if (type == steamcompmgr_win_type_t::XDG)
 			return xdg().id;
+#endif
 		else
 			return ~(0u);
 	}
@@ -206,8 +212,10 @@ struct steamcompmgr_win_t {
 	{
 		if (type == steamcompmgr_win_type_t::XWAYLAND)
 			return xwayland().surface.main_surface;
+#if 0
 		else if (type == steamcompmgr_win_type_t::XDG)
 			return xdg().surface.main_surface;
+#endif
 		else
 			return nullptr;
 	}

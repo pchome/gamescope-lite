@@ -38,24 +38,26 @@
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_compositor.h>
-#include <wlr/types/wlr_drm.h>
+// #include <wlr/types/wlr_drm.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
+// #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
-#include <wlr/types/wlr_seat.h>
+// #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_touch.h>
-#include <wlr/types/wlr_xdg_shell.h>
+// #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 #include <wlr/util/region.h>
 #include <wlr/xwayland/server.h>
 #include "wlr_end.hpp"
 
 #include "gamescope-xwayland-protocol.h"
+#if HAVE_CONVAR
 #include "gamescope-control-protocol.h"
 #include "gamescope-private-protocol.h"
+#endif
 #include "gamescope-swapchain-protocol.h"
 // #include "presentation-time-protocol.h"
 
@@ -67,6 +69,7 @@
 #include "hdmi.h"
 #include "main.hpp"
 #include "refresh_rate.h"
+#include "global/steamcompmgr.hpp"
 #include "steamcompmgr.hpp"
 #include "wlserver.hpp"
 #include "xwayland_ctx.hpp"
@@ -124,9 +127,9 @@ std::vector<ResListEntry_t>& gamescope_xwayland_server_t::retrieve_commits()
 	}
 	return commits;
 }
-
+#if HAVE_CONVAR
 gamescope::ConVar<bool> cv_drm_debug_syncobj_force_wait_on_commit( "drm_debug_syncobj_force_wait_on_commit", false, "Force a wait on DRM sync objects before committing buffers" );
-
+#endif
 std::optional<ResListEntry_t> PrepareCommit( struct wlr_surface *surf, struct wlr_buffer *buf )
 {
 	auto wl_surf = get_wl_surface_info( surf );
@@ -141,12 +144,13 @@ std::optional<ResListEntry_t> PrepareCommit( struct wlr_surface *surf, struct wl
 	{
 		pAcquirePoint = wl_surf->pSyncobjSurface->ExtractAcquireTimelinePoint();
 		pReleasePoint = wl_surf->pSyncobjSurface->ExtractReleaseTimelinePoint();
-
+#if HAVE_CONVAR
 		if ( cv_drm_debug_syncobj_force_wait_on_commit )
 		{
 			if ( !pAcquirePoint->Wait() )
 				wl_log.errorf( "drmSyncobjWait failed!" );
 		}
+#endif
 	}
 
 	auto oNewEntry = std::optional<ResListEntry_t> {
@@ -197,7 +201,7 @@ struct PendingCommit_t
 };
 
 std::list<PendingCommit_t> g_PendingCommits;
-
+#if 0
 void wlserver_xdg_commit(struct wlr_surface *surf, struct wlr_buffer *buf)
 {
 	std::optional<ResListEntry_t> oEntry = PrepareCommit( surf, buf );
@@ -211,11 +215,12 @@ void wlserver_xdg_commit(struct wlr_surface *surf, struct wlr_buffer *buf)
 
 	nudge_steamcompmgr();
 }
-
+#endif
 void xwayland_surface_commit(struct wlr_surface *wlr_surface) {
 	wlr_surface->current.committed = 0;
 
 	wlserver_x11_surface_info *wlserver_x11_surface_info = get_wl_surface_info(wlr_surface)->x11_surface;
+#if 0
 	wlserver_xdg_surface_info *wlserver_xdg_surface_info = get_wl_surface_info(wlr_surface)->xdg_surface;
 
 	if ( wlserver_xdg_surface_info )
@@ -231,7 +236,7 @@ void xwayland_surface_commit(struct wlr_surface *wlr_surface) {
 			wlserver_xdg_surface_info->bDoneConfigure = true;
 		}
 	}
-
+#endif
 	// Committing without buffer state is valid and commits the same buffer again.
 	// Mutter and Weston have forward progress on the frame callback in this situation,
 	// so let the commit go through. It will be duplication-eliminated later.
@@ -251,10 +256,12 @@ void xwayland_surface_commit(struct wlr_surface *wlr_surface) {
 		assert(wlserver_x11_surface_info->xwayland_server);
 		wlserver_x11_surface_info->xwayland_server->wayland_commit( wlr_surface, buf );
 	}
+#if 0
 	else if (wlserver_xdg_surface_info)
 	{
 		wlserver_xdg_commit(wlr_surface, buf);
 	}
+#endif
 	else
 	{
 		g_PendingCommits.push_back(PendingCommit_t{ wlr_surface, buf });
@@ -1009,7 +1016,7 @@ static void create_gamescope_pipewire( void )
 #endif
 
 //
-
+#if HAVE_CONVAR
 static void gamescope_control_set_app_target_refresh_cycle( struct wl_client *client, struct wl_resource *resource, uint32_t fps, uint32_t flags )
 {
 	auto display_type = gamescope::GAMESCOPE_SCREEN_TYPE_EXTERNAL;
@@ -1022,6 +1029,7 @@ static void gamescope_control_set_app_target_refresh_cycle( struct wl_client *cl
 		!!( flags & GAMESCOPE_CONTROL_TARGET_REFRESH_CYCLE_FLAG_ALLOW_REFRESH_SWITCHING ),
 		!( flags & GAMESCOPE_CONTROL_TARGET_REFRESH_CYCLE_FLAG_ONLY_CHANGE_REFRESH_RATE ) );
 }
+#endif
 #if HAVE_SCREENSHOT
 static void gamescope_control_take_screenshot( struct wl_client *client, struct wl_resource *resource, const char *path, uint32_t type, uint32_t flags )
 {
@@ -1034,16 +1042,16 @@ static void gamescope_control_take_screenshot( struct wl_client *client, struct 
 	} );
 }
 #endif
-void drm_sleep_screen( gamescope::GamescopeScreenType eType, bool bSleep );
-
+// void drm_sleep_screen( gamescope::GamescopeScreenType eType, bool bSleep );
+#if HAVE_CONVAR
 static void gamescope_control_display_sleep( struct wl_client *client, struct wl_resource *resource, uint32_t display_type_flags, uint32_t flags )
 {
 
 }
 
-extern gamescope::ConVar<bool> cv_overlay_unmultiplied_alpha;
 extern std::atomic<std::shared_ptr<lut3d_t>> g_ColorMgmtLooks[EOTF_Count];
 
+extern gamescope::ConVar<bool> cv_overlay_unmultiplied_alpha;
 static gamescope::ConCommand cc_set_look("set_look", "Set a look for a specific EOTF. Eg. set_look mylook.cube (g22 only), set_look pq mylook.cube, set_look mylook_g22.cube mylook_pq.cube",
 []( std::span<std::string_view> args )
 {
@@ -1147,6 +1155,7 @@ static void gamescope_control_set_look( struct wl_client *client, struct wl_reso
 
 static void gamescope_control_unset_look( struct wl_client *client, struct wl_resource *resource )
 {
+
 	cv_overlay_unmultiplied_alpha = false;
 	g_ColorMgmtLooks[ EOTF_Gamma22 ] = nullptr;
 	g_ColorMgmtLooks[ EOTF_PQ ] = nullptr;
@@ -1328,6 +1337,7 @@ static void create_gamescope_private( void )
 	uint32_t version = 1;
 	wl_global_create( wlserver.display, &gamescope_private_interface, version, NULL, gamescope_private_bind );
 }
+#endif
 
 static void create_explicit_sync()
 {
@@ -1659,7 +1669,7 @@ void gamescope_xwayland_server_t::update_output_info()
 
 	wlr_output_set_description(output, info->description);
 }
-
+#if 0
 static void xdg_surface_map(struct wl_listener *listener, void *data) {
 	struct wlserver_xdg_surface_info* info =
 		wl_container_of(listener, info, map);
@@ -1707,9 +1717,9 @@ static void waylandy_surface_destroy(struct wl_listener *listener, void *data) {
 void xdg_toplevel_new(struct wl_listener *listener, void *data)
 {
 }
-
+#endif
 uint32_t get_appid_from_pid( pid_t pid );
-
+#if 0
 wlserver_xdg_surface_info* waylandy_type_surface_new(struct wl_client *client, struct wlr_surface *surface)
 {
 	wlserver_wl_surface_info *wlserver_surface = get_wl_surface_info(surface);
@@ -1792,7 +1802,7 @@ void layer_shell_surface_new(struct wl_listener *listener, void *data)
 
 	surface_info->win->isExternalOverlay = true;
 }
-
+#endif
 bool wlserver_init( void ) {
 	assert( wlserver.display != nullptr );
 
@@ -1849,11 +1859,11 @@ bool wlserver_init( void ) {
 #if HAVE_PIPEWIRE
 	create_gamescope_pipewire();
 #endif
-
+#if HAVE_CONVAR
 	create_gamescope_control();
 
 	create_gamescope_private();
-
+#endif
 	// create_presentation_time();
 
 	// Have to make this old ancient thing for compat with older XWayland.
@@ -2085,7 +2095,7 @@ void wlserver_shutdown()
 void wlserver_keyboardfocus( struct wlr_surface *surface, bool bConstrain )
 {
 	assert( wlserver_is_lock_held() );
-
+#if 0
 	if (wlserver.kb_focus_surface != surface) {
 		auto old_wl_surf = get_wl_surface_info( wlserver.kb_focus_surface );
 		if (old_wl_surf && old_wl_surf->xdg_surface && old_wl_surf->xdg_surface->xdg_surface && old_wl_surf->xdg_surface->xdg_surface->toplevel)
@@ -2095,7 +2105,7 @@ void wlserver_keyboardfocus( struct wlr_surface *surface, bool bConstrain )
 		if (new_wl_surf && new_wl_surf->xdg_surface && new_wl_surf->xdg_surface->xdg_surface && new_wl_surf->xdg_surface->xdg_surface->toplevel)
 			wlr_xdg_toplevel_set_activated(new_wl_surf->xdg_surface->xdg_surface->toplevel, true);
 	}
-
+#endif
 	assert( wlserver.wlr.virtual_keyboard_device != nullptr );
 	wlr_seat_set_keyboard( wlserver.wlr.seat, wlserver.wlr.virtual_keyboard_device );
 

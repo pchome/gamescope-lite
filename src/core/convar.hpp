@@ -2,18 +2,21 @@
 #include <cassert>
 #include <charconv>
 #include <cstdint>
-
+#include <vector>
+#if HAVE_CONVAR
 #include <functional>
+#endif
 #include <optional>
+#if HAVE_CONVAR
 #include <span>
+#endif
 #include <string>
 #include <string_view>
 #include <type_traits>
-
+#if HAVE_CONVAR
+#include "console.hpp"
 #include "dict.hpp"
-#include "log.hpp"
-
-extern LogScope console_log;
+#endif
 
 namespace gamescope
 {
@@ -79,7 +82,7 @@ namespace gamescope
         Split( tokens, string, delims );
         return tokens;
     }
-
+#if HAVE_CONVAR
     class ConCommand
     {
         using ConCommandFunc = std::function<void( std::span<std::string_view> )>;
@@ -216,6 +219,6 @@ namespace gamescope
         ConVarCallbackFunc m_Callback;
         bool m_bInCallback;
     };
-
+#endif
 
 }

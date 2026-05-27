@@ -1,24 +1,28 @@
 # gamescope-lite: SDL-only gamescope
 
-### Fork difference
+### Fork difference[^1]
 
 #### So far:
-* [x] Only SDL, Headless, and Deferred backends left
-* [x] Droped DRM, OpenVR, Wayland backends
+* [x] Only SDL and Headless backends left
+* [x] Droped DRM, OpenVR, Wayland, and Deferred backends
 * [x] Droped WSI layer (use upstream one if needed/applicable)
 * [x] Droped Lua scripting support
+* [x] Droped VRR and HDR support
 * [x] Droped executables other than `gamescope-lite` and `gamescopereaper-lite` (use upstream one if needed/applicable)
-* [x] Optional (disabled by default) ui, reshade, pipewire, screenshots, headless backend
+* [x] Optional (disabled by default) experimental ui, reshade fx support
+* [x] Optional (disabled by default, not tested) pipewire, headless backend
+* [x] Optional (disabled by default, candidates for removal) screenshots, steam mode, convar support
 
 #### New:
 * [x] Ported to SDL3
+* [x] Require c++23 (std::format, std::println, std::ranges, and so on)
 * [x] Experimental settings UI (toggle via Super + `) 
 * [x] Updated ReShade FX supported version to v6.6.2 (up to v6.7.3)
-    + unbundled ReShade submodule (uses ReShadeFX[^1] shared library)
+    + unbundled ReShade submodule (uses ReShadeFX[^2] shared library)
     + added `./reshade-shaders/` path to the top of shader search list
     + added XDG support
     + both `gamescope/reshade/` and `reshade-shaders/` paths are supported across all XDG_DATA_* directories
-* [x] Updated wlroots version to 0.18.3
+* [x] Updated wlroots version to 0.18.3[^3]
     + patch to run gamescope in containers (unshare, flatpack, ...)
     + patch to silence error about X0 socket already in use
 * [x] Disabled upscaling by default (prev. default was `-S fit`, cur. default: `-S native`)
@@ -26,9 +30,12 @@
     - currently some fixed values are added: 4:3, 16:9, 16:10, 24:10, 43:18, 64:27
     - for e.g. 16:10 use `gamescope-lite -a 16:10 -H 800 -- vkgears` (will start in 1280×800 window)
 * [x] Merged some pending (useful or experimental) upstream PRs
-    - disabled global `-ffast-math` compiler flag
-    - fixed (almost) gamescope abort at exit
-    - Bicubic downscaling filter `-F bicubic`
+    - disabled global `-ffast-math` compiler flag (ValveSoftware/gamescope#1493)
+    - fixed (almost) gamescope abort at exit (ValveSoftware/gamescope#1335)
+    - fixed gamescope doesn't quit when game quits (ValveSoftware/gamescope#1908)
+    - Bicubic downscaling filter `-F bicubic` (ValveSoftware/gamescope#740)
+    - don't pull in glm and stb as subprojects (Gentoo package patch)
+    - support new stb versions (Gentoo package patch)
 * [x] Debug options
     - reenable unused `--disable-color-management` (I'd remove color management but output is too dark. Need more info.)
     - added `--force-preemptive-upscaling` (Ok with lower fps but higher load w/o vsync. Need more info.)
@@ -39,11 +46,10 @@
 
 #### TODO:
 * [ ] Upgrade to wlroots 0.19 or 0.20 (if it worth it)
-* [ ] Drop VRR (seems not used by sdl backend)
-* [ ] Drop HDR (I don't have hw to test this. Low priority.)
 
-[^1]: https://github.com/pchome/reshade-fx - repository contain patched ReShade FX v6.6.2 and v6.7.3
-
+[^1]: https://github.com/ValveSoftware/gamescope/compare/master...pchome:gamescope-lite:lite
+[^2]: https://github.com/pchome/reshade-fx - repository contain patched ReShade FX v6.6.2 and v6.7.3
+[^3]: https://github.com/pchome/wlroots - repository contain patched wlroots 0.18.3
 
 ## gamescope: the micro-compositor formerly known as steamcompmgr
 

@@ -21,8 +21,8 @@ version_conf.set('HAVE_SCREENSHOT', get_option('screenshot').enabled().to_string
 version_conf.set('HAVE_HEADLESS', get_option('headless').enabled().to_string().to_lower())
 version_conf.set('HAVE_AVIF', get_option('avif_screenshots').enabled().to_string().to_lower())
 version_conf.set('HAVE_STEAM', get_option('steam').enabled().to_string().to_lower())
-# version_conf.set('HAVE_MANGOAPP', get_option('mangoapp').enabled().to_string().to_lower())
 version_conf.set('HAVE_IMGUI', get_option('ui').enabled().to_string().to_lower())
+version_conf.set('HAVE_CONVAR', get_option('convar').enabled().to_string().to_lower())
 
 gamescope_version = configure_file(
   input : 'version.hpp.in',
@@ -31,11 +31,15 @@ gamescope_version = configure_file(
 )
 
 gamescope_core_src = files([
-  'convar.cpp',
+  'console.cpp',
   'log.cpp',
   'process.cpp',
   'version.cpp',
 ])
+
+if get_option('convar').enabled()
+  gamescope_core_src += files(['convar.cpp',])
+endif
 
 core_lib = static_library('core', gamescope_core_src, gamescope_version, install: false)
 

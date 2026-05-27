@@ -17,7 +17,7 @@
 
 namespace gamescope {
 
-auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t fake_timestamp) -> bool {
+auto CSDLBackend::HandleInputEvent(SDL_Event event, uint32_t  /*fake_timestamp*/) -> bool {
   auto handled = false;
 
   switch (event.type) {

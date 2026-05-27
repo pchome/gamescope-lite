@@ -43,7 +43,7 @@ void CSDLBackend::SDLThreadFunc() {
     return;
   }
 
-  sdl_log.infof("Using SDL backend");
+  sdl_log.info("Using SDL backend");
 
   if (!SDL_Vulkan_LoadLibrary(nullptr)) {
     fprintf(stderr, "SDL_Vulkan_LoadLibrary failed: %s\n", SDL_GetError());
