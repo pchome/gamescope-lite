@@ -159,8 +159,10 @@ gamescope_cpp_args += '-DHAVE_IMGUI=@0@'.format(get_option('ui').enabled().to_in
 gamescope_cpp_args += '-DHAVE_LIBCAP=@0@'.format(get_option('rt_cap').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_RESHADE=@0@'.format(get_option('reshade').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_HEADLESS=@0@'.format(get_option('headless').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_PIPEWIRE=@0@'.format(get_option('pipewire').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_SCREENSHOT=@0@'.format(get_option('screenshot').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_AVIF=@0@'.format(get_option('avif_screenshots').enabled().to_int())
+gamescope_cpp_args += '-DHAVE_STEAM=@0@'.format(get_option('steam').enabled().to_int())
 gamescope_cpp_args += '-DHAVE_CONVAR=@0@'.format(get_option('convar').enabled().to_int())
 
 src += spirv_shaders
@@ -171,6 +173,11 @@ foreach feat : required_wlroots_features
     error('Cannot use wlroots built without ' + feat + ' support')
   endif
 endforeach
+
+add_project_arguments(
+  gamescope_cpp_args,
+  language: 'cpp',
+)
 
 subdir('core')
 
@@ -188,7 +195,7 @@ subdir('core')
       pixman_dep,
     ],
     install: true,
-    cpp_args: gamescope_cpp_args,
+#     cpp_args: gamescope_cpp_args,
   )
 
 

@@ -77,11 +77,6 @@ dep_notfound = 'Install system package or use "--wrap-mode=default" option.'
 glm_dep = dependency('glm', not_found_message: dep_notfound)
 stb_dep = dependency('stb', not_found_message: dep_notfound)
 
-add_project_arguments(
-  '-DHAVE_PIPEWIRE=@0@'.format(get_option('pipewire').enabled().to_int()),
-  language: 'cpp',
-)
-
 # Vulkan headers are installed separately from the loader (which ships the
 # pkg-config file)
 if not cppc.check_header('vulkan/vulkan.h', dependencies: vulkan_dep)
