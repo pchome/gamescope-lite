@@ -723,6 +723,7 @@ int main(int argc, char **argv)
 				break;
 			case 'r':
 				g_nNestedRefresh = gamescope::ConvertHztomHz( parse_integer( optarg, "nested-refresh" ) );
+                if (g_nNestedUnfocusedRefresh == 0) g_nNestedUnfocusedRefresh = g_nNestedRefresh;
 				break;
 			case 'a':
 				g_aspectRatio = parse_aspect_ratio( optarg );
@@ -854,6 +855,8 @@ int main(int argc, char **argv)
 			case '?':
 				fprintf( stderr, "See --help for a list of options.\n" );
 				return 1;
+            default:
+                break;
 		}
 	}
 
