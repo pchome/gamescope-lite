@@ -102,9 +102,9 @@ namespace gamescope
 		const int nRefreshRate = GetRefresh();
 		const uint64_t ulRefreshInterval = mHzToRefreshCycle( nRefreshRate );
 
-		bool bVRR = GetBackend()->GetCurrentConnector() && GetBackend()->GetCurrentConnector()->IsVRRActive();
+		// bool bVRR = GetBackend()->GetCurrentConnector() && GetBackend()->GetCurrentConnector()->IsVRRActive();
 		uint64_t ulOffset = 0;
-		if ( !bVRR )
+		// if ( !bVRR )
 		{
 			// The redzone is relative to 60Hz for external displays.
 			// Scale it by our target refresh so we don't miss submitting for
@@ -156,6 +156,7 @@ namespace gamescope
 			if ( vblank_debug && !bPreemptive )
 				VBlankDebugSpew( ulOffset, ulDrawTime, ulRedZone );
 		}
+#if 0
 		else
 		{
 			// See above.
@@ -177,7 +178,7 @@ namespace gamescope
 			if ( vblank_debug && !bPreemptive )
 				VBlankDebugSpew( ulOffset, ulDrawTime, ulRedZone );
 		}
-
+#endif
 		const uint64_t ulScheduledWakeupPoint = GetNextVBlank( ulOffset );
 		const uint64_t ulTargetVBlank = ulScheduledWakeupPoint + ulOffset;
 

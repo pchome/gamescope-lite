@@ -18,7 +18,7 @@ class CSDLConnector final
   SDL_Window* m_pPopup = nullptr;
   VkSurfaceKHR m_pVkSurface = VK_NULL_HANDLE;
   SDL_Renderer* m_pUiRenderer = nullptr;
-  BackendConnectorHDRInfo m_HDRInfo{};
+  // BackendConnectorHDRInfo m_HDRInfo{};
 
 public:
   CSDLConnector(CSDLBackend* pBackend);
@@ -31,21 +31,21 @@ public:
   /////////////////////
 
   [[nodiscard]] auto GetCurrentOrientation() const -> GamescopePanelOrientation override;
-  [[nodiscard]] auto GetHDRInfo() const -> BackendConnectorHDRInfo const& override;
+  // [[nodiscard]] auto GetHDRInfo() const -> BackendConnectorHDRInfo const& override;
   [[nodiscard]] auto GetMake() const -> char const* override;
   [[nodiscard]] auto GetModel() const -> char const* override;
-  [[nodiscard]] auto GetModes() const -> std::span<BackendMode const> override;
+  // [[nodiscard]] auto GetModes() const -> std::span<BackendMode const> override;
   [[nodiscard]] auto GetName() const -> char const* override;
-  [[nodiscard]] auto GetRawEDID() const -> std::span<uint8_t const> override;
+  // [[nodiscard]] auto GetRawEDID() const -> std::span<uint8_t const> override;
   [[nodiscard]] auto GetScreenType() const -> GamescopeScreenType override;
   [[nodiscard]] auto GetValidDynamicRefreshRates() const -> std::span<uint32_t const> override;
-
+#if 0
   [[nodiscard]] auto SupportsHDR() const -> bool override;
   [[nodiscard]] auto SupportsVRR() const -> bool override;
 
   [[nodiscard]] auto IsHDRActive() const -> bool override;
   [[nodiscard]] auto IsVRRActive() const -> bool override;
-
+#endif
   using dc_t = displaycolorimetry_t;
   void GetNativeColorimetry(bool bHDR10,
                             dc_t* displayColorimetry,

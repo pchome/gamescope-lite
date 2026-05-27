@@ -597,16 +597,20 @@ static void UpdateCompatEnvVars()
 			setenv( "STEAM_GAMESCOPE_TEARING_SUPPORTED", "1", 0 );
 			setenv( "STEAM_GAMESCOPE_HAS_TEARING_SUPPORT", "1", 0 );
 		}
+#if 0
 		// We always support VRR (but not necessarily on every connector, etc.)
 		setenv( "STEAM_GAMESCOPE_VRR_SUPPORTED", "1", 0 );
+#endif
 		// We no longer need to set GAMESCOPE_EXTERNAL_OVERLAY from steam, mangoapp now does it itself
 		setenv( "STEAM_DISABLE_MANGOAPP_ATOM_WORKAROUND", "1", 0 );
 		// Enable horizontal mangoapp bar
 		setenv( "STEAM_MANGOAPP_HORIZONTAL_SUPPORTED", "1", 0 );
 		// Scaling support
 		setenv( "STEAM_GAMESCOPE_FANCY_SCALING_SUPPORT", "1", 0 );
+#if 0
 		// We support HDR.
 		setenv( "STEAM_GAMESCOPE_HDR_SUPPORTED", "1", 0 );
+#endif
 		// Gamescope WSI layer implements this.
 		setenv( "STEAM_GAMESCOPE_DYNAMIC_FPSLIMITER", "1", 0 );
 

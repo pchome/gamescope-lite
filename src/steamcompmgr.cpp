@@ -460,12 +460,15 @@ create_color_mgmt_luts(const gamescope_color_mgmt_t& newColorMgmt, gamescope_col
 		vulkan_update_luts(outColorMgmtLuts[nInputEOTF].vk_lut1d, outColorMgmtLuts[nInputEOTF].vk_lut3d, outColorMgmtLuts[nInputEOTF].lut1d, outColorMgmtLuts[nInputEOTF].lut3d);
 	}
 }
-
+#if HAVE_STEAM
 int g_nSteamMaxHeight = 0;
+#endif
+#if 0
 bool g_bVRRCapable_CachedValue = false;
 bool g_bVRRInUse_CachedValue = false;
 bool g_bSupportsHDR_CachedValue = false;
 bool g_bForceHDR10OutputDebug = false;
+#endif
 #if HAVE_CONVAR
 gamescope::ConVar<bool> cv_hdr_enabled{ "hdr_enabled", false, "Whether or not HDR is enabled if it is available." };
 #endif
@@ -483,9 +486,10 @@ update_color_mgmt()
 		&g_ColorMgmt.pending.displayColorimetry, &g_ColorMgmt.pending.displayEOTF,
 		&g_ColorMgmt.pending.outputEncodingColorimetry, &g_ColorMgmt.pending.outputEncodingEOTF );
 
-	g_ColorMgmt.pending.flInternalDisplayBrightness =
+	g_ColorMgmt.pending.flInternalDisplayBrightness = 500; //Nits
+#if 0
 		GetBackend()->GetCurrentConnector()->GetHDRInfo().uMaxContentLightLevel;
-
+#endif
 #ifdef COLOR_MGMT_MICROBENCH
 	struct timespec t0, t1;
 #else
@@ -3712,16 +3716,19 @@ void xwayland_ctx_t::DetermineAndApplyFocus( const std::vector< steamcompmgr_win
 	{
 		if ( window_is_fullscreen( ctx->focus.focusWindow ) || ctx->force_windows_fullscreen || g_bForceWindowsFullscreen )
 		{
+#if HAVE_STEAM
 			bool bIsSteam = window_is_steam( ctx->focus.focusWindow );
+#endif
 			int fs_width  = ctx->root_width;
 			int fs_height = ctx->root_height;
+#if HAVE_STEAM
 			if ( bIsSteam && g_nSteamMaxHeight && ctx->root_height > g_nSteamMaxHeight )
 			{
 				float steam_height_scale = g_nSteamMaxHeight / (float)ctx->root_height;
 				fs_height = g_nSteamMaxHeight;
 				fs_width  = ctx->root_width * steam_height_scale;
 			}
-
+#endif
 			if ( w->GetGeometry().nWidth != fs_width || w->GetGeometry().nHeight != fs_height || globalScaleRatio != 1.0f )
 				XResizeWindow(ctx->dpy, ctx->focus.focusWindow->xwayland().id, fs_width, fs_height);
 		}
@@ -5522,16 +5529,16 @@ steamcompmgr_flush_frame_done( steamcompmgr_win_t *w )
 		wlserver_unlock();
 	}
 }
-
+#if 0
 static std::optional<uint64_t> s_oLowestFPSLimitScheduleVRR;
-
+#endif
 static bool steamcompmgr_should_vblank_window( bool bShouldLimitFPS, uint64_t vblank_idx, steamcompmgr_win_t *w = nullptr, uint64_t now = 0 )
 {
 	bool bSendCallback = true;
 
 	int nRefreshHz = gamescope::ConvertmHzToHz( g_nNestedRefresh ? g_nNestedRefresh : g_nOutputRefresh );
 	int nTargetFPS = g_nSteamCompMgrTargetFPS;
-
+#if 0
 	if ( GetBackend()->GetCurrentConnector() && GetBackend()->GetCurrentConnector()->IsVRRActive() )
 	{
 		bool bCloseEnough = std::abs( g_nSteamCompMgrTargetFPS - nRefreshHz ) < 2;
@@ -5553,6 +5560,7 @@ static bool steamcompmgr_should_vblank_window( bool bShouldLimitFPS, uint64_t vb
 		}
 	}
 	else
+#endif
 	{
 		if ( g_nSteamCompMgrTargetFPS && bShouldLimitFPS && nRefreshHz > nTargetFPS )
 		{
@@ -5580,7 +5588,7 @@ steamcompmgr_latch_frame_done( steamcompmgr_win_t *w, uint64_t vblank_idx, uint6
 	}
 }
 
-static inline float santitize_float( float f )
+[[maybe_unused]] static inline float santitize_float( float f )
 {
 #if !( defined(__FAST_MATH__) || defined(__FINITE_MATH_ONLY__) )
 	return ( std::isfinite( f ) ? f : 0.f );
@@ -5978,11 +5986,13 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 #endif
 		hasRepaint = true;
 	}
+#if HAVE_STEAM
 	if ( ev->atom == ctx->atoms.gamescopeSteamMaxHeight )
 	{
 		g_nSteamMaxHeight = get_prop( ctx, ctx->root, ctx->atoms.gamescopeSteamMaxHeight, 0 );
 		MakeFocusDirty();
 	}
+#endif
 #if 0
 	if ( ev->atom == ctx->atoms.gamescopeVRREnabled )
 	{
@@ -6527,7 +6537,7 @@ bool handle_done_commit( steamcompmgr_win_t *w, xwayland_ctx_t *ctx, uint64_t co
 				{
 					hasRepaintNonBasePlane = true;
 				}
-
+#if 0
 				// matt: the performance overlay in Steam will interfere with VRR if we let this repaint.
 				// This has been broken since the logic for external overlay repaints was moved out of
 				// outdatedInteractiveFocus. It can cause displays to jump between the focused app's
@@ -6540,7 +6550,7 @@ bool handle_done_commit( steamcompmgr_win_t *w, xwayland_ctx_t *ctx, uint64_t co
 				{
 					hasRepaintNonBasePlane = true;
 				}
-
+#endif
 				// If this is the main plane, repaint
 				if ( w == pFocus->focusWindow && !w->isSteamStreamingClient )
 				{
@@ -6617,7 +6627,7 @@ void handle_done_commits_xwayland( xwayland_ctx_t *ctx, bool vblank, uint64_t vb
 	for ( auto& entry : ctx->doneCommits.listCommitsDone )
 	{
 		bool entry_vblank = vblank;
-
+#if 0
 		if ( GetBackend()->GetCurrentConnector() && GetBackend()->GetCurrentConnector()->IsVRRActive() )
 		{
 			for ( steamcompmgr_win_t *w = ctx->list; w; w = w->xwayland().next )
@@ -6629,6 +6639,7 @@ void handle_done_commits_xwayland( xwayland_ctx_t *ctx, bool vblank, uint64_t vb
 			}
 		}
 		else
+#endif
 		{
 			entry_vblank = entry_vblank && steamcompmgr_should_vblank_window( true, vblank_idx );
 		}
@@ -7751,7 +7762,7 @@ void update_mode_atoms(xwayland_ctx_t *root_ctx, bool* needs_flush = nullptr)
 			(unsigned char *)&zero, 1 );
 		return;
 	}
-
+#if 0
 	if ( !GetBackend()->GetCurrentConnector() )
 		return;
 
@@ -7775,6 +7786,7 @@ void update_mode_atoms(xwayland_ctx_t *root_ctx, bool* needs_flush = nullptr)
 	uint32_t one = 1;
 	XChangeProperty(root_ctx->dpy, root_ctx->root, root_ctx->atoms.gamescopeDisplayIsExternal, XA_CARDINAL, 32, PropModeReplace,
 		(unsigned char *)&one, 1 );
+#endif
 }
 
 extern int g_nPreferredOutputWidth;
@@ -7939,12 +7951,12 @@ void LaunchNestedChildren( char **ppPrimaryChildArgv )
 		gamescope::Process::SpawnProcessInWatchdog( ppMangoappArgv, true );
 	}
 }
-
+#if 0
 static gamescope::CTimerFunction g_FPSLimitVRRTimer{ []
 {
 	g_FPSLimitVRRTimer.DisarmTimer();
 }};
-
+#endif
 void
 steamcompmgr_main(int argc, char **argv)
 {
@@ -8085,7 +8097,7 @@ steamcompmgr_main(int argc, char **argv)
 	}
 
 	g_SteamCompMgrWaiter.AddWaitable( &GetVBlankTimer() );
-	g_SteamCompMgrWaiter.AddWaitable( &g_FPSLimitVRRTimer );
+	// g_SteamCompMgrWaiter.AddWaitable( &g_FPSLimitVRRTimer );
 	GetVBlankTimer().ArmNextVBlank( true );
 
 	{
@@ -8161,12 +8173,12 @@ steamcompmgr_main(int argc, char **argv)
 		// Consider this to also be "is this vblank, the fastest refresh cycle after our last commit?"
 		// as a question.
 		const bool bIsVBlankFromTimer = vblank;
-
+#if 0
 		// We can always vblank if VRR.
 		const bool bVRR = GetBackend()->GetCurrentConnector() && GetBackend()->GetCurrentConnector()->IsVRRActive();
 		if ( bVRR )
 			vblank = true;
-
+#endif
 		bool flush_root = false;
 
 		if ( inputCounter != lastPublishedInputCounter )
@@ -8351,8 +8363,9 @@ steamcompmgr_main(int argc, char **argv)
 #if HAVE_CONVAR
 		g_uCompositeDebug = cv_composite_debug;
 #endif
+#if 0
 		g_bOutputHDREnabled = false; // (g_bSupportsHDR_CachedValue || g_bForceHDR10OutputDebug) && cv_hdr_enabled;
-
+#endif
 		// Pick our width/height for this potential frame, regardless of how it might change later
 		// At some point we might even add proper locking so we get real updates atomically instead
 		// of whatever jumble of races the below might cause over a couple of frames
@@ -8470,13 +8483,13 @@ steamcompmgr_main(int argc, char **argv)
 			}
 		}
 
-
+#if 0
 		if ( s_oLowestFPSLimitScheduleVRR )
 		{
 			g_FPSLimitVRRTimer.ArmTimer( *s_oLowestFPSLimitScheduleVRR );
 			s_oLowestFPSLimitScheduleVRR = std::nullopt;
 		}
-
+#endif
 		if ( vblank )
 		{
 			vblank_idx++;
@@ -8489,12 +8502,13 @@ steamcompmgr_main(int argc, char **argv)
 				int nRealRefreshHz = gamescope::ConvertmHzToHz( nRealRefreshmHz );
 				int nTargetFPS = g_nSteamCompMgrTargetFPS;
 				nTargetFPS = std::min<int>( nTargetFPS, nRealRefreshHz );
-
+#if 0
 				if ( GetBackend()->GetCurrentConnector() && GetBackend()->GetCurrentConnector()->IsVRRActive() )
 				{
 					g_SteamCompMgrLimitedAppRefreshCycle = gamescope::mHzToRefreshCycle( gamescope::ConvertHztomHz( nTargetFPS ) );
 				}
 				else
+#endif
 				{
 					int nVblankDivisor = nRealRefreshHz / nTargetFPS;
 

@@ -26,6 +26,7 @@ namespace gamescope
         {
             return GAMESCOPE_PANEL_ORIENTATION_0;
         }
+#if 0
         virtual bool SupportsHDR() const override
         {
             return false;
@@ -42,6 +43,7 @@ namespace gamescope
 		{
 			return false;
 		}
+
         virtual std::span<const BackendMode> GetModes() const override
         {
             return std::span<const BackendMode>{};
@@ -56,6 +58,7 @@ namespace gamescope
         {
             return std::span<const uint8_t>{};
         }
+#endif
         virtual std::span<const uint32_t> GetValidDynamicRefreshRates() const override
         {
             return std::span<const uint32_t>{};
@@ -91,7 +94,7 @@ namespace gamescope
 		}
 
     private:
-        BackendConnectorHDRInfo m_HDRInfo{};
+        // BackendConnectorHDRInfo m_HDRInfo{};
     };
 
 	class CHeadlessBackend final : public CBaseBackend

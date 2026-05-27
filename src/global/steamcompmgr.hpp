@@ -13,10 +13,11 @@
 
 extern uint32_t currentOutputWidth;
 extern uint32_t currentOutputHeight;
-
+#if 0
 extern bool g_bHDRItmEnable;
 extern bool g_bForceHDRSupportDebug;
 extern bool g_bForceHDR10OutputDebug;
+#endif
 extern std::vector< wlr_surface * > wayland_surfaces_deleted;
 
 extern bool hasFocusWindow;

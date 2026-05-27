@@ -59,7 +59,7 @@ struct wlserver_xdg_surface_info
 enum class steamcompmgr_win_type_t
 {
 	XWAYLAND,
-	XDG, // could also be layer shell
+	// XDG, // could also be layer shell
 };
 
 struct steamcompmgr_xwayland_win_t

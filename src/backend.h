@@ -191,6 +191,7 @@ namespace gamescope
 
         virtual GamescopeScreenType GetScreenType() const = 0;
         virtual GamescopePanelOrientation GetCurrentOrientation() const = 0;
+#if 0
         virtual bool SupportsHDR() const = 0;
         virtual bool IsHDRActive() const = 0;
         virtual const BackendConnectorHDRInfo &GetHDRInfo() const = 0;
@@ -200,6 +201,7 @@ namespace gamescope
         virtual bool SupportsVRR() const = 0;
 
         virtual std::span<const uint8_t> GetRawEDID() const = 0;
+#endif
         virtual std::span<const uint32_t> GetValidDynamicRefreshRates() const = 0;
 
         virtual void GetNativeColorimetry(

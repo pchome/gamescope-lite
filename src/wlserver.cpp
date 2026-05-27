@@ -1217,11 +1217,12 @@ static uint32_t get_conn_display_info_flags()
 	uint32_t flags = 0;
 	if ( pConn->GetScreenType() == gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL )
 		flags |= GAMESCOPE_CONTROL_DISPLAY_FLAG_INTERNAL_DISPLAY;
+#if 0
 	if ( pConn->SupportsVRR() )
 		flags |= GAMESCOPE_CONTROL_DISPLAY_FLAG_SUPPORTS_VRR;
 	if ( pConn->GetHDRInfo().bExposeHDRSupport )
 		flags |= GAMESCOPE_CONTROL_DISPLAY_FLAG_SUPPORTS_HDR;
-
+#endif
 	return flags;
 }
 

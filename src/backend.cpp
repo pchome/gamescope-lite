@@ -200,7 +200,7 @@ namespace gamescope
         console_log.infof( "Is Visible: %s", this->IsVisible() ? "true" : "false" );
         console_log.infof( "Is Paused: %s", this->IsPaused() ? "true" : "false" );
         console_log.infof( "Needs Frame Sync: %s", this->NeedsFrameSync() ? "true" : "false" );
-        console_log.infof( "VRR Active: %s", this->GetCurrentConnector()->IsVRRActive() ? "true" : "false" );
+        // console_log.infof( "VRR Active: %s", this->GetCurrentConnector()->IsVRRActive() ? "true" : "false" );
         console_log.infof( "Total Presents Queued: %lu", this->GetCurrentConnector()->PresentationFeedback().TotalPresentsQueued() );
         console_log.infof( "Total Presents Completed: %lu", this->GetCurrentConnector()->PresentationFeedback().TotalPresentsCompleted() );
         console_log.infof( "Current Presents In Flight: %lu", this->GetCurrentConnector()->PresentationFeedback().CurrentPresentsInFlight() );

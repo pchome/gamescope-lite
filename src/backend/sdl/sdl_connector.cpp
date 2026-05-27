@@ -133,34 +133,39 @@ auto CSDLConnector::Init() -> bool {
 }
 
 auto CSDLConnector::GetCurrentOrientation() const -> GamescopePanelOrientation { return GAMESCOPE_PANEL_ORIENTATION_0; }
+#if 0
 auto CSDLConnector::GetHDRInfo() const -> BackendConnectorHDRInfo const& { return m_HDRInfo; }
 auto CSDLConnector::GetModes() const -> std::span<BackendMode const> { return std::span<BackendMode const>{}; }
 auto CSDLConnector::GetRawEDID() const -> std::span<uint8_t const> { return std::span<uint8_t const>{}; }
+#endif
 auto CSDLConnector::GetScreenType() const -> GamescopeScreenType { return gamescope::GAMESCOPE_SCREEN_TYPE_INTERNAL; }
 auto CSDLConnector::GetValidDynamicRefreshRates() const -> std::span<uint32_t const> {
   return std::span<uint32_t const>{};
 }
+#if 0
 auto CSDLConnector::IsHDRActive() const -> bool { return false; }
 auto CSDLConnector::IsVRRActive() const -> bool { return false; }
 auto CSDLConnector::SupportsHDR() const -> bool { return GetHDRInfo().IsHDR10(); }
 auto CSDLConnector::SupportsVRR() const -> bool { return false; }
-
+#endif
 void CSDLConnector::GetNativeColorimetry(bool /*bHDR10*/,
                                          displaycolorimetry_t* displayColorimetry,
                                          EOTF* displayEOTF,
                                          displaycolorimetry_t* outputEncodingColorimetry,
                                          EOTF* outputEncodingEOTF) const {
+#if 0
   if (g_bForceHDR10OutputDebug) {
     *displayColorimetry = displaycolorimetry_2020;
     *displayEOTF = EOTF_PQ;
     *outputEncodingColorimetry = displaycolorimetry_2020;
     *outputEncodingEOTF = EOTF_PQ;
   } else {
+#endif
     *displayColorimetry = displaycolorimetry_709;
     *displayEOTF = EOTF_Gamma22;
     *outputEncodingColorimetry = displaycolorimetry_709;
     *outputEncodingEOTF = EOTF_Gamma22;
-  }
+//  }
 }
 
 auto CSDLConnector::Present(FrameInfo_t const* pFrameInfo, bool /*bAsync*/) -> int {
