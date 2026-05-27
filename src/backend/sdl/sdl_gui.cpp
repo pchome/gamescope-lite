@@ -55,8 +55,20 @@ void UiLayoutAboutTab() {
   ImGui::LabelText("Version", "%s", ImGui::GetVersion());
 }
 void UiLayoutBuildTab() {
+  static auto bool_to_s = [](bool v) { return v ? "enabled" : "disabled"; };
   ImGui::SeparatorText("Build");
+  ImGui::LabelText("Project Name", "%s", build::project_name);
   ImGui::LabelText("Type", "%s", build::buildtype);
+  ImGui::SeparatorText("Features");
+  ImGui::LabelText("ui", "%s", bool_to_s(build::have::ui));
+  ImGui::LabelText("rt_cap", "%s", bool_to_s(build::have::rt_cap));
+  ImGui::LabelText("reshade", "%s", bool_to_s(build::have::reshade));
+  ImGui::LabelText("headless", "%s", bool_to_s(build::have::headless));
+  ImGui::LabelText("pipewire", "%s", bool_to_s(build::have::pipewire));
+  ImGui::LabelText("screenshot", "%s", bool_to_s(build::have::screenshot));
+  ImGui::LabelText("avif_screenshots", "%s", bool_to_s(build::have::avif_screenshots));
+  ImGui::LabelText("steam", "%s", bool_to_s(build::have::steam));
+  ImGui::LabelText("convar", "%s", bool_to_s(build::have::convar));
   ImGui::SeparatorText("Paths");
   ImGui::LabelText("prefix", "%s", build::prefix);
   ImGui::LabelText("datadir", "%s", build::datadir);

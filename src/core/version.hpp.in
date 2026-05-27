@@ -3,7 +3,7 @@
 namespace gamescope
 {
     static constexpr auto gamescopeName = "Gamescope Lite";
-    static constexpr const char gamescopeVersion[] = "@VCS_TAG@";
+    static constexpr auto gamescopeVersion = "@VCS_TAG@";
 
     namespace build {
         static constexpr auto project_name = "@PROJECT_NAME@";
