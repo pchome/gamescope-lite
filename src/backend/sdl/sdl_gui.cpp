@@ -145,10 +145,10 @@ void UiLayoutUpscaleFilterPreset() {
 
   static int plimit = rdb::Preset_Original;
   static int prev_p = plimit;
-  static auto to_W = g_nNestedWidth * UpscalingPresetValue.at(plimit);
-  static auto to_H = g_nNestedHeight * UpscalingPresetValue.at(plimit);
+  static auto to_W = g_nFocusedWindowWidth * UpscalingPresetValue.at(plimit);
+  static auto to_H = g_nFocusedWindowHeight * UpscalingPresetValue.at(plimit);
 
-  ImFmt::Text("{}x{} -> {}x{}", g_nNestedWidth, g_nNestedHeight, to_W, to_H);
+  ImFmt::Text("{}x{} -> {}x{}", g_nFocusedWindowWidth, g_nFocusedWindowHeight, to_W, to_H);
   ImFmt::Text("MipBias += {:.4f}", rdb::MipCorrectionValue.at(plimit));
 
   static auto const mhint = "You shoud hijack application's MipBias,\n"sv
@@ -162,8 +162,8 @@ void UiLayoutUpscaleFilterPreset() {
   ImGui::Combo("Preset##1", &plimit, rdb::UpscalingPresetName.data(), rdb::UpscalingPresetName.size());
 
   if (prev_p != plimit) {
-    to_W = g_nNestedWidth * UpscalingPresetValue.at(plimit);
-    to_H = g_nNestedHeight * UpscalingPresetValue.at(plimit);
+    to_W = g_nFocusedWindowWidth * UpscalingPresetValue.at(plimit);
+    to_H = g_nFocusedWindowHeight * UpscalingPresetValue.at(plimit);
     prev_p = plimit;
   }
 }
