@@ -189,15 +189,15 @@ enum BicubicPreset : std::uint8_t {
   Preset_Cardinal_spline,    // 0,   1    // C - Any value
   Preset_Catmull_Rom_spline, // 0,   0.5  // ---
   Preset_Unnamed,            // 0,   0.75 // Bicubic filter in Adobe Photoshop
-  Preset_Mitchell_Netravali, // 0.3, 0.3  // Mitchell filter in ImageMagick
+  Preset_Mitchell_Netravali, // 1/3, 1/3  // Mitchell filter in ImageMagick
   Preset_B_spline,           // 1,   0    // Bicubic filter in Paint.net
-  Preset_Custom,             // 0.3, 0.3  // Default
+  Preset_Custom,             // 1/3, 1/3  // Default
   BicubicPreset_COUNT,
 };
 constexpr std::array<char const*, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)> BicubicPresetName{
     "Cardinal spline", "Catmull-Rom spline", "Unnamed", "Mitchell-Netravali", "B-spline", "Custom"};
 constexpr std::array<BC, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)> BicubicPresetValue{
-    {{0.0f, 1.0f}, {0.0f, 0.5f}, {0.0f, 0.75f}, {0.3f, 0.3f}, {1.0f, 0.0f}, {0.3f, 0.3f}}};
+    {{0.0f, 1.0f}, {0.0f, 0.5f}, {0.0f, 0.75f}, {1.0f/3.0f, 1.0f/3.0f}, {1.0f, 0.0f}, {1.0f/3.0f, 1.0f/3.0f}}};
 } // namespace rdb
 
 namespace rdb {

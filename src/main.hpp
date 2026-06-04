@@ -54,8 +54,8 @@ enum class GamescopeDownscaleFilter : uint32_t
 
 struct GamescopeBicubicParams
 {
-	float b = 0.3f;
-	float c = 0.3f;
+	float b = 1.0f / 3.0f;
+	float c = 1.0f / 3.0f;
 };
 
 static constexpr bool DoesHardwareSupportUpscaleFilter( GamescopeUpscaleFilter eFilter )

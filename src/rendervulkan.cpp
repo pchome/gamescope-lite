@@ -3831,14 +3831,22 @@ struct EasuPushData_t
 	}
 };
 
+struct vec4_t
+{
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
 struct BicubicPushData_t
 {
-	uvec4_t Const0;
-	uvec4_t Const1;
+	vec4_t Const0;
+	vec4_t Const1;
 
 	BicubicPushData_t(float B, float C, uint32_t inputX, uint32_t inputY, uint32_t tempX, uint32_t tempY, uint32_t winX, uint32_t winY)
 	{
-		BicubicCon(&Const0.x, &Const1.x, B*10, C*10, inputX, inputY, tempX, tempY, winX, winY);
+		BicubicCon(&Const0.x, &Const1.x, B, C, inputX, inputY, tempX, tempY, winX, winY);
 	}
 };
 

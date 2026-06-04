@@ -21,7 +21,7 @@ layout(
 // updated data to the shader without needing to bind a buffer
 layout(binding = 0, scalar)
 uniform layers_t {
-    uvec4 c0, c1;
+    vec4 c0, c1;
 };
 
 #define A_GPU 1
@@ -80,8 +80,8 @@ vec4 textureBicubic(sampler2D splr, vec2 texCoords)
     texCoords = texCoords * texSize - 0.5;
 
     // Get B and C that were pushed from the user input (or default values)
-    float B = c1[2] / 10.0f;
-    float C = c1[3] / 10.0f;
+    float B = c1[2];
+    float C = c1[3];
 
     // Get the fractional part of the coordinates
     // They are used in Mitchell Netravali's strategy to calculate the interpolation weights,
@@ -135,9 +135,9 @@ vec4 textureBicubic(sampler2D splr, vec2 texCoords)
 void bicPass(uvec2 pos)
 {
     // Retrieve pushed values
-    AF2 inputRenderedSize = AF2_AU2(c0.xy);
-    AF2 inputCurrentSize = AF2_AU2(c0.zw);
-    AF2 outputTargetSize = AF2_AU2(c1.xy);
+    AF2 inputRenderedSize = c0.xy;
+    AF2 inputCurrentSize = c0.zw;
+    AF2 outputTargetSize = c1.xy;
 
     // ARcpF1(x) == 1.0 / x
     // scaleFactor is the division between the rendered image and the size it should have at the end
