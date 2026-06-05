@@ -131,8 +131,9 @@ const struct option *gamescope_options = (struct option[]){
 	{} // keep last
 };
 
-constexpr auto usage = []( bool full = false ) -> std::string_view {
-    return
+constexpr auto usage = []( bool full = false ) -> std::string {
+    std::string msg;
+    msg +=
 	"usage: gamescope [options...] -- [command...]\n"
 	"\n"
 	"Options:\n"
@@ -144,6 +145,7 @@ constexpr auto usage = []( bool full = false ) -> std::string_view {
 	"  -h, --nested-height            game height\n"
 	"  -r, --nested-refresh           game refresh rate (frames per second)\n"
 	"  -a, --aspect-ratio             change default 16:9 aspect ratio\n"
+    ; msg += !full ? "" :
 	"                                     (also aplied with -H option when the output width is not set)\n"
 	"                                      4:3  =>  960×720\n"
 	"                                     16:9  => 1280×720\n"
@@ -151,17 +153,22 @@ constexpr auto usage = []( bool full = false ) -> std::string_view {
 	"                                     24:10 => 1728×720 ('21:9' variant)\n"
 	"                                     43:18 => 1720×720 ('21:9' variant)\n"
 	"                                     64:27 => 1706×720 ('21:9' variant)\n"
+    ; msg +=
 	"  -m, --max-scale                maximum scale factor\n"
 	"  -S, --scaler                   upscaler type (auto, integer, fit, fill, stretch, native)\n"
 	"  -F, --filter                   upscaler filter (linear, nearest, fsr, nis, pixel)\n"
+    ; msg += !full ? "" :
 	"                                     fsr => AMD FidelityFX™ Super Resolution 1.0\n"
 	"                                     nis => NVIDIA Image Scaling v1.0.3\n"
+    ; msg +=
 	"  --sharpness, --fsr-sharpness   upscaler sharpness from 0 (max) to 20 (min)\n"
 	"  -s, --mouse-sensitivity        multiply mouse movement by given decimal number\n"
 	"  --backend                      select rendering backend\n"
+    ; msg += !full ? "" :
 	"                                     auto => autodetect (default)\n"
 	"                                     sdl => use SDL backend\n"
 	"                                     headless => use headless backend (no window, no DRM output)\n"
+    ; msg +=
 	"  --cursor                       path to default cursor image\n"
 	"  -R, --ready-fd                 notify FD when ready\n"
 	"  --rt                           Use realtime scheduling\n"
@@ -236,6 +243,7 @@ constexpr auto usage = []( bool full = false ) -> std::string_view {
 #if HAVE_CONVAR
 	"  --keep-alive                   Keep Gamescope alive even when the primary process has died.\n"
 #endif
+    ; msg += !full ? "" :
 	"\n"
 	"Keyboard shortcuts:\n"
 #if HAVE_IMGUI
@@ -258,6 +266,7 @@ constexpr auto usage = []( bool full = false ) -> std::string_view {
 	"  16:10  golden ratio            1280x800    (allow of 16:9 content with application interface occupying the lower tenth of the display)\n"
 	"   4:3   VGA  (Fullscreen)       1152x864    (early standard)\n"
 	"";
+    return msg;
 };
 
 std::atomic< bool > g_bRun{true};
