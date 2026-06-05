@@ -4,6 +4,7 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_vulkan.h>
 
+#include "core/version.hpp"
 #include "sdl_backend.hpp"
 #include "sdl_connector.hpp"
 
@@ -48,7 +49,7 @@ CSDLConnector::~CSDLConnector() {
 }
 
 auto CSDLConnector::GetName() const -> char const* { return "SDLWindow"; }
-auto CSDLConnector::GetMake() const -> char const* { return "Gamescope Lite"; }
+auto CSDLConnector::GetMake() const -> char const* { return gamescopeName; }
 auto CSDLConnector::GetModel() const -> char const* { return "Virtual Display"; }
 
 auto CSDLConnector::Init() -> bool {
@@ -104,7 +105,7 @@ auto CSDLConnector::Init() -> bool {
   {
     constexpr auto offset_x = 10;
     constexpr auto offset_y = 10;
-    auto popup_w = static_cast<int>(g_nOutputWidth / 2);
+    auto popup_w = static_cast<int>(g_nOutputWidth - (offset_x * 2));
     auto popup_h = static_cast<int>(g_nOutputHeight / 2);
     auto popup_flags = SDL_WINDOW_POPUP_MENU;
     popup_flags |= SDL_WINDOW_VULKAN;
