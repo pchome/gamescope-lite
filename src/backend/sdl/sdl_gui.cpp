@@ -171,9 +171,12 @@ void UiLayoutDownscaleFilterPreset() {
   using namespace rdb;
   using namespace std::literals;
 
-  static int plimit = rdb::Preset_Mitchell_Netravali;
-  static float blimit = rdb::BicubicPresetValue.at(plimit).first;
-  static float climit = rdb::BicubicPresetValue.at(plimit).second;
+  static bool is_custom =  g_bicubicParams.b != rdb::BicubicPresetValue.at(rdb::Preset_Mitchell_Netravali).first
+                        || g_bicubicParams.c != rdb::BicubicPresetValue.at(rdb::Preset_Mitchell_Netravali).second;
+
+  static int plimit = is_custom ? rdb::Preset_Custom : rdb::Preset_Mitchell_Netravali;
+  static float blimit = is_custom ? g_bicubicParams.b : rdb::BicubicPresetValue.at(plimit).first;
+  static float climit = is_custom ? g_bicubicParams.c : rdb::BicubicPresetValue.at(plimit).second;
   static int prev_p = plimit;
   static float prev_b = blimit;
   static float prev_c = climit;
