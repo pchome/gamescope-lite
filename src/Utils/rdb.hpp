@@ -186,6 +186,7 @@ using BC = std::pair<float, float>;
  */
 enum BicubicPreset : std::uint8_t {
   // ---                     // B,   C
+  Preset_Hermite,            // 0,   0    // ---
   Preset_Cardinal_spline,    // 0,   1    // C - Any value
   Preset_Catmull_Rom_spline, // 0,   0.5  // ---
   Preset_Unnamed,            // 0,   0.75 // Bicubic filter in Adobe Photoshop
@@ -194,10 +195,14 @@ enum BicubicPreset : std::uint8_t {
   Preset_Custom,             // 1/3, 1/3  // Default
   BicubicPreset_COUNT,
 };
-constexpr std::array<char const*, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)> BicubicPresetName{
-    "Cardinal spline", "Catmull-Rom spline", "Unnamed", "Mitchell-Netravali", "B-spline", "Custom"};
-constexpr std::array<BC, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)> BicubicPresetValue{
-    {{0.0f, 1.0f}, {0.0f, 0.5f}, {0.0f, 0.75f}, {1.0f/3.0f, 1.0f/3.0f}, {1.0f, 0.0f}, {1.0f/3.0f, 1.0f/3.0f}}};
+using bicubic_preset_name_t = std::array<char const*, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)>;
+using bicubic_preset_value_t = std::array<BC, std::to_underlying(BicubicPreset::BicubicPreset_COUNT)>;
+constexpr bicubic_preset_name_t BicubicPresetName{
+    "Hermite", "Cardinal spline", "Catmull-Rom spline", "Unnamed", "Mitchell-Netravali", "B-spline", "Custom"};
+constexpr bicubic_preset_value_t BicubicPresetValue{
+    {{0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.5f}, {0.0f, 0.75f}, {1.0f/3.0f, 1.0f/3.0f}, {1.0f, 0.0f}, {1.0f/3.0f, 1.0f/3.0f}}};
+constexpr bicubic_preset_name_t BicubicPresetHint{
+    "Good for upscaling", "Sharpest", "Sharp", "Sharp, Photoshop-like settings", "Good middle, ImageMagick-like settings", "Blurry", "Define your own values"};
 } // namespace rdb
 
 namespace rdb {

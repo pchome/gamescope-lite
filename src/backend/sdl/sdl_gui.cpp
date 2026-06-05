@@ -177,12 +177,15 @@ void UiLayoutDownscaleFilterPreset() {
   static int plimit = is_custom ? rdb::Preset_Custom : rdb::Preset_Mitchell_Netravali;
   static float blimit = is_custom ? g_bicubicParams.b : rdb::BicubicPresetValue.at(plimit).first;
   static float climit = is_custom ? g_bicubicParams.c : rdb::BicubicPresetValue.at(plimit).second;
+  static std::string_view phint = rdb::BicubicPresetHint.at(plimit);
   static int prev_p = plimit;
   static float prev_b = blimit;
   static float prev_c = climit;
 
   ImGui::SetNextItemWidth(100);
   ImGui::Combo("Preset##2", &plimit, rdb::BicubicPresetName.data(), rdb::BicubicPresetName.size());
+  ImGui::SameLine();
+  ImHlp::Hint(phint);
 
   static auto sliderFlags = ImGuiSliderFlags_NoInput; // disable Ctrl+Click
 
@@ -200,16 +203,19 @@ void UiLayoutDownscaleFilterPreset() {
   ImHlp::Hint(chint);
   ImGui::EndDisabled();
 
+  // Preset changed
   if (prev_p != plimit) {
     g_bicubicParams.b = BicubicPresetValue.at(plimit).first;
     g_bicubicParams.c = BicubicPresetValue.at(plimit).second;
     blimit = BicubicPresetValue.at(plimit).first;
     climit = BicubicPresetValue.at(plimit).second;
+    phint = BicubicPresetHint.at(plimit);
     prev_p = plimit;
     prev_b = blimit;
     prev_c = climit;
   }
 
+  // Custom values changing
   if (prev_b != blimit || prev_c != climit) {
     g_bicubicParams.b = blimit;
     g_bicubicParams.c = climit;
