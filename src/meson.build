@@ -183,12 +183,13 @@ add_project_arguments(
 )
 
 subdir('core')
+subdir('utils')
 
   executable(
     'gamescope-lite',
     src, gamescope_version, imgui_src, stb_src, reshade_src,
     include_directories : [imgui_include, reshade_include],
-    link_with: [core_lib],
+    link_with: [core_lib, utils_lib],
     dependencies: [
       dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
       dep_xxf86vm, dep_xres, glm_dep, wayland_server,

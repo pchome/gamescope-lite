@@ -17,6 +17,7 @@
 #include "core/convar.hpp"
 #include "core/process.hpp"
 #include "core/version.hpp"
+#include "utils/parse.hpp"
 #if HAVE_STEAM
 #include "Utils/TempFiles.h"
 #endif
@@ -449,7 +450,7 @@ static float parse_float(const char *str, const char *optionName)
 		exit(1);
 	}
 }
-
+#if 0
 static float parse_aspect_ratio(const char *str)
 {
 	// TODO: maybe preffer resolutions, limit some heights, add hints, etc...
@@ -472,6 +473,7 @@ static float parse_aspect_ratio(const char *str)
 	fprintf( stderr, "gamescope: invalid value for --aspect-ratio, \"%s\" is not supported\n", str );
 	exit(1);
 }
+#endif
 
 struct sigaction handle_signal_action = {};
 
@@ -726,7 +728,8 @@ int main(int argc, char **argv)
                 if (g_nNestedUnfocusedRefresh == 0) g_nNestedUnfocusedRefresh = g_nNestedRefresh;
 				break;
 			case 'a':
-				g_aspectRatio = parse_aspect_ratio( optarg );
+				// g_aspectRatio = parse_aspect_ratio( optarg );
+                opt::aspect_ratio::parse(optarg);
 				break;
 			case 'W':
 				g_nPreferredOutputWidth = parse_integer( optarg, "output-width" );
