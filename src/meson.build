@@ -122,7 +122,6 @@ src = [
   'wlserver.cpp',
   'vblankmanager.cpp',
   'rendervulkan.cpp',
-  'mangoapp.cpp',
   'Timeline.cpp',
   'backend.cpp',
   'x11cursor.cpp',
@@ -152,6 +151,10 @@ endif
 
 if get_option('pipewire').enabled()
   src += 'pipewire.cpp'
+endif
+
+if get_option('steam').enabled()
+  src += 'mangoapp.cpp'
 endif
 
 gamescope_cpp_args = []

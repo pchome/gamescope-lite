@@ -7839,8 +7839,9 @@ void steamcompmgr_check_xdg(bool vblank, uint64_t vblank_idx)
 	check_new_xdg_res();
 }
 #endif
+#if HAVE_STEAM
 extern bool g_bLaunchMangoapp;
-
+#endif
 extern void ShutdownGamescope();
 #if HAVE_CONVAR
 gamescope::ConVar<bool> cv_shutdown_on_primary_child_death( "shutdown_on_primary_child_death", true, "Should gamescope shutdown when the primary application launched in it was shut down?" );
@@ -7944,12 +7945,13 @@ void LaunchNestedChildren( char **ppPrimaryChildArgv )
 		});
 		waitThread.detach();
 	}
-
+#if HAVE_STEAM
 	if ( g_bLaunchMangoapp )
 	{
 		char *ppMangoappArgv[] = { (char *)"mangoapp", NULL };
 		gamescope::Process::SpawnProcessInWatchdog( ppMangoappArgv, true );
 	}
+#endif
 }
 #if 0
 static gamescope::CTimerFunction g_FPSLimitVRRTimer{ []

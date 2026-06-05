@@ -2930,8 +2930,9 @@ bool acquire_next_image( void )
 
 static std::atomic<uint64_t> g_currentPresentWaitId = {0u};
 static std::mutex present_wait_lock;
-
+#if HAVE_STEAM
 extern void mangoapp_output_update( uint64_t vblanktime );
+#endif
 static void present_wait_thread_func( void )
 {
 	uint64_t present_wait_id = 0;
@@ -2951,7 +2952,9 @@ static void present_wait_thread_func( void )
 				g_device.vk.WaitForPresentKHR( g_device.device(), g_output.swapChain, present_wait_id, 1'000'000'000lu );
 				uint64_t vblanktime = get_time_in_nanos();
 				GetVBlankTimer().MarkVBlank( vblanktime, true );
+#if HAVE_STEAM
 				mangoapp_output_update( vblanktime );
+#endif
 			}
 		}
 	}

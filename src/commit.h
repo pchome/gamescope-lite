@@ -79,6 +79,8 @@ struct commit_t final : public gamescope::RcObject, public gamescope::IWaitable,
 
 	std::mutex m_WaitableCommitStateMutex;
 	int m_nCommitFence = -1;
+#if HAVE_STEAM
 	bool m_bMangoNudge = false;
+#endif
 	CommitDoneList_t *m_pDoneCommits = nullptr; // I hate this
 };

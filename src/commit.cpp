@@ -1,5 +1,6 @@
+#if HAVE_STEAM
 #include "global/mangoapp.hpp"
-
+#endif
 #include "wlserver.hpp"
 #include "rendervulkan.hpp"
 #include "steamcompmgr.hpp"
@@ -68,6 +69,7 @@ void commit_t::OnPollIn()
 
 void commit_t::Signal()
 {
+#if HAVE_STEAM
     uint64_t now = get_time_in_nanos();
     present_time = now;
 
@@ -78,7 +80,7 @@ void commit_t::Signal()
         frametime = now - lastFrameTime;
         lastFrameTime = now;
     }
-
+#endif
     // TODO: Move this so it's called in the main loop.
     // Instead of looping over all the windows like before.
     // When we get the new IWaitable stuff in there.
@@ -91,9 +93,10 @@ void commit_t::Signal()
             .fifo = fifo,
         } );
     }
-
+#if HAVE_STEAM
     if ( m_bMangoNudge )
         mangoapp_update( uint64_t(~0ull), frametime, uint64_t(~0ull) );
+#endif
 }
 
 void commit_t::OnPollHangUp()
@@ -126,7 +129,9 @@ void commit_t::SetFence( int nFence, bool bMangoNudge, CommitDoneList_t *pDoneCo
     CloseFenceInternal();
 
     m_nCommitFence = nFence;
+#if HAVE_STEAM
     m_bMangoNudge = bMangoNudge;
+#endif
     m_pDoneCommits = pDoneCommits;
 }
 
