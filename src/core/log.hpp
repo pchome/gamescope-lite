@@ -71,17 +71,17 @@ public:
     template <typename... Args>
     constexpr void warn(std::format_string<Args...> const fmt, Args&&... args) {
         auto pre = std::format("{}", wprefix());
-        std::println(stderr, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
+        std::println(stdout, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
     }
     template <typename... Args>
     constexpr void info(std::format_string<Args...> const fmt, Args&&... args) {
         auto pre = std::format("{}", iprefix());
-        std::println(stderr, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
+        std::println(stdout, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
     }
     template <typename... Args>
     constexpr void debug(std::format_string<Args...> const fmt, Args&&... args) {
         auto pre = std::format("{}", dprefix());
-        std::println(stderr, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
+        std::println(stdout, "{}{}", pre, msg(fmt, std::forward<Args>(args)...));
     }
     template <typename... Args>
     constexpr void log(std::format_string<Args...> const fmt, Args&&... args) {

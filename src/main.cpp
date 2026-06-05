@@ -856,7 +856,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case '?':
-				fprintf( stderr, "See --help for a list of options.\n" );
+				console_log.error( "See --help for a list of options." );
 				return 1;
             default:
                 break;
@@ -872,7 +872,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		console_log.warnf("No CAP_SYS_NICE, falling back to regular-priority compute and threads.");
+		console_log.warn( "No CAP_SYS_NICE, falling back to regular-priority compute and threads." );
 	}
 
 #if 0
