@@ -48,6 +48,7 @@ int g_nCursorScaleHeight = -1;
 
 const struct option *gamescope_options = (struct option[]){
 	{ "help", no_argument, nullptr, 0 },
+    { "help-all", no_argument, nullptr, 0 },
 	{ "version", no_argument, nullptr, 0 },
 	{ "nested-width", required_argument, nullptr, 'w' },
 	{ "nested-height", required_argument, nullptr, 'h' },
@@ -130,17 +131,19 @@ const struct option *gamescope_options = (struct option[]){
 	{} // keep last
 };
 
-const char usage[] =
+constexpr auto usage = []( bool full = false ) -> std::string_view {
+    return
 	"usage: gamescope [options...] -- [command...]\n"
 	"\n"
 	"Options:\n"
 	"  --help                         show help message\n"
+    "  --help-all                     show full help message\n"
 	"  -W, --output-width             output width\n"
 	"  -H, --output-height            output height\n"
 	"  -w, --nested-width             game width\n"
 	"  -h, --nested-height            game height\n"
 	"  -r, --nested-refresh           game refresh rate (frames per second)\n"
-	"  -a, --aspect-ratio             change default 16:9 aspect tatio\n"
+	"  -a, --aspect-ratio             change default 16:9 aspect ratio\n"
 	"                                     (also aplied with -H option when the output width is not set)\n"
 	"                                      4:3  =>  960×720\n"
 	"                                     16:9  => 1280×720\n"
@@ -255,6 +258,7 @@ const char usage[] =
 	"  16:10  golden ratio            1280x800    (allow of 16:9 content with application interface occupying the lower tenth of the display)\n"
 	"   4:3   VGA  (Fullscreen)       1152x864    (early standard)\n"
 	"";
+};
 
 std::atomic< bool > g_bRun{true};
 
@@ -780,12 +784,18 @@ int main(int argc, char **argv)
 			case 0: // long options without a short option
 				opt_name = gamescope_options[opt_index].name;
 				if (strcmp(opt_name, "help") == 0) {
-					fprintf(stdout, "%s", usage);
+					console_log.info("{}", usage());
 					return 0;
-				} else if (strcmp(opt_name, "version") == 0) {
+				}
+                if (strcmp(opt_name, "help-all") == 0) {
+                    console_log.info("{}", usage(true));
+                    return 0;
+                }
+				if (strcmp(opt_name, "version") == 0) {
 					// We always print the version to stderr anyway.
 					return 0;
-				} else if (strcmp(opt_name, "xwayland-count") == 0) {
+				}
+				if (strcmp(opt_name, "xwayland-count") == 0) {
 					g_nXWaylandCount = parse_integer( optarg, opt_name );
 				} else if (strcmp(opt_name, "composite-debug") == 0) {
 #if HAVE_CONVAR
@@ -856,7 +866,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case '?':
-				console_log.error( "See --help for a list of options." );
+				console_log.info( "See --help for a list of options." );
 				return 1;
             default:
                 break;
