@@ -214,7 +214,7 @@ static const char *cgroupPathFromPID(pid_t pid) {
 		/* cgroup v2 pathsi are always in the format "0::$PATH" */
 		const char *pathHeader = "0::";
 		/* Does the line start with "0::"? */
-		if (strncmp(line, pathHeader, strlen(pathHeader)))
+		if (!std::string_view{line}.starts_with(pathHeader))
 			continue;
 		char *path = line;
 		/* Skip over the header */
