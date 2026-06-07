@@ -7999,46 +7999,46 @@ steamcompmgr_main(int argc, char **argv)
 				break;
 			case 0: // long options without a short option
 				opt_name = gamescope_options[opt_index].name;
-				if (strcmp(opt_name, "debug-focus") == 0) {
+				if (opt_name == "debug-focus"sv) {
 					debugFocus = true;
-				} else if (strcmp(opt_name, "synchronous-x11") == 0) {
+				} else if (opt_name == "synchronous-x11"sv) {
 					synchronize = true;
-				} else if (strcmp(opt_name, "debug-events") == 0) {
+				} else if (opt_name == "debug-events"sv) {
 					debugEvents = true;
-				} else if (strcmp(opt_name, "cursor") == 0) {
+				} else if (opt_name == "cursor"sv) {
 					g_customCursorPath = optarg;
-				} else if (strcmp(opt_name, "cursor-hotspot") == 0) {
+				} else if (opt_name == "cursor-hotspot"sv) {
 					sscanf(optarg, "%d,%d", &g_customCursorHotspotX, &g_customCursorHotspotY);
-				} else if (strcmp(opt_name, "fade-out-duration") == 0) {
+				} else if (opt_name == "fade-out-duration"sv) {
 					g_FadeOutDuration = atoi(optarg);
-				} else if (strcmp(opt_name, "force-windows-fullscreen") == 0) {
+				} else if (opt_name == "force-windows-fullscreen"sv) {
 					g_bForceWindowsFullscreen = true;
 #if 0
-				} else if (strcmp(opt_name, "hdr-enabled") == 0 || strcmp(opt_name, "hdr-enable") == 0) {
+				} else if (opt_name == "hdr-enabled"sv || opt_name == "hdr-enable"sv) {
 					cv_hdr_enabled = true;
-				} else if (strcmp(opt_name, "hdr-debug-force-support") == 0) {
+				} else if (opt_name == "hdr-debug-force-support"sv) {
 					g_bForceHDRSupportDebug = true;
- 				} else if (strcmp(opt_name, "hdr-debug-force-output") == 0) {
+ 				} else if (opt_name == "hdr-debug-force-output"sv) {
 					g_bForceHDR10OutputDebug = true;
-				} else if (strcmp(opt_name, "hdr-itm-enabled") == 0 || strcmp(opt_name, "hdr-itm-enable") == 0) {
+				} else if (opt_name == "hdr-itm-enabled"sv || opt_name == "hdr-itm-enable"sv) {
 					g_bHDRItmEnable = true;
-				} else if (strcmp(opt_name, "disable-color-management") == 0) {
+				} else if (opt_name == "disable-color-management"sv) {
 					g_ColorMgmt.pending.enabled = false;
-				} else if (strcmp(opt_name, "sdr-gamut-wideness") == 0) {
+				} else if (opt_name == "sdr-gamut-wideness"sv) {
 					g_ColorMgmt.pending.sdrGamutWideness = atof(optarg);
-				} else if (strcmp(opt_name, "hdr-sdr-content-nits") == 0) {
+				} else if (opt_name == "hdr-sdr-content-nits"sv) {
 					g_ColorMgmt.pending.flSDROnHDRBrightness = atof(optarg);
-				} else if (strcmp(opt_name, "hdr-itm-sdr-nits") == 0) {
+				} else if (opt_name == "hdr-itm-sdr-nits"sv) {
 					g_flHDRItmSdrNits = atof(optarg);
-				} else if (strcmp(opt_name, "hdr-itm-target-nits") == 0) {
+				} else if (opt_name == "hdr-itm-target-nits"sv) {
 					g_flHDRItmTargetNits = atof(optarg);
 #endif
-				} else if (strcmp(opt_name, "framerate-limit") == 0) {
+				} else if (opt_name == "framerate-limit"sv) {
 					g_nSteamCompMgrTargetFPS = atoi(optarg);
 #if HAVE_RESHADE
-				} else if (strcmp(opt_name, "reshade-effect") == 0) {
+				} else if (opt_name == "reshade-effect"sv) {
 					g_reshade_effect = optarg;
-				} else if (strcmp(opt_name, "reshade-technique-idx") == 0) {
+				} else if (opt_name == "reshade-technique-idx"sv) {
 					g_reshade_technique_idx = atoi(optarg);
 #endif
 				}

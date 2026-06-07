@@ -792,21 +792,21 @@ int main(int argc, char **argv)
 #endif
 			case 0: // long options without a short option
 				opt_name = gamescope_options[opt_index].name;
-				if (strcmp(opt_name, "help") == 0) {
+				if (opt_name == "help"sv) {
 					console_log.info("{}", usage());
 					return 0;
 				}
-                if (strcmp(opt_name, "help-all") == 0) {
+                if (opt_name == "help-all"sv) {
                     console_log.info("{}", usage(true));
                     return 0;
                 }
-				if (strcmp(opt_name, "version") == 0) {
+				if (opt_name == "version"sv) {
 					// We always print the version to stderr anyway.
 					return 0;
 				}
-				if (strcmp(opt_name, "xwayland-count") == 0) {
+				if (opt_name == "xwayland-count"sv) {
 					g_nXWaylandCount = parse_integer( optarg, opt_name );
-				} else if (strcmp(opt_name, "composite-debug") == 0) {
+				} else if (opt_name == "composite-debug"sv) {
 #if HAVE_CONVAR
 					cv_composite_debug |= CompositeDebugFlag::Markers;
 					cv_composite_debug |= CompositeDebugFlag::PlaneBorders;
@@ -814,53 +814,52 @@ int main(int argc, char **argv)
                     g_uCompositeDebug |= CompositeDebugFlag::Markers;
                     g_uCompositeDebug |= CompositeDebugFlag::PlaneBorders;
 #endif
-				} else if (strcmp(opt_name, "hdr-debug-heatmap") == 0) {
+				} else if (opt_name == "hdr-debug-heatmap"sv) {
 #if HAVE_CONVAR
 					cv_composite_debug |= CompositeDebugFlag::Heatmap;
 #else
                     g_uCompositeDebug |= CompositeDebugFlag::Heatmap;
 #endif
-				} else if (strcmp(opt_name, "sharpness") == 0 ||
-						   strcmp(opt_name, "fsr-sharpness") == 0) {
+				} else if (opt_name == "sharpness"sv || opt_name == "fsr-sharpness"sv) {
 					g_upscaleFilterSharpness = parse_integer( optarg, opt_name );
-				} else if (strcmp(opt_name, "force-preemptive-upscaling") == 0) {
+				} else if (opt_name == "force-preemptive-upscaling"sv) {
 					g_bForcePreemptiveUpscaling = true;
-				} else if (strcmp(opt_name, "rt") == 0) {
+				} else if (opt_name == "rt"sv) {
 					g_bRt = true;
-				} else if (strcmp(opt_name, "prefer-vk-device") == 0) {
+				} else if (opt_name == "prefer-vk-device"sv) {
 					unsigned vendorID;
 					unsigned deviceID;
 					sscanf( optarg, "%X:%X", &vendorID, &deviceID );
 					g_preferVendorID = vendorID;
 					g_preferDeviceID = deviceID;
-				} else if (strcmp(opt_name, "force-grab-cursor") == 0) {
+				} else if (opt_name == "force-grab-cursor"sv) {
 					g_bForceRelativeMouse = true;
-				} else if (strcmp(opt_name, "display-index") == 0) {
+				} else if (opt_name == "display-index"sv) {
 					g_nNestedDisplayIndex = parse_integer( optarg, opt_name );
 #if 0
-				} else if (strcmp(opt_name, "adaptive-sync") == 0) {
+				} else if (opt_name == "adaptive-sync"sv) {
 					cv_adaptive_sync = true;
 #endif
 #if 0
-				} else if (strcmp(opt_name, "expose-wayland") == 0) {
+				} else if (opt_name == "expose-wayland"sv) {
 					g_bExposeWayland = true;
 #endif
-				} else if (strcmp(opt_name, "backend") == 0) {
+				} else if (opt_name == "backend"sv) {
 					eCurrentBackend = parse_backend_name( optarg );
-				} else if (strcmp(opt_name, "cursor-scale-height") == 0) {
+				} else if (opt_name == "cursor-scale-height"sv) {
 					g_nCursorScaleHeight = parse_integer(optarg, opt_name);
 #if HAVE_STEAM
-				} else if (strcmp(opt_name, "mangoapp") == 0) {
+				} else if (opt_name == "mangoapp"sv) {
 					g_bLaunchMangoapp = true;
 #endif
 #if 0
-				} else if (strcmp(opt_name, "allow-deferred-backend") == 0) {
+				} else if (opt_name == "allow-deferred-backend"sv) {
 					g_bAllowDeferredBackend = true;
 #endif
 #if HAVE_CONVAR
-				} else if (strcmp(opt_name, "keep-alive") == 0) {
+				} else if (opt_name == "keep-alive"sv) {
 					cv_shutdown_on_primary_child_death = false;
-				} else if (strcmp(opt_name, "virtual-connector-strategy") == 0) {
+				} else if (opt_name == "virtual-connector-strategy"sv) {
 					for ( uint32_t i = 0; i < gamescope::VirtualConnectorStrategies::Count; i++ )
 					{
 						gamescope::VirtualConnectorStrategy eStrategy =
