@@ -4035,14 +4035,14 @@ determine_and_apply_focus( global_focus_t *pFocus )
 			if ( pFocus->inputFocusWindow->GetFocus()->bResetToCorner )
 			{
 				wlserver_lock();
-				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2, pFocus->inputFocusWindow->GetGeometry().nHeight / 2, 0, true );
+				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2.0, pFocus->inputFocusWindow->GetGeometry().nHeight / 2.0, 0, true );
 				wlserver_fake_mouse_pos( pFocus->inputFocusWindow->GetGeometry().nWidth - 1, pFocus->inputFocusWindow->GetGeometry().nHeight - 1 );
 				wlserver_unlock();
 			}
 			else if ( pFocus->inputFocusWindow->GetFocus()->bResetToCenter )
 			{
 				wlserver_lock();
-				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2, pFocus->inputFocusWindow->GetGeometry().nHeight / 2, 0, true );
+				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2.0, pFocus->inputFocusWindow->GetGeometry().nHeight / 2.0, 0, true );
 				wlserver_unlock();
 			}
 
@@ -4114,14 +4114,14 @@ determine_and_apply_focus( global_focus_t *pFocus )
 			if ( pFocus->inputFocusWindow->GetFocus()->bResetToCorner )
 			{
 				wlserver_lock();
-				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2, pFocus->inputFocusWindow->GetGeometry().nHeight / 2, 0, true );
+				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2.0, pFocus->inputFocusWindow->GetGeometry().nHeight / 2.0, 0, true );
 				wlserver_fake_mouse_pos( pFocus->inputFocusWindow->GetGeometry().nWidth - 1, pFocus->inputFocusWindow->GetGeometry().nHeight - 1 );
 				wlserver_unlock();
 			}
 			else if ( pFocus->inputFocusWindow->GetFocus()->bResetToCenter )
 			{
 				wlserver_lock();
-				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2, pFocus->inputFocusWindow->GetGeometry().nHeight / 2, 0, true );
+				wlserver_mousewarp( pFocus->inputFocusWindow->GetGeometry().nWidth / 2.0, pFocus->inputFocusWindow->GetGeometry().nHeight / 2.0, 0, true );
 				wlserver_unlock();
 			}
 
