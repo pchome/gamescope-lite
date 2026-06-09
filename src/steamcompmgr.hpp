@@ -13,11 +13,11 @@
 #include "gamescope_shared.h"
 #include "rc.h"
 
-unsigned int get_time_in_milliseconds(void);
-uint64_t get_time_in_nanos();
-void sleep_for_nanos(uint64_t nanos);
-void sleep_until_nanos(uint64_t nanos);
-timespec nanos_to_timespec( uint64_t ulNanos );
+auto get_time_in_milliseconds() -> uint32_t;
+auto get_time_in_nanos() -> uint64_t;
+void sleep_for_nanos( uint64_t nanos );
+void sleep_until_nanos( uint64_t nanos );
+auto nanos_to_timespec( uint64_t ulNanos ) -> timespec;
 
 void steamcompmgr_main(int argc, char **argv);
 
@@ -103,11 +103,8 @@ private:
 	bool m_needs_server_flush = false;
 };
 
-
-
-void nudge_steamcompmgr( void );
-void force_repaint( void );
-
+void nudge_steamcompmgr();
+void force_repaint();
 
 struct wlr_surface *steamcompmgr_get_server_input_surface( size_t idx );
 struct wlserver_vk_swapchain_feedback* steamcompmgr_get_base_layer_swapchain_feedback();

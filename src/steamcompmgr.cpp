@@ -723,10 +723,7 @@ constexpr const T& clamp( const T& x, const T& min, const T& max )
     return x < min ? min : max < x ? max : x;
 }
 
-extern bool g_bForceRelativeMouse;
-
 CommitDoneList_t g_steamcompmgr_xdg_done_commits;
-
 
 static std::mutex s_KeysToCloseMutex;
 static std::vector<gamescope::VirtualConnectorKey_t> s_KeysToClose;
@@ -1213,10 +1210,9 @@ void sleep_until_nanos(uint64_t nanos)
 	sleep_for_nanos(nanos - now);
 }
 
-unsigned int
-get_time_in_milliseconds(void)
+auto get_time_in_milliseconds() -> uint32_t
 {
-	return (unsigned int)(get_time_in_nanos() / 1'000'000ul);
+    return uint32_t( get_time_in_nanos() / 1'000'000ul );
 }
 
 bool xwayland_ctx_t::HasQueuedEvents()
@@ -6248,7 +6244,7 @@ handle_property_notify(xwayland_ctx_t *ctx, XPropertyEvent *ev)
 		if (identifier)
 		{
 			wlserver_lock();
-			uint32_t server_id = (uint32_t)wlserver_make_new_xwayland_server();
+			uint32_t server_id = wlserver_make_new_xwayland_server();
 			assert(server_id != ~0u);
 			gamescope_xwayland_server_t *server = wlserver_get_xwayland_server(server_id);
 			init_xwayland_ctx(server_id, server);
@@ -6371,7 +6367,7 @@ error(Display *dpy, XErrorEvent *ev)
 }
 
 static void
-steamcompmgr_exit(void)
+steamcompmgr_exit()
 {
 	g_ImageWaiter.Shutdown();
 
@@ -6824,15 +6820,15 @@ void handle_presented_xdg()
 	}
 }
 #endif
-void nudge_steamcompmgr( void )
+void nudge_steamcompmgr()
 {
-	g_SteamCompMgrWaiter.Nudge();
+    g_SteamCompMgrWaiter.Nudge();
 }
 
-void force_repaint( void )
+void force_repaint()
 {
-	g_bForceRepaint = true;
-	nudge_steamcompmgr();
+    g_bForceRepaint = true;
+    nudge_steamcompmgr();
 }
 
 struct TempUpscaleImage_t
@@ -7786,9 +7782,6 @@ void update_mode_atoms(xwayland_ctx_t *root_ctx, bool* needs_flush = nullptr)
 		(unsigned char *)&one, 1 );
 #endif
 }
-
-extern int g_nPreferredOutputWidth;
-extern int g_nPreferredOutputHeight;
 
 static bool g_bWasFSRActive = false;
 static bool g_bWasBicubicActive = false;
