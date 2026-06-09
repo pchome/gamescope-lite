@@ -46,90 +46,99 @@ bool g_bAllowDeferredBackend = false;
 #endif
 int g_nCursorScaleHeight = -1;
 
-const struct option *gamescope_options = (struct option[]){
-	{ "help", no_argument, nullptr, 0 },
-    { "help-all", no_argument, nullptr, 0 },
-	{ "version", no_argument, nullptr, 0 },
-	{ "nested-width", required_argument, nullptr, 'w' },
-	{ "nested-height", required_argument, nullptr, 'h' },
-	{ "nested-refresh", required_argument, nullptr, 'r' },
-	{ "aspect-ratio", required_argument, nullptr, 'a' },
-	{ "max-scale", required_argument, nullptr, 'm' },
-	{ "scaler", required_argument, nullptr, 'S' },
-	{ "filter", required_argument, nullptr, 'F' },
-	{ "output-width", required_argument, nullptr, 'W' },
-	{ "output-height", required_argument, nullptr, 'H' },
-	{ "sharpness", required_argument, nullptr, 0 },
-	{ "fsr-sharpness", required_argument, nullptr, 0 },
-	{ "rt", no_argument, nullptr, 0 },
-	{ "prefer-vk-device", required_argument, 0 },
-	{ "mouse-sensitivity", required_argument, nullptr, 's' },
+namespace arg
+{
+    enum hasArg
+    {
+        no  = no_argument,
+        yes = required_argument,
+        opt = optional_argument,
+    };
+}
+std::vector<option> const gamescope_options( {
+    { "help" },
+    { "help-all" },
+    { "version" },
+    { .name = "nested-width", .has_arg = arg::yes, .val = 'w' },
+    { .name = "nested-height", .has_arg = arg::yes, .val = 'h' },
+    { .name = "nested-refresh", .has_arg = arg::yes, .val = 'r' },
+    { .name = "aspect-ratio", .has_arg = arg::yes, .val = 'a' },
+    { .name = "max-scale", .has_arg = arg::yes, .val = 'm' },
+    { .name = "scaler", .has_arg = arg::yes, .val = 'S' },
+    { .name = "filter", .has_arg = arg::yes, .val = 'F' },
+    { .name = "output-width", .has_arg = arg::yes, .val = 'W' },
+    { .name = "output-height", .has_arg = arg::yes, .val = 'H' },
+    { .name = "sharpness", .has_arg = arg::yes },
+    { .name = "fsr-sharpness", .has_arg = arg::yes },
+    { .name = "rt" },
+    { .name = "prefer-vk-device", .has_arg = arg::yes },
+    { .name = "mouse-sensitivity", .has_arg = arg::yes, .val = 's' },
 #if HAVE_STEAM
-	{ "mangoapp", no_argument, nullptr, 0 },
+    { "mangoapp" },
 #endif
-	{ "adaptive-sync", no_argument, nullptr, 0 },
+    { "adaptive-sync" },
 
-	{ "backend", required_argument, nullptr, 0 },
+    { .name = "backend", .has_arg = arg::yes },
 
-	// 'nested mode' options
-    { "unfocused-refresh", required_argument, nullptr, 'o' },
-	{ "borderless", no_argument, nullptr, 'b' },
-	{ "fullscreen", no_argument, nullptr, 'f' },
-	{ "grab", no_argument, nullptr, 'g' },
-	{ "force-grab-cursor", no_argument, nullptr, 0 },
-	{ "display-index", required_argument, nullptr, 0 },
+    // 'nested mode' options
+    { .name = "unfocused-refresh", .has_arg = arg::yes, .val = 'o' },
+    { .name = "borderless", .val = 'b' },
+    { .name = "fullscreen", .val = 'f' },
+    { .name = "grab", .val = 'g' },
+    { .name = "force-grab-cursor" },
+    { .name = "display-index", .has_arg = arg::yes },
 
-	// wlserver options
-	{ "xwayland-count", required_argument, nullptr, 0 },
+    // wlserver options
+    { .name = "xwayland-count", .has_arg = arg::yes },
 
-	// steamcompmgr options
-	{ "cursor", required_argument, nullptr, 0 },
-	{ "cursor-hotspot", required_argument, nullptr, 0 },
-	{ "cursor-scale-height", required_argument, nullptr, 0 },
+    // steamcompmgr options
+    { .name = "cursor", .has_arg = arg::yes },
+    { .name = "cursor-hotspot", .has_arg = arg::yes },
+    { .name = "cursor-scale-height", .has_arg = arg::yes },
 #if HAVE_CONVAR
-	{ "virtual-connector-strategy", required_argument, nullptr, 0 },
+    { .name = "virtual-connector-strategy", .has_arg = arg::yes },
 #endif
-	{ "ready-fd", required_argument, nullptr, 'R' },
-	{ "stats-path", required_argument, nullptr, 'T' },
-	{ "hide-cursor-delay", required_argument, nullptr, 'C' },
-	{ "debug-focus", no_argument, nullptr, 0 },
-	{ "synchronous-x11", no_argument, nullptr, 0 },
-	{ "debug-hud", no_argument, nullptr, 'v' },
-	{ "debug-events", no_argument, nullptr, 0 },
+    { .name = "ready-fd", .has_arg = arg::yes, .val = 'R' },
+    // { .name = "stats-path", .has_arg = arg::yes, .val = 'T' },
+    { .name = "hide-cursor-delay", .has_arg = arg::yes, .val = 'C' },
+    { "debug-focus" },
+    { "synchronous-x11" },
+    { .name = "debug-hud", .val = 'v' },
+    { "debug-events" },
 #if HAVE_STEAM
-	{ "steam", no_argument, nullptr, 'e' },
+    { .name = "steam", .val = 'e' },
 #endif
-	{ "force-preemptive-upscaling", no_argument, nullptr, 0 },
-	{ "composite-debug", no_argument, nullptr, 0 },
-	{ "disable-xres", no_argument, nullptr, 'x' },
-	{ "fade-out-duration", required_argument, nullptr, 0 },
-	{ "force-orientation", required_argument, nullptr, 0 },
-	{ "force-windows-fullscreen", no_argument, nullptr, 0 },
+    { "force-preemptive-upscaling" },
+    { "composite-debug" },
+    { .name = "disable-xres", .val = 'x' },
+    { .name = "fade-out-duration", .has_arg = arg::yes },
+    { .name = "force-orientation", .has_arg = arg::yes },
+    { "force-windows-fullscreen" },
 
-	{ "disable-color-management", no_argument, nullptr, 0 },
+    { "disable-color-management" },
 #if 0
-	{ "sdr-gamut-wideness", required_argument, nullptr, 0 },
-	{ "hdr-enabled", no_argument, nullptr, 0 },
-	{ "hdr-sdr-content-nits", required_argument, nullptr, 0 },
-	{ "hdr-itm-enabled", no_argument, nullptr, 0 },
-	{ "hdr-itm-sdr-nits", required_argument, nullptr, 0 },
-	{ "hdr-itm-target-nits", required_argument, nullptr, 0 },
-	{ "hdr-debug-force-support", no_argument, nullptr, 0 },
-	{ "hdr-debug-force-output", no_argument, nullptr, 0 },
-	{ "hdr-debug-heatmap", no_argument, nullptr, 0 },
+    { .name = "sdr-gamut-wideness", .has_arg = arg::yes },
+    { "hdr-enabled" },
+    { .name = "hdr-sdr-content-nits", .has_arg = arg::yes },
+    { "hdr-itm-enabled" },
+    { .name = "hdr-itm-sdr-nits", .has_arg = arg::yes },
+    { .name = "hdr-itm-target-nits", .has_arg = arg::yes },
+    { "hdr-debug-force-support" },
+    { "hdr-debug-force-output" },
+    { "hdr-debug-heatmap" },
 #endif
 #if HAVE_RESHADE
-	{ "reshade-effect", required_argument, nullptr, 0 },
-	{ "reshade-technique-idx", required_argument, nullptr, 0 },
+    { .name = "reshade-effect", .has_arg = arg::yes },
+    { .name = "reshade-technique-idx", .has_arg = arg::yes },
 #endif
 #if 0
-	{ "allow-deferred-backend", no_argument, nullptr, 0 },
+    { "allow-deferred-backend" },
 #endif
 #if HAVE_CONVAR
-	{ "keep-alive", no_argument, nullptr, 0 },
+    { "keep-alive" },
 #endif
-	{} // keep last
-};
+    {}  // keep last
+} );
 
 constexpr auto usage = []( bool full = false ) -> std::string {
     std::string msg;
@@ -318,22 +327,27 @@ pthread_t g_mainThread;
 
 static void steamCompMgrThreadRun(int argc, char **argv);
 
-static std::string build_optstring(const struct option *options)
+static auto build_optstring( std::vector<option> const& options ) -> std::string
 {
-	std::string optstring;
-	for (size_t i = 0; options[i].name != nullptr; i++) {
-		if (!options[i].name || !options[i].val)
-			continue;
+    std::string optstring;
+    for ( auto const& opt : options )
+    {
+        if ( opt.name == nullptr || opt.val == 0 )
+        {
+            continue;
+        }
 
-		assert(optstring.find((char) options[i].val) == std::string::npos);
+        assert( optstring.find( char( opt.val ) ) == std::string::npos );
 
-		char str[] = { (char) options[i].val, '\0' };
-		optstring.append(str);
+        std::array<char, 2> str{ char( opt.val ), '\0' };
+        optstring.append( str.data() );
 
-		if (options[i].has_arg)
-			optstring.append(":");
-	}
-	return optstring;
+        if ( opt.has_arg != 0 )
+        {
+            optstring.append( ":" );
+        }
+    }
+    return optstring;
 }
 
 GamescopePanelOrientation g_DesiredInternalOrientation = GAMESCOPE_PANEL_ORIENTATION_AUTO;
@@ -729,8 +743,8 @@ int main(int argc, char **argv)
 
 	int o;
 	int opt_index = -1;
-	while ((o = getopt_long(argc, argv, gamescope_optstring, gamescope_options, &opt_index)) != -1)
-	{
+    while ( ( o = getopt_long( argc, argv, gamescope_optstring, gamescope_options.data(), &opt_index ) ) != -1 )
+    {
 		const char *opt_name;
 		switch (o) {
 			case 'w':
@@ -794,7 +808,7 @@ int main(int argc, char **argv)
             break;
 #endif
 			case 0: // long options without a short option
-				opt_name = gamescope_options[opt_index].name;
+				opt_name = gamescope_options.at(opt_index).name;
 				if (opt_name == "help"sv) {
 					console_log.info("{}", usage());
 					return 0;

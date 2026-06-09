@@ -7971,8 +7971,8 @@ steamcompmgr_main(int argc, char **argv)
 	// Enable color mgmt by default.
 	g_ColorMgmt.pending.enabled = true;
 
-	while ((o = getopt_long(argc, argv, gamescope_optstring, gamescope_options, &opt_index)) != -1)
-	{
+    while ( ( o = getopt_long( argc, argv, gamescope_optstring, gamescope_options.data(), &opt_index ) ) != -1 )
+    {
 		const char *opt_name;
 		switch (o) {
 			case 'R':
@@ -7998,8 +7998,8 @@ steamcompmgr_main(int argc, char **argv)
 				useXRes = false;
 				break;
 			case 0: // long options without a short option
-				opt_name = gamescope_options[opt_index].name;
-				if (opt_name == "debug-focus"sv) {
+                opt_name = gamescope_options.at( opt_index ).name;
+                if (opt_name == "debug-focus"sv) {
 					debugFocus = true;
 				} else if (opt_name == "synchronous-x11"sv) {
 					synchronize = true;

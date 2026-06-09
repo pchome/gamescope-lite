@@ -5,9 +5,10 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <vector>
 
 extern const char *gamescope_optstring;
-extern const struct option *gamescope_options;
+extern std::vector<option> const gamescope_options;
 
 extern std::atomic< bool > g_bRun;
 
