@@ -506,20 +506,27 @@ bool CVulkanDevice::createDevice()
 		m_bSupportsModifiers = false;
 	}
 
-	{
-		VkPhysicalDeviceVulkan12Features vulkan12Features = {
-			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-		};
-		VkPhysicalDeviceFeatures2 features2 = {
-			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-			.pNext = &vulkan12Features,
-		};
-		vk.GetPhysicalDeviceFeatures2( physDev(), &features2 );
+    {
+        VkPhysicalDeviceVulkan12Features vulkan12Features = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+        };
+        VkPhysicalDeviceFeatures2 features2 = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+            .pNext = &vulkan12Features,
+        };
+        vk.GetPhysicalDeviceFeatures2( physDev(), &features2 );
 
-		m_bSupportsFp16 = vulkan12Features.shaderFloat16 && features2.features.shaderInt16;
-	}
+        m_bSupportsFp16 = ( vulkan12Features.shaderFloat16 == VK_TRUE ) && ( features2.features.shaderInt16 == VK_TRUE );
+        vk_log.info( "physical device {} FP16", m_bSupportsFp16 ? "supports" : "does not support" );
 
-	float queuePriorities = 1.0f;
+        if ( !g_bFp16Enabled )
+        {
+            m_bSupportsFp16 = false;
+        }
+        vk_log.info( "FP16 shaders {}", g_bFp16Enabled ? "enabled" : "disabled" );
+    }
+
+    float queuePriorities = 1.0f;
 
 	VkDeviceQueueGlobalPriorityCreateInfoEXT queueCreateInfoEXT = {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_EXT,

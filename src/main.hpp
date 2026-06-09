@@ -128,3 +128,4 @@ extern int g_nXWaylandCount;
 extern uint32_t g_preferVendorID;
 extern uint32_t g_preferDeviceID;
 
+extern bool g_bFp16Enabled;

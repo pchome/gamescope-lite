@@ -324,6 +324,7 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
 
   ImGui::BeginGroup();
   ImTpl::Toggle("Fullscreen windows", g_bForceWindowsFullscreen, [] { CSDLAction::ToggleWindowsFullscreen(); });
+  ImTpl::Toggle("FP16 shaders", g_bFp16Enabled, [] { g_bFp16Enabled = !g_bFp16Enabled; });
   ImGui::Separator();
   ImFmt::Text("Filters");
   // Upscale Scaler

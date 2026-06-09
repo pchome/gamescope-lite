@@ -110,6 +110,7 @@ std::vector<option> const gamescope_options( {
 #endif
     { "force-preemptive-upscaling" },
     { "composite-debug" },
+    { "disable-fp16" },
     { .name = "disable-xres", .val = 'x' },
     { .name = "fade-out-duration", .has_arg = arg::yes },
     { .name = "force-orientation", .has_arg = arg::yes },
@@ -233,6 +234,7 @@ constexpr auto usage = []( bool full = false ) -> std::string {
 	"  --composite-debug              draw frame markers on alternating corners of the screen when compositing\n"
 	"  --disable-color-management     disable color management\n"
 	"  --disable-xres                 disable XRes for PID lookup\n"
+    "  --disable-fp16                 disable FP16 shaders (use FP32)\n"
 #if 0
 	"  --hdr-debug-force-support      forces support for HDR, etc even if the display doesn't support it.\n"
 	"                                 HDR clients will be outputted as SDR still in that case.\n"
@@ -324,6 +326,8 @@ uint32_t g_preferVendorID = 0;
 uint32_t g_preferDeviceID = 0;
 
 pthread_t g_mainThread;
+
+bool g_bFp16Enabled = true;
 
 static void steamCompMgrThreadRun(int argc, char **argv);
 
@@ -843,6 +847,8 @@ int main(int argc, char **argv)
 					g_bForcePreemptiveUpscaling = true;
 				} else if (opt_name == "rt"sv) {
 					g_bRt = true;
+                } else if (opt_name == "disable-fp16"sv) {
+                    g_bFp16Enabled = false;
 				} else if (opt_name == "prefer-vk-device"sv) {
 					unsigned vendorID;
 					unsigned deviceID;
