@@ -31,7 +31,6 @@
 
 #include <cassert>
 #include <cinttypes>
-#include <csignal>
 #include <cstddef>
 #include <cstdint>
 #include <cstdint>
@@ -43,7 +42,6 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
-#include <condition_variable>
 #include <fstream>
 #include <memory>
 #include <mutex>
@@ -1084,7 +1082,7 @@ namespace gamescope
 static std::atomic<bool> g_bForceRepaint{false};
 
 extern int g_nCursorScaleHeight;
-
+#if 0
 // poor man's semaphore
 class sem
 {
@@ -1192,7 +1190,7 @@ static inline void stats_printf( const char* format, ...)
 		}
 	}
 }
-
+#endif
 uint64_t get_time_in_nanos()
 {
 	timespec ts;
@@ -2419,7 +2417,7 @@ paint_all( global_focus_t *pFocus, bool async )
 	notification = pFocus->notificationWindow;
 	override = pFocus->overrideWindow;
 	input = pFocus->inputFocusWindow;
-
+#if 0
 	if (++frameCounter == 300)
 	{
 		currentFrameRate = 300 * 1000.0f / (currentTime - lastSampledFrameTime);
@@ -2437,7 +2435,7 @@ paint_all( global_focus_t *pFocus, bool async )
 			stats_printf( "focus=%i\n", w ? w->appID : 0 );
 		}
 	}
-
+#endif
 	struct FrameInfo_t frameInfo = {};
 	frameInfo.applyOutputColorMgmt = g_ColorMgmt.pending.enabled;
 	frameInfo.outputEncodingEOTF = g_ColorMgmt.pending.outputEncodingEOTF;
@@ -6394,13 +6392,13 @@ steamcompmgr_exit(void)
 	for ( auto &lut : g_ColorMgmtLutsOverride ) lut.shutdown();
 	for ( auto &lut : g_ScreenshotColorMgmtLuts ) lut.shutdown();
 	for ( auto &lut : g_ScreenshotColorMgmtLutsHDR ) lut.shutdown();
-
+#if 0
 	if ( statsThreadRun == true )
 	{
 		statsThreadRun = false;
 		statsThreadSem.signal();
 	}
-
+#endif
 	{
 		g_ColorMgmt.pending.appHDRMetadata = nullptr;
 		g_ColorMgmt.current.appHDRMetadata = nullptr;
@@ -7980,6 +7978,7 @@ steamcompmgr_main(int argc, char **argv)
 			case 'R':
 				readyPipeFD = open( optarg, O_WRONLY | O_CLOEXEC );
 				break;
+#if 0
 			case 'T':
 				statsThreadPath = optarg;
 				{
@@ -7988,6 +7987,7 @@ steamcompmgr_main(int argc, char **argv)
 					statsThreads.detach();
 				}
 				break;
+#endif
 			case 'C':
 				cursorHideTime = uint64_t( atoi( optarg ) ) * 1'000'000ul;
 				break;

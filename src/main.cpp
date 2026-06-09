@@ -175,7 +175,7 @@ constexpr auto usage = []( bool full = false ) -> std::string {
 	"  --cursor                       path to default cursor image\n"
 	"  -R, --ready-fd                 notify FD when ready\n"
 	"  --rt                           Use realtime scheduling\n"
-	"  -T, --stats-path               write statistics to path\n"
+	// "  -T, --stats-path               write statistics to path\n"
 	"  -C, --hide-cursor-delay        hide cursor image after delay\n"
 #if HAVE_STEAM
 	"  -e, --steam                    enable Steam integration\n"
