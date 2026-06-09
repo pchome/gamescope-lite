@@ -30,6 +30,7 @@
  */
 
 #include <cassert>
+#include <cfenv>
 #include <cinttypes>
 #include <cstddef>
 #include <cstdint>
@@ -2012,6 +2013,13 @@ paint_window_commit( const gamescope::Rc<commit_t> &lastCommit, steamcompmgr_win
 	// instance either.
 	if (!w || lastCommit == nullptr)
 		return nullptr;
+
+    // Trying to mitigate float<->int conversion errors
+    // where upscaling filters produce output with different height.
+    // Default FE_TONEAREST conversion
+    // FE_UPWARD - similar result to default
+    // FE_DOWNWARD or FE_TOWARDZERO - more consistent result
+    std::fesetround( FE_TOWARDZERO );
 
 	// Base plane will stay as tex=0 if we don't have contents yet, which will
 	// make us fall back to compositing and use the Vulkan null texture
