@@ -341,7 +341,7 @@ void UiLayoutSettingsTab(CSDLAction* pAction) {
     // Sharpness
     static int sharpness = g_upscaleFilterSharpness;
     ImGui::SetNextItemWidth(100);
-    ImGui::SliderInt("Filter Sharpness", &sharpness, defaults::minFSRSharpness, defaults::maxFSRSharpness, "%d");
+    ImGui::SliderInt("Filter Sharpness", &sharpness, defaults::maxFSRSharpness, defaults::minFSRSharpness, "%d");
     if (sharpness != g_upscaleFilterSharpness) {
       CSDLAction::SetUpscaleFilterSharpness(sharpness);
     }

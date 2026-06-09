@@ -161,7 +161,10 @@ constexpr auto usage = []( bool full = false ) -> std::string {
 	"                                     fsr => AMD FidelityFX™ Super Resolution 1.0\n"
 	"                                     nis => NVIDIA Image Scaling v1.0.3\n"
     ; msg +=
-	"  --sharpness, --fsr-sharpness   upscaler sharpness from 0 (max) to 20 (min)\n"
+	"  --sharpness, --fsr-sharpness   upscaler sharpness from 0 (min) to 20 (max)\n"
+    ; msg += !full ? "" :
+    "                                     our default: 5; fsr and nis defaults at 10\n"
+    ; msg +=
 	"  -s, --mouse-sensitivity        multiply mouse movement by given decimal number\n"
 	"  --backend                      select rendering backend\n"
     ; msg += !full ? "" :
@@ -298,7 +301,7 @@ GamescopeUpscaleScaler g_upscaleScaler = GamescopeUpscaleScaler::AUTO;
 GamescopeUpscaleFilter g_wantedUpscaleFilter = GamescopeUpscaleFilter::LINEAR;
 GamescopeDownscaleFilter g_wantedDownscaleFilter = GamescopeDownscaleFilter::LINEAR;
 GamescopeUpscaleScaler g_wantedUpscaleScaler = GamescopeUpscaleScaler::AUTO;
-int g_upscaleFilterSharpness = 2;
+int g_upscaleFilterSharpness = 5; // now it's min[0..20]max w/ "recommended" value at 10, so take half as more real good default
 bool g_bForcePreemptiveUpscaling = false;
 GamescopeBicubicParams g_bicubicParams;
 

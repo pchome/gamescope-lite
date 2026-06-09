@@ -4150,7 +4150,7 @@ std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
 		cmdBuffer->setSamplerUnnormalized(0, false);
 		cmdBuffer->setSamplerNearest(0, false);
 		cmdBuffer->bindTarget(compositeImage);
-		cmdBuffer->uploadConstants<RcasPushData_t>(&frameInfo, g_upscaleFilterSharpness / 10.0f);
+		cmdBuffer->uploadConstants<RcasPushData_t>( &frameInfo, getFsrMappedSharpness(g_upscaleFilterSharpness) );
 
 		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
 	}
@@ -4178,7 +4178,7 @@ std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
 		cmdBuffer->bindTexture(VKR_NIS_COEF_USM_SLOT, g_output.nisUsmImage);
 		cmdBuffer->setSamplerUnnormalized(VKR_NIS_COEF_USM_SLOT, false);
 		cmdBuffer->setSamplerNearest(VKR_NIS_COEF_USM_SLOT, false);
-		cmdBuffer->uploadConstants<NisPushData_t>(inputX, inputY, tempX, tempY, nisSharpness);
+		cmdBuffer->uploadConstants<NisPushData_t>(inputX, inputY, tempX, tempY, getNisMappedSharpness(g_upscaleFilterSharpness));
 
 		int pixelsPerGroupX = 32;
 		int pixelsPerGroupY = 24;

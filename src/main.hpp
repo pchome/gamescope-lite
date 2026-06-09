@@ -2,6 +2,8 @@
 
 #include <getopt.h>
 
+#include <algorithm>
+#include <array>
 #include <atomic>
 
 extern const char *gamescope_optstring;
@@ -84,6 +86,35 @@ extern GamescopeUpscaleScaler g_wantedUpscaleScaler;
 extern int g_upscaleFilterSharpness;
 extern bool g_bForcePreemptiveUpscaling;
 extern GamescopeBicubicParams g_bicubicParams;
+
+/**
+ * GamescopeUpscaleFilter::FSR
+ * - Range: (>2.0f -> 0.0f) higher value mean lower sharpness
+ * - Step: changes more noticeable between lower values
+ * - Prev algorithm: `sharpness / 10.0f` -> [0.0..2.0] step: 0.1
+ * - Prev default: `0.2`
+ * - Recommended (aka marketing bullshit) default: `0.2`
+ * @todo find the real function
+ */
+constexpr std::array<float, 21> const g_fsrSharpnessMap = {
+    { 4.00f, 2.00f, 1.00f, 0.90f, 0.80f, 0.70f, 0.60f, 0.50f, 0.40f, 0.30f, 0.20f,
+      0.10f, 0.08f, 0.07f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f, 0.01f, 0.0f },
+};
+/**
+ * GamescopeUpscaleFilter::NIS
+ * - Range: (0.0f -> 1.0f) higher value mean higher sharpness
+ * - Step: changes are linear
+ * - Prev algorithm: `(20 - sharpness) / 20.0f` -> [1.0..0.0] step: 0.05
+ * - Prev default: `0.9`
+ * - Recommended (__GL_SHARPEN_VALUE) default: `0.5`
+ * @todo confirm it's real function is linear
+ */
+constexpr std::array<float, 21> const g_nisSharpnessMap = {
+    { 0.00f, 0.05f, 0.10f, 0.15f, 0.20f, 0.25f, 0.30f, 0.35f, 0.40f, 0.45f, 0.50f,
+      0.55f, 0.60f, 0.65f, 0.70f, 0.75f, 0.80f, 0.85f, 0.90f, 0.95f, 1.0f },
+};
+constexpr auto const getFsrMappedSharpness = []( int v ) { return g_fsrSharpnessMap.at( std::clamp( v, 0, 20 ) ); };
+constexpr auto const getNisMappedSharpness = []( int v ) { return g_nisSharpnessMap.at( std::clamp( v, 0, 20 ) ); };
 
 extern bool g_bBorderlessOutputWindow;
 
