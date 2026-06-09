@@ -4164,8 +4164,6 @@ std::optional<uint64_t> vulkan_composite(struct FrameInfo_t &frameInfo,
 
 		update_tmp_images(tempX, tempY);
 
-		float nisSharpness = (20 - g_upscaleFilterSharpness) / 20.0f;
-
 		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_NIS));
 		cmdBuffer->bindTarget(g_output.tmpOutput);
 		cmdBuffer->bindTexture(0, frameInfo.layers[0].tex);
