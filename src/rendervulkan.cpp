@@ -1338,7 +1338,7 @@ uint64_t CVulkanDevice::submit( std::unique_ptr<CVulkanCmdBuffer> cmdBuffer)
 	return nextSeqNo;
 }
 
-void CVulkanDevice::garbageCollect( void )
+void CVulkanDevice::garbageCollect()
 {
 	uint64_t currentSeqNo;
 	vk_check( vk.GetSemaphoreCounterValue(device(), m_scratchTimelineSemaphore, &currentSeqNo) );
@@ -2683,11 +2683,9 @@ bool CVulkanTexture::IsInUse()
 	return GetRefCount() != 0;
 }
 
-CVulkanTexture::CVulkanTexture( void )
-{
-}
+CVulkanTexture::CVulkanTexture() = default;
 
-CVulkanTexture::~CVulkanTexture( void )
+CVulkanTexture::~CVulkanTexture()
 {
 	wlr_dmabuf_attributes_finish( &m_dmabuf );
 
@@ -2917,7 +2915,7 @@ bool vulkan_init_formats()
 	return true;
 }
 
-bool acquire_next_image( void )
+auto acquire_next_image() -> bool
 {
 	VkResult res = g_device.vk.AcquireNextImageKHR( g_device.device(), g_output.swapChain, UINT64_MAX, VK_NULL_HANDLE, g_output.acquireFence, &g_output.nOutImage );
 	if ( res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR )
@@ -2933,7 +2931,7 @@ static std::mutex present_wait_lock;
 #if HAVE_STEAM
 extern void mangoapp_output_update( uint64_t vblanktime );
 #endif
-static void present_wait_thread_func( void )
+static void present_wait_thread_func()
 {
 	uint64_t present_wait_id = 0;
 
@@ -2992,7 +2990,7 @@ void vulkan_update_swapchain_hdr_metadata( VulkanOutput_t *pOutput )
 	g_device.vk.SetHdrMetadataEXT(g_device.device(), 1, &g_output.swapChain, &metadata);
 }
 
-void vulkan_present_to_window( void )
+void vulkan_present_to_window()
 {
 	static uint64_t s_lastPresentId = 0;
 
@@ -3151,8 +3149,6 @@ bool vulkan_supports_hdr10()
 	return false;
 }
 
-extern bool g_bOutputHDREnabled;
-
 bool vulkan_make_swapchain( VulkanOutput_t *pOutput )
 {
 	uint32_t imageCount = pOutput->surfaceCaps.minImageCount + 1;
@@ -3268,7 +3264,7 @@ bool vulkan_make_swapchain( VulkanOutput_t *pOutput )
 	return true;
 }
 
-bool vulkan_remake_swapchain( void )
+auto vulkan_remake_swapchain() -> bool
 {
 	std::unique_lock lock(present_wait_lock);
 	g_currentPresentWaitId = 0;
@@ -3517,7 +3513,7 @@ static bool init_nis_data()
 	return true;
 }
 
-VkInstance vulkan_get_instance( void )
+auto vulkan_get_instance() -> VkInstance
 {
 	static VkInstance s_pVkInstance = []() -> VkInstance
 	{
@@ -3629,9 +3625,9 @@ gamescope::OwningRc<CVulkanTexture> vulkan_create_texture_from_bits( uint32_t wi
 
 static uint32_t s_frameId = 0;
 
-void vulkan_garbage_collect( void )
+void vulkan_garbage_collect()
 {
-	g_device.garbageCollect();
+    g_device.garbageCollect();
 }
 
 #if HAVE_SCREENSHOT
@@ -4314,9 +4310,9 @@ bool vulkan_primary_dev_id(dev_t *id)
 	return g_device.hasDrmPrimaryDevId();
 }
 
-bool vulkan_supports_modifiers(void)
+auto vulkan_supports_modifiers() -> bool
 {
-	return g_device.supportsModifiers();
+    return g_device.supportsModifiers();
 }
 
 static void texture_destroy( struct wlr_texture *wlr_texture )
@@ -4373,11 +4369,11 @@ static const struct wlr_renderer_impl renderer_impl = {
 	.begin_buffer_pass = renderer_begin_buffer_pass,
 };
 
-struct wlr_renderer *vulkan_renderer_create( void )
+auto vulkan_renderer_create() -> struct wlr_renderer*
 {
-	VulkanRenderer_t *renderer = new VulkanRenderer_t();
-	wlr_renderer_init(&renderer->base, &renderer_impl, WLR_BUFFER_CAP_DMABUF | WLR_BUFFER_CAP_DATA_PTR);
-	return &renderer->base;
+    auto* renderer = new VulkanRenderer_t();
+    wlr_renderer_init( &renderer->base, &renderer_impl, WLR_BUFFER_CAP_DMABUF | WLR_BUFFER_CAP_DATA_PTR );
+    return &renderer->base;
 }
 
 gamescope::OwningRc<CVulkanTexture> vulkan_create_texture_from_wlr_buffer( struct wlr_buffer *buf, gamescope::OwningRc<gamescope::IBackendFb> const& pBackendFb )
