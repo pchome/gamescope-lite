@@ -411,9 +411,9 @@ bool vulkan_supports_modifiers(void);
 gamescope::Rc<CVulkanTexture> vulkan_create_1d_lut(uint32_t size);
 gamescope::Rc<CVulkanTexture> vulkan_create_3d_lut(uint32_t width, uint32_t height, uint32_t depth);
 void vulkan_update_luts(const gamescope::Rc<CVulkanTexture>& lut1d, const gamescope::Rc<CVulkanTexture>& lut3d, void* lut1d_data, void* lut3d_data);
-
+#if 0
 gamescope::Rc<CVulkanTexture> vulkan_get_hacky_blank_texture();
-
+#endif
 #if HAVE_PIPEWIRE || HAVE_SCREENSHOT
 std::optional<uint64_t> vulkan_screenshot( const struct FrameInfo_t *frameInfo, gamescope::Rc<CVulkanTexture> pScreenshotTexture, gamescope::Rc<CVulkanTexture> pYUVOutTexture );
 #endif
@@ -519,8 +519,9 @@ struct VulkanOutput_t
 	uint32_t nOutImage; // swapchain index in nested mode, or ping/pong between two RTs
 	std::vector<gamescope::OwningRc<CVulkanTexture>> outputImages;
 	std::vector<gamescope::OwningRc<CVulkanTexture>> outputImagesPartialOverlay;
+#if 0
 	gamescope::OwningRc<CVulkanTexture> temporaryHackyBlankImage;
-
+#endif
 	uint32_t uOutputFormat = DRM_FORMAT_INVALID;
 	uint32_t uOutputFormatOverlay = DRM_FORMAT_INVALID;
 
@@ -979,9 +980,9 @@ uint32_t VulkanFormatToDRM( VkFormat vkFormat, std::optional<bool> obHasAlphaOve
 VkFormat DRMFormatToVulkan( uint32_t nDRMFormat, bool bSrgb );
 bool DRMFormatHasAlpha( uint32_t nDRMFormat );
 uint32_t DRMFormatGetBPP( uint32_t nDRMFormat );
-
+#if 0
 gamescope::OwningRc<CVulkanTexture> vulkan_create_flat_texture( uint32_t width, uint32_t height, uint8_t r, uint8_t g, uint8_t b, uint8_t a );
-
+#endif
 bool vulkan_supports_hdr10();
 
 void vulkan_wait_idle();

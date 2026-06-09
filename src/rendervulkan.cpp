@@ -3094,7 +3094,7 @@ void vulkan_update_luts(const gamescope::Rc<CVulkanTexture>& lut1d, const gamesc
 	g_device.submit(std::move(cmdBuffer));
 	g_device.waitIdle(); // TODO: Sync this better
 }
-
+#if 0
 gamescope::Rc<CVulkanTexture> vulkan_get_hacky_blank_texture()
 {
 	return g_output.temporaryHackyBlankImage.get();
@@ -3139,7 +3139,7 @@ gamescope::OwningRc<CVulkanTexture> vulkan_create_debug_blank_texture()
 
 	return vulkan_create_flat_texture( width, height, 0, 0, 0, 0 );
 }
-
+#endif
 bool vulkan_supports_hdr10()
 {
 	for ( auto& format : g_output.surfaceFormats )
