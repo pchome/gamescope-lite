@@ -113,11 +113,11 @@ struct wlserver_x11_surface_info *lookup_x11_surface_info_from_xid( gamescope_xw
 
 void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_server);
 void gamescope_set_selection(std::string const& contents, GamescopeSelection eSelection);
+
 #if HAVE_RESHADE
-void gamescope_set_reshade_effect(std::string effect_path);
+void gamescope_set_reshade_effect( std::string effect_path );
 void gamescope_clear_reshade_effect();
 #endif
-MouseCursor *steamcompmgr_get_current_cursor();
-MouseCursor *steamcompmgr_get_server_cursor(uint32_t serverId);
 
-
+auto steamcompmgr_get_current_cursor() -> MouseCursor*;
+auto steamcompmgr_get_server_cursor( size_t idx ) -> MouseCursor*;

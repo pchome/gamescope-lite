@@ -8884,10 +8884,12 @@ MouseCursor *steamcompmgr_get_current_cursor()
 	return pFocus->cursor;
 }
 
-MouseCursor *steamcompmgr_get_server_cursor(uint32_t idx)
+auto steamcompmgr_get_server_cursor( size_t idx ) -> MouseCursor*
 {
-	gamescope_xwayland_server_t *server = wlserver_get_xwayland_server( idx );
-	if ( server && server->ctx )
-		return  server->ctx->cursor.get();
-	return nullptr;
+    gamescope_xwayland_server_t* server = wlserver_get_xwayland_server( idx );
+    if ( ( server != nullptr ) && server->ctx )
+    {
+        return server->ctx->cursor.get();
+    }
+    return nullptr;
 }
