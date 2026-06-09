@@ -90,6 +90,7 @@ std::vector<option> const gamescope_options( {
 
     // wlserver options
     { .name = "xwayland-count", .has_arg = arg::yes },
+    { "xwayland-force-touch-pointer-emulation" },
 
     // steamcompmgr options
     { .name = "cursor", .has_arg = arg::yes },
@@ -319,6 +320,7 @@ GamescopeBicubicParams g_bicubicParams;
 bool g_bBorderlessOutputWindow = false;
 
 int g_nXWaylandCount = 1;
+bool g_bNoTouchPointerEmulation = true;
 
 float g_flMaxWindowScale = FLT_MAX;
 
@@ -827,6 +829,8 @@ int main(int argc, char **argv)
 				}
 				if (opt_name == "xwayland-count"sv) {
 					g_nXWaylandCount = parse_integer( optarg, opt_name );
+                } else if (opt_name == "xwayland-force-touch-pointer-emulation"sv) {
+					g_bNoTouchPointerEmulation = false;
 				} else if (opt_name == "composite-debug"sv) {
 #if HAVE_CONVAR
 					cv_composite_debug |= CompositeDebugFlag::Markers;
