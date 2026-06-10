@@ -16,7 +16,7 @@
 #### New:
 * [x] Ported to SDL3
 * [x] Require c++23 (std::format, std::println, std::ranges, and so on)
-* [x] Experimental settings UI (toggle via Super + `) 
+* [x] Experimental settings (debug(?)) UI (toggle via Super + `) 
 * [x] Updated ReShade FX supported version to v6.6.2 (up to v6.7.3)
     + unbundled ReShade submodule (uses ReShadeFX[^2] shared library)
     + added `./reshade-shaders/` path to the top of shader search list
@@ -27,19 +27,26 @@
     + patch to silence error about X0 socket already in use
     + patch to disable wayland backend[^4]
 * [x] Disabled upscaling by default (prev. default was `-S fit`, cur. default: `-S native`)
+* [x] Initial support for bref/full help message `--help-all`
+* [x] If `-r <fps>` is set `-o <fps>` == `-r <fps>` by default (otherwise unfocused refresh was higher sometimes)
 * [x] Initial support for aspect ratio option `-a, --aspect-ratio`
     - currently some fixed values are added: 4:3, 16:9, 16:10, 24:10, 43:18, 64:27
     - for e.g. 16:10 use `gamescope-lite -a 16:10 -H 800 -- vkgears` (will start in 1280×800 window)
+* [x] for both NIS and FSR sharpness `0` mean `min` and `20` mean `max` now
+    - changed default value to `5`, which translates to fsr:`0.7f`(aka old:`7`) and nis:`0.25f`(aka old:`15`)
+    - inc/dec should produce more consistent steps (in theory)
 * [x] Merged some pending (useful or experimental) upstream PRs
     - disabled global `-ffast-math` compiler flag (ValveSoftware/gamescope#1493)
     - fixed (almost) gamescope abort at exit (ValveSoftware/gamescope#1335)
     - fixed gamescope doesn't quit when game quits (ValveSoftware/gamescope#1908)
     - Bicubic downscaling filter `-F bicubic` (ValveSoftware/gamescope#740)
+        + small fixes for default values
     - don't pull in glm and stb as subprojects (Gentoo package patch)
     - support new stb versions (Gentoo package patch)
 * [x] Debug options
     - reenable unused `--disable-color-management` (I'd remove color management but output is too dark. Need more info.)
     - added `--force-preemptive-upscaling` (Ok with lower fps but higher load w/o vsync. Need more info.)
+    - added `--disable-fp16` to test FP16 vs FP32 shaders
 
 #### Build notes
 * If missing `glm`, `stb`, or `ReShadeFX` deps use `meson configure --wrap-mode=default build/`
