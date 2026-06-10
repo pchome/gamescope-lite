@@ -2110,6 +2110,7 @@ void wlserver_run(void)
 	wl_list_remove( &new_surface_listener.link );
 	wl_list_remove( &new_input_listener.link );
 	wl_list_remove( &wlserver.new_pointer_constraint.link );
+#if 0
 	wl_list_remove( &wlserver.new_xdg_surface.link );
 	wl_list_remove( &wlserver.new_xdg_toplevel.link );
 	wl_list_remove( &wlserver.new_layer_shell_surface.link );
@@ -2118,7 +2119,7 @@ void wlserver_run(void)
 	if ( wlserver.wlr.session )
 		wl_list_remove( &wlserver.session_active.link );
 #endif
-
+#endif
 	wl_display_destroy_clients(wlserver.display);
 	wl_display_destroy(wlserver.display);
     wlserver.display = NULL;
