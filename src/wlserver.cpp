@@ -105,15 +105,12 @@ static struct wl_list pending_surfaces = {0};
 static std::atomic<bool> g_bShutdownWLServer{ false };
 
 static void wlserver_x11_surface_info_set_wlr( struct wlserver_x11_surface_info *surf, struct wlr_surface *wlr_surf, bool override );
-wlserver_wl_surface_info *get_wl_surface_info(struct wlr_surface *wlr_surf);
 
 static void wlserver_update_cursor_constraint();
 static void handle_pointer_constraint(struct wl_listener *listener, void *data);
 static void wlserver_constrain_cursor( struct wlr_pointer_constraint_v1 *pNewConstraint );
 struct wlr_surface *wlserver_surface_to_main_surface( struct wlr_surface *pSurface );
 bool wlserver_process_hotkeys( wlr_keyboard *keyboard, uint32_t key, bool press );
-
-extern std::atomic<bool> hasRepaint;
 
 std::vector<ResListEntry_t>& gamescope_xwayland_server_t::retrieve_commits()
 {
@@ -798,19 +795,11 @@ static void gamescope_xwayland_bind( struct wl_client *client, void *data, uint3
 	wl_resource_set_implementation( resource, &gamescope_xwayland_impl, NULL, NULL );
 }
 
-static void create_gamescope_xwayland( void )
+static void create_gamescope_xwayland()
 {
-	uint32_t version = 1;
-	wl_global_create( wlserver.display, &gamescope_xwayland_interface, version, NULL, gamescope_xwayland_bind );
+    int32_t version = 1;
+    wl_global_create( wlserver.display, &gamescope_xwayland_interface, version, nullptr, gamescope_xwayland_bind );
 }
-
-
-
-
-
-
-
-
 
 static void gamescope_swapchain_destroy_co( struct wl_resource *resource )
 {
@@ -1002,23 +991,11 @@ static void gamescope_swapchain_factory_v2_bind( struct wl_client *client, void 
 	wl_resource_set_implementation( resource, &gamescope_swapchain_factory_v2_impl, NULL, NULL );
 }
 
-static void create_gamescope_swapchain_factory_v2( void )
+static void create_gamescope_swapchain_factory_v2()
 {
-	uint32_t version = 1;
-	wl_global_create( wlserver.display, &gamescope_swapchain_factory_v2_interface, version, NULL, gamescope_swapchain_factory_v2_bind );
+    int32_t version = 1;
+    wl_global_create( wlserver.display, &gamescope_swapchain_factory_v2_interface, version, nullptr, gamescope_swapchain_factory_v2_bind );
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 #if HAVE_PIPEWIRE
 static void gamescope_pipewire_handle_destroy( struct wl_client *client, struct wl_resource *resource )
@@ -1593,7 +1570,7 @@ static bool filter_global(const struct wl_client *client, const struct wl_global
 	return server && server->get_output() == output;
 }
 
-bool wlsession_init( void ) {
+bool wlsession_init() {
 	static bool s_bInitted = false;
 	if ( s_bInitted )
 		return true;
@@ -1836,7 +1813,7 @@ void layer_shell_surface_new(struct wl_listener *listener, void *data)
 	surface_info->win->isExternalOverlay = true;
 }
 #endif
-bool wlserver_init( void ) {
+bool wlserver_init() {
 	assert( wlserver.display != nullptr );
 
 	wl_list_init(&pending_surfaces);
@@ -2005,20 +1982,20 @@ bool wlserver_init( void ) {
 
 pthread_mutex_t waylock = PTHREAD_MUTEX_INITIALIZER;
 
-bool wlserver_is_lock_held(void)
+auto wlserver_is_lock_held() -> bool
 {
-	int err = pthread_mutex_trylock(&waylock);
-	if (err == 0)
-	{
-		pthread_mutex_unlock(&waylock);
-		return false;
-	}
-	return true;
+    int err = pthread_mutex_trylock( &waylock );
+    if ( err == 0 )
+    {
+        pthread_mutex_unlock( &waylock );
+        return false;
+    }
+    return true;
 }
 
-void wlserver_lock(void)
+void wlserver_lock()
 {
-	pthread_mutex_lock(&waylock);
+    pthread_mutex_lock( &waylock );
 }
 
 void wlserver_unlock(bool flush)
@@ -2032,7 +2009,7 @@ extern std::mutex g_SteamCompMgrXWaylandServerMutex;
 
 static int g_wlserverNudgePipe[2] = {-1, -1};
 
-void wlserver_run(void)
+void wlserver_run()
 {
 	pthread_setname_np( pthread_self(), "gamescope-wl" );
 
@@ -2089,7 +2066,7 @@ void wlserver_run(void)
 
 	wlserver.bWaylandServerRunning = false;
 	wlserver.bWaylandServerRunning.notify_all();
-
+#if 0
 	{
 		std::unique_lock lock3(wlserver.xdg_commit_lock);
 		wlserver.xdg_commit_queue.clear();
@@ -2099,7 +2076,7 @@ void wlserver_run(void)
 		std::unique_lock lock2(g_wlserver_xdg_shell_windows_lock);
 		wlserver.xdg_wins.clear();
 	}
-
+#endif
 	// Released when steamcompmgr closes.
 	std::unique_lock<std::mutex> xwayland_server_guard(g_SteamCompMgrXWaylandServerMutex);
 	// We need to shutdown Xwayland before disconnecting all clients, otherwise
@@ -2876,9 +2853,9 @@ gamescope_xwayland_server_t *wlserver_get_xwayland_server( size_t index )
 	return wlserver.wlr.xwayland_servers[index].get();
 }
 
-const char *wlserver_get_wl_display_name( void )
+auto wlserver_get_wl_display_name() -> char const*
 {
-	return wlserver.wl_display_name;
+    return wlserver.wl_display_name;
 }
 
 static void wlserver_x11_surface_info_set_wlr( struct wlserver_x11_surface_info *surf, struct wlr_surface *wlr_surf, bool override )
@@ -3062,7 +3039,7 @@ void wlserver_set_xwayland_server_mode( size_t idx, int w, int h, int nRefreshmH
 
 	wl_log.infof("Updating mode for xwayland server #%zu: %dx%d@%d", idx, w, h, gamescope::ConvertmHzToHz( nRefreshmHz ) );
 }
-
+#if 0
 // Definitely not very efficient if we end up with
 // a lot of Wayland windows in the future.
 //
@@ -3093,7 +3070,7 @@ std::vector<ResListEntry_t> wlserver_xdg_commit_queue()
 	}
 	return commits;
 }
-
+#endif
 uint32_t wlserver_make_new_xwayland_server()
 {
 	assert( wlserver_is_lock_held() );

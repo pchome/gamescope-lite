@@ -44,7 +44,7 @@ struct wlserver_wl_surface_info
 	struct wl_listener commit;
 	struct wl_listener destroy;
 
-	std::shared_ptr<wlserver_vk_swapchain_feedback> swapchain_feedback = {};
+	std::shared_ptr<wlserver_vk_swapchain_feedback> swapchain_feedback;
 	std::optional<VkPresentModeKHR> oCurrentPresentMode;
 
 	uint64_t sequence = 0;

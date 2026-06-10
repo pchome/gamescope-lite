@@ -42,7 +42,7 @@ struct ResListEntry_t {
 
 struct wlserver_content_override;
 
-bool wlserver_is_lock_held(void);
+auto wlserver_is_lock_held() -> bool;
 
 class gamescope_xwayland_server_t
 {
@@ -161,24 +161,31 @@ struct wlserver_t {
 		char *description;
 		int phys_width, phys_height; // millimeters
 	} output_info;
-
+#if 0
 	struct wl_listener session_active;
+#endif
 	struct wl_listener new_input_method;
-
+#if 0
 	struct wlr_xdg_shell *xdg_shell;
 	struct wlr_layer_shell_v1 *layer_shell_v1;
+#endif
 	struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
 	struct wlr_pointer_constraints_v1 *constraints;
+#if 0
 	struct wl_listener new_xdg_surface;
 	struct wl_listener new_xdg_toplevel;
 	struct wl_listener new_layer_shell_surface;
+#endif
 	struct wl_listener new_pointer_constraint;
+#if 0
 	std::vector<std::shared_ptr<steamcompmgr_win_t>> xdg_wins;
 	std::atomic<bool> xdg_dirty;
 	std::mutex xdg_commit_lock;
 	std::vector<ResListEntry_t> xdg_commit_queue;
-
+#endif
+#if HAVE_CONVAR
 	std::vector<wl_resource*> gamescope_controls;
+#endif
 	std::unordered_map< uint32_t, std::vector<wl_resource*> > app_perf_requests;
 
 	std::atomic<bool> bWaylandServerRunning = { false };
@@ -214,19 +221,19 @@ struct wlserver_touch {
     gamescope::IBackendConnector* connector;
 };
 
-void xwayland_surface_commit(struct wlr_surface *wlr_surface);
+void xwayland_surface_commit( struct wlr_surface* wlr_surface );
 
-bool wlsession_init( void );
+auto wlsession_init() -> bool;
+#if 0
 int wlsession_open_kms( const char *device_name );
 void wlsession_close_kms();
+#endif
+auto wlserver_init() -> bool;
 
-bool wlserver_init( void );
+void wlserver_run();
 
-void wlserver_run(void);
-
-void wlserver_lock(void);
-void wlserver_unlock(bool flush = true);
-bool wlserver_is_lock_held(void);
+void wlserver_lock();
+void wlserver_unlock( bool flush = true );
 
 void wlserver_keyboardfocus( struct wlr_surface *surface, bool bConstrain = true );
 void wlserver_key( uint32_t key, bool press, uint32_t time );
@@ -249,10 +256,10 @@ void wlserver_send_frame_done( struct wlr_surface *surf, const struct timespec *
 bool wlserver_surface_is_async( struct wlr_surface *surf );
 bool wlserver_surface_is_fifo( struct wlr_surface *surf );
 const std::shared_ptr<wlserver_vk_swapchain_feedback>& wlserver_surface_swapchain_feedback( struct wlr_surface *surf );
-
+#if 0
 std::vector<std::shared_ptr<steamcompmgr_win_t>> wlserver_get_xdg_shell_windows();
 bool wlserver_xdg_dirty();
-
+#endif
 struct wlserver_output_info {
 	const char *description;
 	int phys_width, phys_height; // millimeters
@@ -260,8 +267,8 @@ struct wlserver_output_info {
 
 void wlserver_set_output_info( const wlserver_output_info *info );
 
-gamescope_xwayland_server_t *wlserver_get_xwayland_server( size_t index );
-const char *wlserver_get_wl_display_name( void );
+auto wlserver_get_xwayland_server( size_t index ) -> gamescope_xwayland_server_t*;
+auto wlserver_get_wl_display_name() -> char const*;
 
 void wlserver_x11_surface_info_init( struct wlserver_x11_surface_info *surf, gamescope_xwayland_server_t *server, uint32_t x11_id );
 void wlserver_x11_surface_info_finish( struct wlserver_x11_surface_info *surf );
