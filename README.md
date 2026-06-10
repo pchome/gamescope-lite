@@ -22,9 +22,10 @@
     + added `./reshade-shaders/` path to the top of shader search list
     + added XDG support
     + both `gamescope/reshade/` and `reshade-shaders/` paths are supported across all XDG_DATA_* directories
-* [x] Updated wlroots version to 0.18.3[^3]
+* [x] Updated wlroots version to 0.19.3[^3]
     + patch to run gamescope in containers (unshare, flatpack, ...)
     + patch to silence error about X0 socket already in use
+    + patch to disable wayland backend[^4]
 * [x] Disabled upscaling by default (prev. default was `-S fit`, cur. default: `-S native`)
 * [x] Initial support for aspect ratio option `-a, --aspect-ratio`
     - currently some fixed values are added: 4:3, 16:9, 16:10, 24:10, 43:18, 64:27
@@ -49,7 +50,8 @@
 
 [^1]: https://github.com/ValveSoftware/gamescope/compare/master...pchome:gamescope-lite:lite
 [^2]: https://github.com/pchome/reshade-fx - repository contain patched ReShade FX v6.6.2 and v6.7.3
-[^3]: https://github.com/pchome/wlroots - repository contain patched wlroots 0.18.3
+[^3]: https://github.com/pchome/wlroots - repository contain patched wlroots 0.18.3 and 0.19.3
+[^4]: We need only headless, multi (for input), and xwayland backends.
 
 ## gamescope: the micro-compositor formerly known as steamcompmgr
 
