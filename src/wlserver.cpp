@@ -1501,7 +1501,7 @@ void wlserver_refresh_cycle( struct wlr_surface *surface, uint64_t refresh_cycle
 }
 
 ///////////////////////
-
+#if 0
 [[maybe_unused]] static void handle_wlr_log(enum wlr_log_importance importance, const char *fmt, va_list args)
 {
 	enum LogPriority prio;
@@ -1518,6 +1518,12 @@ void wlserver_refresh_cycle( struct wlr_surface *surface, uint64_t refresh_cycle
 	}
 
 	wlroots_log.vlogf(prio, fmt, args);
+}
+#endif
+
+[[maybe_unused]] static void handle_wlr_log( enum wlr_log_importance /*importance*/, const char* fmt, va_list args )
+{
+    wlroots_log.vlogf( LOG_DEBUG, fmt, args );
 }
 
 void wlserver_set_output_info( const wlserver_output_info *info )

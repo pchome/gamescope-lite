@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdarg>
-#include <cstdint>
+// #include <cstdint>
 
 #include <format>
 #include <functional>
@@ -36,9 +36,9 @@ class LogScope
 public:
 	LogScope( std::string_view psvName, LogPriority eMaxPriority = LOG_INFO );
 	LogScope( std::string_view psvName, std::string_view psvPrefix, LogPriority eMaxPriority = LOG_INFO );
-	~LogScope();
+	~LogScope() = default;
 
-	bool Enabled( LogPriority ePriority ) const;
+	[[nodiscard]] auto Enabled( LogPriority ePriority ) const -> bool;
 	void SetPriority( LogPriority ePriority ) { m_eMaxPriority = ePriority; }
 
 	void vlogf(enum LogPriority priority, const char *fmt, va_list args) ATTRIB_PRINTF(3, 0);
@@ -88,10 +88,12 @@ public:
         std::println(stdout, fmt, std::forward<Args>(args)...);
     }
 
-	bool bPrefixEnabled = true;
+    // bool bPrefixEnabled = true;
 
 	using LoggingListenerFunc = std::function<void( LogPriority ePriority, std::string_view psvScope, std::string_view psvText )>;
+#if HAVE_CONVAR
 	std::unordered_map<uintptr_t, LoggingListenerFunc> m_LoggingListeners;
+#endif
 
 private:
 	void vprintf(enum LogPriority priority, const char *fmt, va_list args) ATTRIB_PRINTF(3, 0);

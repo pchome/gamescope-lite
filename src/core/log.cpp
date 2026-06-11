@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cerrno>
 #include <cstring>
-#include <cerrno>
+
 #if HAVE_CONVAR
 #include <format>
 #endif
@@ -10,8 +10,8 @@
 #include "convar.hpp"
 #endif
 #include "log.hpp"
-#include "process.hpp"
 
+#if 0
 static constexpr std::string_view GetLogPriorityText( LogPriority ePriority )
 {
 	switch ( ePriority )
@@ -24,6 +24,7 @@ static constexpr std::string_view GetLogPriorityText( LogPriority ePriority )
 		case LOG_INFO:		return "[\e[0;34m" "Info" "\e[0m] ";
 	}
 }
+#endif
 #if HAVE_CONVAR
 static constexpr std::string_view GetLogName( LogPriority ePriority )
 {
@@ -74,44 +75,55 @@ struct LogConVar_t
 };
 #endif
 LogScope::LogScope( std::string_view psvName, LogPriority eMaxPriority )
-	: LogScope( psvName, psvName, eMaxPriority )
-{
-}
+    : LogScope( psvName, psvName, eMaxPriority )
+{}
 
 LogScope::LogScope( std::string_view psvName, std::string_view psvPrefix, LogPriority eMaxPriority )
-	: m_psvName{ psvName }
-	, m_psvPrefix{ psvPrefix }
-	, m_eMaxPriority{ eMaxPriority }
+    : m_psvName{ psvName }
+    , m_psvPrefix{ psvPrefix }
+    , m_eMaxPriority{ eMaxPriority }
 #if HAVE_CONVAR
-	, m_pEnableConVar{ std::make_unique<LogConVar_t>( this, psvName, eMaxPriority ) }
+    , m_pEnableConVar{ std::make_unique<LogConVar_t>( this, psvName, eMaxPriority ) }
 #endif
 {
+    if constexpr ( gamescope::build::buildtype == "debug"sv )
+    {
+        m_eMaxPriority = LOG_DEBUG;
+    }
 }
 
-LogScope::~LogScope()
+auto LogScope::Enabled( LogPriority ePriority ) const -> bool
 {
+    return ePriority <= m_eMaxPriority;
 }
 
-bool LogScope::Enabled( LogPriority ePriority ) const
+void LogScope::vlogf( enum LogPriority priority, char const* fmt, va_list args )
 {
-	return ePriority <= m_eMaxPriority;
+    if ( !Enabled( priority ) )
+    {
+        return;
+    }
+
+    char* buf = nullptr;
+    int   ret = vasprintf( &buf, fmt, args );
+
+    if ( ret < 0 || ( buf == nullptr ) )
+    {
+        return;
+    }
+    defer( free( buf ); );
+
+    switch ( priority )
+    {
+        case LOG_WARNING: warn( "{}", std::operator""sv( buf, ret ) ); break;
+        case LOG_DEBUG: debug( "{}", std::operator""sv( buf, ret ) ); break;
+        case LOG_ERROR: error( "{}", std::operator""sv( buf, ret ) ); break;
+        case LOG_SILENT: break;
+        case LOG_INFO:
+        default: info( "{}", std::operator""sv( buf, ret ) ); break;
+    }
 }
-
-void LogScope::vlogf(enum LogPriority priority, const char *fmt, va_list args)
-{
-	if ( !Enabled( priority ) )
-		return;
-
-	char *buf = nullptr;
-	int ret = vasprintf(&buf, fmt, args);
-	if (ret < 0 || !buf)
-		return;
-	defer( free(buf); );
-
-	std::string_view svBuf = buf;
-	log(priority, svBuf);
-}
-
+#if 0
 void LogScope::log(enum LogPriority priority, std::string_view psvText)
 {
 	if ( !Enabled( priority ) )
@@ -130,7 +142,7 @@ void LogScope::log(enum LogPriority priority, std::string_view psvText)
 	else
 	 	fprintf(priority > 1 ? stdout : stderr, "%.*s\n", (int)psvText.size(), psvText.data());
 }
-
+#endif
 void LogScope::logf(enum LogPriority priority, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
