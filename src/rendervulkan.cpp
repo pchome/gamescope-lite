@@ -42,6 +42,9 @@
 #define A_CPU
 #include "shaders/ffx_a.h"
 #include "shaders/ffx_fsr1.h"
+#define FFX_CPU
+#define FFX_STATIC [[maybe_unused]] static
+#include "shaders/FidelityFX/gpu/ffx_core.h"
 #include "shaders/bicubic.h"
 
 #if HAVE_RESHADE

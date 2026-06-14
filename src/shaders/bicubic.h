@@ -14,21 +14,21 @@
 //                                                      CONSTANT SETUP
 //==============================================================================================================================
 // Call to setup required constant values (works on CPU or GPU).
-A_STATIC void BicubicCon(
-outAF4 con0,
-outAF4 con1,
+FFX_STATIC void BicubicCon(
+FFX_PARAMETER_OUT FfxFloat32x4 con0,
+FFX_PARAMETER_OUT FfxFloat32x4 con1,
 // Configurable parameters
-AF1 B,
-AF1 C,
+FfxFloat32 B,
+FfxFloat32 C,
 // This the rendered image resolution
-AF1 inputRenderedSizeX,
-AF1 inputRenderedSizeY,
+FfxFloat32 inputRenderedSizeX,
+FfxFloat32 inputRenderedSizeY,
 // This is the resolution of the resource containing the input image (useful for dynamic resolution)
-AF1 inputCurrentSizeX,
-AF1 inputCurrentSizeY,
+FfxFloat32 inputCurrentSizeX,
+FfxFloat32 inputCurrentSizeY,
 // This is the window width / height
-AF1 outputTargetSizeX,
-AF1 outputTargetSizeY)
+FfxFloat32 outputTargetSizeX,
+FfxFloat32 outputTargetSizeY)
 {
  // Input/Output size information
  con0[0]=inputRenderedSizeX;
