@@ -21,7 +21,7 @@
 // Used to remove the config struct alignment specified by the NIS header
 #define NIS_ALIGNED(x)
 // NIS_Config needs to be included before the X11 headers because of conflicting defines introduced by X11
-#include "shaders/NVIDIAImageScaling/NIS/NIS_Config.h"
+#include <NVIDIAImageScaling/NIS/NIS_Config.h>
 
 #include "wlr_begin.hpp"
 #include <wlr/render/drm_format_set.h>
@@ -44,7 +44,7 @@
 #include "shaders/ffx_fsr1.h"
 #define FFX_CPU
 #define FFX_STATIC [[maybe_unused]] static
-#include "shaders/FidelityFX/gpu/ffx_core.h"
+#include <FidelityFX/gpu/ffx_core.h>
 #include "shaders/bicubic.h"
 
 #if HAVE_RESHADE

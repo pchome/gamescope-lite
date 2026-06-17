@@ -44,6 +44,7 @@ if run_command(glsl_compiler, ['--version', '--depfile', 'dummy.dep'], check: fa
     glsl_compiler,
     output    : ['@BASENAME@.h'],
     arguments : ['-V', '@INPUT@', '--vn', '@BASENAME@', '-o', '@OUTPUT@', '--depfile', '@DEPFILE@', '--quiet'
+                ,'-I../thirdparty'
 #                ,'-DHAVE_SOMETHING=@0@'.format(get_option('something').enabled().to_int())
                 ],
     depfile   : '@BASENAME@.h.d',
@@ -53,6 +54,7 @@ else
     glsl_compiler,
     output    : ['@BASENAME@.h'],
     arguments : ['-V', '@INPUT@', '--vn', '@BASENAME@', '-o', '@OUTPUT@'
+                ,'-I../thirdparty'
 #                ,'-DHAVE_SOMETHING=@0@'.format(get_option('something').enabled().to_int())
                 ],
   )
@@ -67,7 +69,13 @@ shader_src = [
   'shaders/cs_nis.comp',
   'shaders/cs_nis_fp16.comp',
   'shaders/cs_rgb_to_nv12.comp',
+#   'shaders/cs_ffx_composite_rcas.comp',
+#   'shaders/cs_ffx_easu.comp',
+#   'shaders/cs_ffx_easu_fp16.comp',
 ]
+
+# NIS and FFX SDK headers
+shader_include = include_directories(['../thirdparty'])
 
 spirv_shaders = glsl_generator.process(shader_src)
 
@@ -188,7 +196,7 @@ subdir('utils')
   executable(
     'gamescope-lite',
     src, gamescope_version, imgui_src, stb_src, reshade_src,
-    include_directories : [imgui_include, reshade_include],
+    include_directories : [shader_include, imgui_include, reshade_include],
     link_with: [core_lib, utils_lib],
     dependencies: [
       dep_x11, dep_xdamage, dep_xcomposite, dep_xrender, dep_xext, dep_xfixes,
