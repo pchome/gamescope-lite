@@ -23,7 +23,7 @@ protocols = [
 # 	'gamescope-input-method.xml',
 # 	'gamescope-control.xml',
 
-	'gamescope-swapchain.xml',
+# 	'gamescope-swapchain.xml',
 
 	'gamescope-action-binding.xml',
 

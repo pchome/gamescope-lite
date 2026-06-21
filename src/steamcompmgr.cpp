@@ -1363,7 +1363,7 @@ get_window_last_done_commit( steamcompmgr_win_t *w, gamescope::Rc<commit_t> &com
 	if ( commit != w->commit_queue[ lastCommit ] )
 		commit = w->commit_queue[ lastCommit ];
 }
-
+#if 0
 static commit_t*
 get_window_last_done_commit_peek( steamcompmgr_win_t *w )
 {
@@ -1376,7 +1376,7 @@ get_window_last_done_commit_peek( steamcompmgr_win_t *w )
 
 	return w->commit_queue[ lastCommit ].get();
 }
-
+#endif
 #if HAVE_PIPEWIRE
 static int64_t
 window_last_done_commit_id( steamcompmgr_win_t *w )
@@ -6744,6 +6744,7 @@ void handle_done_commits_xdg( bool vblank, uint64_t vblank_idx )
 #if HAVE_CONVAR
 gamescope::ConVar<bool> cv_mangoapp_use_output_timing{ "mangoapp_use_output_timing", true };
 #endif
+#if 0
 void handle_presented_for_window( steamcompmgr_win_t* w )
 {
 	// wlserver_lock is held.
@@ -6813,6 +6814,7 @@ void handle_presented_for_window( steamcompmgr_win_t* w )
 			}
 		}
 	}
+
 }
 
 void handle_presented_xwayland( xwayland_ctx_t *ctx )
@@ -6822,6 +6824,7 @@ void handle_presented_xwayland( xwayland_ctx_t *ctx )
 		handle_presented_for_window(w);
 	}
 }
+#endif
 #if 0
 void handle_presented_xdg()
 {
@@ -8542,7 +8545,7 @@ steamcompmgr_main(int argc, char **argv)
 		// and `presented` for anything visible. It's a little disingenuous because we didn't
 		// actually show a window if it wasn't visible, but we could! And that is the first
 		// opportunity it had. It's confusing but we need this for forward progress.
-
+#if 0
 		if ( vblank )
 		{
 			wlserver_lock();
@@ -8551,7 +8554,7 @@ steamcompmgr_main(int argc, char **argv)
 				handle_presented_xwayland( server->ctx.get() );
 			wlserver_unlock();
 		}
-
+#endif
 		//
 
 		{
@@ -8560,7 +8563,7 @@ steamcompmgr_main(int argc, char **argv)
 				check_new_xwayland_res(server->ctx.get());
 		}
 
-
+#if 0
 		{
 			GamescopeAppTextureColorspace current_app_colorspace = GAMESCOPE_APP_TEXTURE_COLORSPACE_SRGB;
 			std::shared_ptr<gamescope::BackendBlob> app_hdr_metadata = nullptr;
@@ -8605,7 +8608,7 @@ steamcompmgr_main(int argc, char **argv)
 				flush_root = true;
 			}
 		}
-
+#endif
 		// Handles if we got a commit for the window we want to focus
 		// to switch to it for painting (outdatedInteractiveFocus)
 		// Doesn't realllly matter but avoids an extra frame of being on the wrong window.

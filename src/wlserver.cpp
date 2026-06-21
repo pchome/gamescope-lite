@@ -58,7 +58,7 @@
 #include "gamescope-control-protocol.h"
 #include "gamescope-private-protocol.h"
 #endif
-#include "gamescope-swapchain-protocol.h"
+// #include "gamescope-swapchain-protocol.h"
 // #include "presentation-time-protocol.h"
 
 #include "core/log.hpp"
@@ -66,7 +66,7 @@
 
 #include "color_helpers.h"
 #include "commit.h"
-#include "hdmi.h"
+// #include "hdmi.h"
 #include "main.hpp"
 #include "refresh_rate.h"
 #include "global/steamcompmgr.hpp"
@@ -630,11 +630,12 @@ void gamescope_xwayland_server_t::destroy_content_override( struct wlserver_cont
 		if ( wl_surface_info )
 			wl_surface_info->x11_surface = nullptr;
 	}
-
+#if 0
 	if ( co->gamescope_swapchain )
 	{
 		gamescope_swapchain_send_retired(co->gamescope_swapchain);
 	}
+#endif
 	wl_list_remove( &co->surface_destroy_listener.link );
 	content_overrides.erase( co->x11_window );
 	free( co );
@@ -656,12 +657,13 @@ void gamescope_xwayland_server_t::destroy_content_override( struct wlserver_x11_
 #ifdef GAMESCOPE_SWAPCHAIN_DEBUG
 	wl_log.infof( "destroy_content_override LOOKUP FOUND: x11_surface: %p x11_window: 0x%x surf: %p co: %p co->surface: %p", x11_surface, x11_surface->x11_id, surf, co, co->surface );
 #endif
-
+#if 0
 	co->gamescope_swapchain = nullptr;
+#endif
 	if (co->surface == surf)
 		destroy_content_override(iter->second);
 }
-
+#if 0
 void gamescope_xwayland_server_t::clear_content_override_swapchain( struct wl_resource *gamescope_swapchain_resource )
 {
 	for ( auto &iter : content_overrides )
@@ -675,7 +677,7 @@ void gamescope_xwayland_server_t::clear_content_override_swapchain( struct wl_re
 		}
 	}
 }
-
+#endif
 static void content_override_handle_surface_destroy( struct wl_listener *listener, void *data )
 {
 	struct wlserver_content_override *co = wl_container_of( listener, co, surface_destroy_listener );
@@ -683,9 +685,9 @@ static void content_override_handle_surface_destroy( struct wl_listener *listene
 	assert( server );
 	server->destroy_content_override( co );
 }
-
+#if 0
 static void gamescope_swapchain_destroy_co( struct wl_resource *resource );
-
+#endif
 void gamescope_xwayland_server_t::handle_override_window_content( struct wl_client *client, struct wl_resource *gamescope_swapchain_resource, struct wlr_surface *surface, uint32_t x11_window )
 {
 	wlserver_x11_surface_info *x11_surface = lookup_x11_surface_info_from_xid( this, x11_window );
@@ -705,12 +707,12 @@ void gamescope_xwayland_server_t::handle_override_window_content( struct wl_clie
 #endif
 		destroy_content_override( content_overrides[ x11_window ] );
 	}
-
+#if 0
 	if ( gamescope_swapchain_resource )
 	{
 		gamescope_swapchain_destroy_co( gamescope_swapchain_resource );
 	}
-
+#endif
 	struct wlserver_content_override *co = (struct wlserver_content_override *)calloc(1, sizeof(*co));
 	co->server = this;
 	co->surface = surface;
@@ -813,7 +815,7 @@ static void create_gamescope_xwayland()
     int32_t version = 1;
     wl_global_create( wlserver.display, &gamescope_xwayland_interface, version, nullptr, gamescope_xwayland_bind );
 }
-
+#if 0
 static void gamescope_swapchain_destroy_co( struct wl_resource *resource )
 {
 #ifdef GAMESCOPE_SWAPCHAIN_DEBUG
@@ -1013,7 +1015,7 @@ static void create_gamescope_swapchain_factory_v2()
     int32_t version = 1;
     wl_global_create( wlserver.display, &gamescope_swapchain_factory_v2_interface, version, nullptr, gamescope_swapchain_factory_v2_bind );
 }
-
+#endif
 #if HAVE_PIPEWIRE
 static void gamescope_pipewire_handle_destroy( struct wl_client *client, struct wl_resource *resource )
 {
@@ -1481,7 +1483,7 @@ void wlserver_presentation_feedback_discard( struct wlr_surface *surface, std::v
 
 ///////////////////////
 #endif
-
+#if 0
 void wlserver_past_present_timing( struct wlr_surface *surface, uint32_t present_id, uint64_t desired_present_time, uint64_t actual_present_time, uint64_t earliest_present_time, uint64_t present_margin )
 {
 	wlserver_wl_surface_info *wl_info = get_wl_surface_info( surface );
@@ -1516,7 +1518,7 @@ void wlserver_refresh_cycle( struct wlr_surface *surface, uint64_t refresh_cycle
 			refresh_cycle & 0xffffffff);
 	}
 }
-
+#endif
 ///////////////////////
 #if 0
 [[maybe_unused]] static void handle_wlr_log(enum wlr_log_importance importance, const char *fmt, va_list args)
@@ -1886,9 +1888,9 @@ bool wlserver_init() {
 	new gamescope::WaylandServer::CGamescopeActionBindingProtocol( wlserver.display );
 
 	create_gamescope_xwayland();
-
+#if 0
 	create_gamescope_swapchain_factory_v2();
-
+#endif
 #if HAVE_PIPEWIRE
 	create_gamescope_pipewire();
 #endif
