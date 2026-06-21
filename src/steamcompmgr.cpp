@@ -8272,7 +8272,7 @@ steamcompmgr_main(int argc, char **argv)
 			// TODO(misyl): Improve this situation, it's kind of a mess.
 			// We could/should make this event driven rather than solving
 			// per-frame.
-
+#if 0
 			if ( !gamescope::VirtualConnectorIsSingleOutput() )
 			{
 				std::vector<gamescope::VirtualConnectorKey_t> newKeys;
@@ -8349,7 +8349,7 @@ steamcompmgr_main(int argc, char **argv)
 					}
 				}
 			}
-
+#endif
 			for ( auto &iter : g_VirtualConnectorFocuses )
 			{
 				global_focus_t *pFocus = &iter.second;
@@ -8360,7 +8360,7 @@ steamcompmgr_main(int argc, char **argv)
 				}
 			}
 		}
-
+#if 0
 		// If our DRM state is out-of-date, refresh it. This might update
 		// the output size.
 		if ( GetBackend()->PollState() )
@@ -8369,6 +8369,7 @@ steamcompmgr_main(int argc, char **argv)
 
 			update_mode_atoms(root_ctx, &flush_root);
 		}
+#endif
 #if HAVE_CONVAR
 		g_uCompositeDebug = cv_composite_debug;
 #endif
