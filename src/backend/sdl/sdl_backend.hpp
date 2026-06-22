@@ -24,6 +24,9 @@ enum SDLCustomEvents : std::uint8_t {
   GAMESCOPE_SDL_EVENT_GRAB,
   GAMESCOPE_SDL_EVENT_CURSOR,
 
+  GAMESCOPE_SDL_EVENT_WM_FLASH_ON,
+  GAMESCOPE_SDL_EVENT_WM_FLASH_OFF,
+
   GAMESCOPE_SDL_EVENT_REQ_EXIT,
 
   GAMESCOPE_SDL_EVENT_COUNT,
@@ -137,6 +140,7 @@ public:
   static void SetSelection(std::shared_ptr<std::string> const& szContents, GamescopeSelection eSelection);
   void SetTitle(std::shared_ptr<std::string> szTitle);
   void SetVisible(bool bVisible);
+  void SetWMFlash(bool bEnable);
 
   ////////////////////////
   // Custom helpers

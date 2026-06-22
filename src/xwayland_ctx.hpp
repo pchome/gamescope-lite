@@ -117,6 +117,7 @@ struct xwayland_ctx_t final : public gamescope::IWaitable
 		Atom netWMStateFocusedAtom;
 		Atom netWMStateSkipTaskbarAtom;
 		Atom netWMStateSkipPagerAtom;
+        Atom netWMStateDemandsAttentionAtom;
 		Atom WLSurfaceIDAtom;
 		Atom WMStateAtom;
 		Atom steamInputFocusAtom;

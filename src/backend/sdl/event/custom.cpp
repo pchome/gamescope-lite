@@ -119,6 +119,14 @@ auto CSDLBackend::HandleUserEvent(SDL_Event event) -> bool {
     UseApplicationCursor();
     return true;
   }
+  if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_WM_FLASH_ON)) {
+    SDL_FlashWindow(m_Connector.GetSDLWindow(), SDL_FLASH_UNTIL_FOCUSED);
+    return true;
+  }
+  if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_WM_FLASH_OFF)) {
+    SDL_FlashWindow(m_Connector.GetSDLWindow(), SDL_FLASH_CANCEL);
+    return true;
+  }
   if (event.type == GetUserEventIndex(GAMESCOPE_SDL_EVENT_REQ_EXIT)) {
     return true;
   }

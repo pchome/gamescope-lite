@@ -132,6 +132,17 @@ void CSDLBackend::SetSelection(std::shared_ptr<std::string> const& szContents, G
   }
 }
 
+void CSDLBackend::SetWMFlash( bool bEnable )
+{
+    if ( bEnable )
+    {
+        PushUserEvent( GAMESCOPE_SDL_EVENT_WM_FLASH_ON );
+        return;
+    }
+
+    PushUserEvent( GAMESCOPE_SDL_EVENT_WM_FLASH_OFF );
+}
+
 void CSDLBackend::OnBackendBlobDestroyed(BackendBlob* pBlob) { /* Do nothing. */ }
 
 CSDLBackend::~CSDLBackend() {

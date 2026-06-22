@@ -4437,6 +4437,8 @@ get_net_wm_state(xwayland_ctx_t *ctx, steamcompmgr_win_t *w)
 			w->skipTaskbar = true;
 		} else if (props[i] == ctx->atoms.netWMStateSkipPagerAtom) {
 			w->skipPager = true;
+        } else if (props[i] == ctx->atoms.netWMStateDemandsAttentionAtom) {
+            w->demandsAttention = true;
 		} else {
 			xwm_log.debugf("Unhandled initial NET_WM_STATE property: %s", XGetAtomName(ctx->dpy, props[i]));
 		}
@@ -5227,6 +5229,10 @@ handle_net_wm_state(xwayland_ctx_t *ctx, steamcompmgr_win_t *w, XClientMessageEv
 		} else if (props[i] == ctx->atoms.netWMStateSkipPagerAtom) {
 			update_net_wm_state(action, &w->skipPager);
 			MakeFocusDirty();
+        } else if (props[i] == ctx->atoms.netWMStateDemandsAttentionAtom) {
+            GetBackend()->GetCurrentConnector()->GetNestedHints()->SetWMFlash(true);
+            update_net_wm_state(action, &w->demandsAttention);
+			// MakeFocusDirty();
 		} else if (props[i] != None) {
 			xwm_log.debugf("Unhandled NET_WM_STATE property change: %s", XGetAtomName(ctx->dpy, props[i]));
 		}
@@ -6483,6 +6489,7 @@ register_cm(xwayland_ctx_t *ctx)
 		XInternAtom(ctx->dpy, "_NET_WM_STATE_FULLSCREEN", False),
 		XInternAtom(ctx->dpy, "_NET_WM_STATE_SKIP_TASKBAR", False),
 		XInternAtom(ctx->dpy, "_NET_WM_STATE_SKIP_PAGER", False),
+		XInternAtom(ctx->dpy, "_NET_WM_STATE_DEMANDS_ATTENTION", False),
 		XInternAtom(ctx->dpy, "_NET_ACTIVE_WINDOW", False),
 	};
 
@@ -7505,6 +7512,7 @@ void init_xwayland_ctx(uint32_t serverId, gamescope_xwayland_server_t *xwayland_
 	ctx->atoms.netWMStateFocusedAtom = XInternAtom(ctx->dpy, "_NET_WM_STATE_FOCUSED", False);
 	ctx->atoms.netWMStateSkipTaskbarAtom = XInternAtom(ctx->dpy, "_NET_WM_STATE_SKIP_TASKBAR", False);
 	ctx->atoms.netWMStateSkipPagerAtom = XInternAtom(ctx->dpy, "_NET_WM_STATE_SKIP_PAGER", False);
+    ctx->atoms.netWMStateDemandsAttentionAtom = XInternAtom(ctx->dpy, "_NET_WM_STATE_DEMANDS_ATTENTION", False);
 	ctx->atoms.WLSurfaceIDAtom = XInternAtom(ctx->dpy, "WL_SURFACE_ID", False);
 	ctx->atoms.WMStateAtom = XInternAtom(ctx->dpy, "WM_STATE", False);
 	ctx->atoms.utf8StringAtom = XInternAtom(ctx->dpy, "UTF8_STRING", False);

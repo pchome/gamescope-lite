@@ -67,6 +67,7 @@ public:
   void SetSelection(std::shared_ptr<std::string> szContents, GamescopeSelection eSelection) override;
   void SetTitle(std::shared_ptr<std::string> szTitle) override;
   void SetVisible(bool bVisible) override;
+  void SetWMFlash(bool bEnable) override;
 
   //--
 

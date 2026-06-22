@@ -282,6 +282,7 @@ namespace gamescope
         virtual void SetTitle( std::shared_ptr<std::string> szTitle ) = 0;
         virtual void SetIcon( std::shared_ptr<std::vector<uint32_t>> uIconPixels ) = 0;
         virtual void SetSelection( std::shared_ptr<std::string> szContents, GamescopeSelection eSelection ) = 0;
+        virtual void SetWMFlash( bool bEnable ) = 0;
 
         virtual bool ShouldPaintCursor() { return false; }
     };

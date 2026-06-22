@@ -223,6 +223,8 @@ void CSDLConnector::SetSelection(std::shared_ptr<std::string> szContents, Gamesc
     break;
   }
 }
+/** Demand Attention */
+void CSDLConnector::SetWMFlash(bool bEnable) { m_pBackend->SetWMFlash(bEnable); }
 
 auto CSDLConnector::GetTitle() const -> std::shared_ptr<std::string> { return m_pBackend->GetTitle(); }
 
