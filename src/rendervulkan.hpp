@@ -749,6 +749,7 @@ struct VulkanTimelinePoint_t
 class CVulkanDevice
 {
 public:
+    ~CVulkanDevice();
 	bool BInit(VkInstance instance, VkSurfaceKHR surface);
 
 	VkSampler sampler(SamplerState key);
