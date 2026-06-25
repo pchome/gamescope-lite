@@ -44,7 +44,7 @@ if run_command(glsl_compiler, ['--version', '--depfile', 'dummy.dep'], check: fa
     glsl_compiler,
     output    : ['@BASENAME@.h'],
     arguments : ['-V', '@INPUT@', '--vn', '@BASENAME@', '-o', '@OUTPUT@', '--depfile', '@DEPFILE@', '--quiet'
-                ,'-I../thirdparty'
+                ,'-I@SOURCE_DIR@/thirdparty'
 #                ,'-DHAVE_SOMETHING=@0@'.format(get_option('something').enabled().to_int())
                 ],
     depfile   : '@BASENAME@.h.d',
@@ -54,7 +54,7 @@ else
     glsl_compiler,
     output    : ['@BASENAME@.h'],
     arguments : ['-V', '@INPUT@', '--vn', '@BASENAME@', '-o', '@OUTPUT@'
-                ,'-I../thirdparty'
+                ,'-I@SOURCE_DIR@/thirdparty'
 #                ,'-DHAVE_SOMETHING=@0@'.format(get_option('something').enabled().to_int())
                 ],
   )
